@@ -1,4 +1,4 @@
-import { ApolloProvider } from "@apollo/react-hooks";
+import { ApolloProvider } from "@apollo/client";
 import { useApollo } from "../lib/apolloClient";
 import { AppPropsType } from "next/dist/next-server/lib/utils";
 

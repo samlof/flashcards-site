@@ -2,8 +2,8 @@ module.exports = {
   client: {
     excludes: ["**/*.generated.{ts,tsx}"],
     service: {
-      name: "youlist",
-      url: "http://localhost:8080",
+      name: "graphcool",
+      url: "https://api.graph.cool/simple/v1/cixmkt2ul01q00122mksg82pn",
     },
   },
 };
