@@ -1,0 +1,27 @@
+schema: http://localhost:8080
+
+config:
+  scalars:
+    Time: Date
+
+generates:
+  src/graphql-types.ts:
+    - typescript
+  # Generate hooks for all GraphQL operations
+  src/:
+    preset: near-operation-file
+    documents: 
+      - 'src/**/*.{ts,tsx,gql}'
+      # Don't parse generated files
+      - '!(src/**/*.generated.{ts,tsx,gql})'
+    presetConfig:
+      extension: .generated.tsx
+      baseTypesPath: 'graphql-types'
+      folder: __generated__
+    plugins:
+      - typescript-operations
+      - typescript-react-apollo:
+          reactApolloVersion: 3
+          withHooks: true
+          withHOC: false
+          withComponent: false
