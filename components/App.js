@@ -4,44 +4,29 @@ export default function App({ children }) {
       {children}
       <style jsx global>{`
         * {
-          font-family: Menlo, Monaco, 'Lucida Console', 'Liberation Mono',
-            'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', 'Courier New',
+          font-family: Menlo, Monaco, "Lucida Console", "Liberation Mono",
+            "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Courier New",
             monospace, serif;
         }
         body {
           margin: 0;
           padding: 25px 50px;
         }
-        a {
-          color: #22bad9;
+        .my-node-enter {
+          opacity: 0;
         }
-        p {
-          font-size: 14px;
-          line-height: 24px;
+        .my-node-enter-active {
+          opacity: 1;
+          transition: opacity 200ms;
         }
-        article {
-          margin: 0 auto;
-          max-width: 650px;
+        .my-node-exit {
+          opacity: 1;
         }
-        button {
-          align-items: center;
-          background-color: #22bad9;
-          border: 0;
-          color: white;
-          display: flex;
-          padding: 5px 7px;
-          transition: background-color 0.3s;
-        }
-        button:active {
-          background-color: #1b9db7;
-        }
-        button:disabled {
-          background-color: #b5bebf;
-        }
-        button:focus {
-          outline: none;
+        .my-node-exit-active {
+          opacity: 0;
+          transition: opacity 200ms;
         }
       `}</style>
     </main>
-  )
+  );
 }
