@@ -41,8 +41,8 @@ const NewQuestionsButton = styled.button`
   padding: 0.3rem 0.6rem;
   transition: background-color 0.3s;
   font-size: 1.5rem;
-  text-align:center;
-  width:20rem
+  text-align: center;
+  width: 20rem;
   cursor: pointer;
 
   &:active {
