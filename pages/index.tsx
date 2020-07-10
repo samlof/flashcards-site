@@ -2,7 +2,7 @@ import { GetStaticProps } from "next";
 import React from "react";
 import styled from "styled-components";
 import App from "../components/App";
-import { numberToString } from "../helpers/numberToString";
+import { numberToString, shuffle } from "../helpers/numberToString";
 import { QuestionLine, Question } from "../components/QuestionLine";
 import { CSSTransition } from "react-transition-group";
 
@@ -28,7 +28,7 @@ const generateQuestions = (amount = 10): Question[] => {
     ret.push({ num, answer, id: id++ });
   }
 
-  return ret;
+  return shuffle(ret);
 };
 
 const Title = styled.h1`

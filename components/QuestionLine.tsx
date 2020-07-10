@@ -42,11 +42,13 @@ export const QuestionLine = ({
   const [showAnswer, setShowAnswer] = React.useState(false);
   const [showLoading, setShowLoading] = React.useState(true);
 
+  const lowercaseAnswer = answer.toLowerCase();
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    if (answer !== question.answer && value === question.answer) {
+    const lowerValue = value.toLowerCase();
+    if (answer !== question.answer && lowerValue === question.answer) {
       resultChanged(true);
-    } else if (answer === question.answer && value !== question.answer) {
+    } else if (answer === question.answer && lowerValue !== question.answer) {
       resultChanged(false);
     }
     setAnswer(value);
@@ -78,7 +80,7 @@ export const QuestionLine = ({
           onEnter={() => setShowLoading(false)}
           classNames="my-node"
         >
-          <span>{question.answer === answer ? "OK!" : "Not ok"}</span>
+          <span>{question.answer === lowercaseAnswer ? "OK!" : "Not ok"}</span>
         </CSSTransition>
       </ResultSpan>
     </>
