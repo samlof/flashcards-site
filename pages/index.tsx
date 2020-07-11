@@ -10,8 +10,8 @@ let id = 1000;
 
 const generateQuestions = (amount = 10): Question[] => {
   const ret: Question[] = [];
-  const hundreds = amount / 10;
-  const ones = amount / 4;
+  const hundreds = Math.floor( amount / 10);
+  const ones = Math.floor( amount / 4);
   for (let i = 0; i < hundreds; i++) {
     const num = Math.floor(Math.random() * 899 + 100);
     const answer = numberToString(num);
