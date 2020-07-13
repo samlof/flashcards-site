@@ -68,7 +68,7 @@ export const QuestionLine = ({
           unmountOnExit
           in={showLoading && showResults}
           timeout={400}
-          classNames="my-node"
+          classNames="fade-in-out"
           onEntered={() => setShowAnswer(true)}
         >
           <span>{!showAnswer && "Calculating..."}</span>
@@ -78,7 +78,7 @@ export const QuestionLine = ({
           in={showAnswer}
           timeout={200}
           onEnter={() => setShowLoading(false)}
-          classNames="my-node"
+          classNames="fade-in-out"
         >
           <span>{question.answer === lowercaseAnswer ? "OK!" : "Not ok"}</span>
         </CSSTransition>

@@ -12,17 +12,17 @@ export default function App({ children }) {
           margin: 0;
           padding: 25px 50px;
         }
-        .my-node-enter {
+        .fade-in-out-enter {
           opacity: 0;
         }
-        .my-node-enter-active {
+        .fade-in-out-enter-active {
           opacity: 1;
           transition: opacity 200ms;
         }
-        .my-node-exit {
+        .fade-in-out-exit {
           opacity: 1;
         }
-        .my-node-exit-active {
+        .fade-in-out-exit-active {
           opacity: 0;
           transition: opacity 200ms;
         }

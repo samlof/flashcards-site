@@ -2,7 +2,7 @@ import { GetStaticProps } from "next";
 import React from "react";
 import styled from "styled-components";
 import App from "../components/App";
-import ReactCardFlip from "react-card-flip";
+import FlipCard, { CardWord } from "../components/FlipCard";
 
 let id = 1000;
 
@@ -32,20 +32,17 @@ const CardText = styled.p`
 interface Props {}
 
 const IndexPage = ({}: Props) => {
-  const [animate, setAnim] = React.useState(false);
+  const frontCard: CardWord = {
+    text: "Jäätelö",
+  };
+  const backCard: CardWord = {
+    text: "Ice cream",
+  };
   return (
     <App>
       <Title>Flashcards</Title>
       <CenteringDiv style={{ marginBottom: "20px" }}>
-        <ReactCardFlip isFlipped={animate} flipDirection="horizontal">
-          <CardSide key="front" onClick={(e) => setAnim((a) => !a)}>
-            <CardText>Jäätelö</CardText>
-          </CardSide>
-
-          <CardSide key="back" onClick={(e) => setAnim((a) => !a)}>
-            <CardText>Ice cream</CardText>
-          </CardSide>
-        </ReactCardFlip>
+        <FlipCard back={backCard} front={frontCard}></FlipCard>
       </CenteringDiv>
     </App>
   );
