@@ -7,6 +7,7 @@ export default function App({ children }) {
           font-family: Menlo, Monaco, "Lucida Console", "Liberation Mono",
             "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Courier New",
             monospace, serif;
+          box-sizing: border-box;
         }
         body {
           margin: 0;
@@ -25,6 +26,14 @@ export default function App({ children }) {
         .fade-in-out-exit-active {
           opacity: 0;
           transition: opacity 200ms;
+        }
+
+        .center-div {
+          text-align: center;
+          justify-content: center;
+          display: flex;
+          align-items: center;
+          flex-direction: column;
         }
       `}</style>
     </main>

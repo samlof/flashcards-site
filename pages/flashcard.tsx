@@ -3,6 +3,8 @@ import React from "react";
 import styled from "styled-components";
 import App from "../components/App";
 import FlipCard, { CardWord } from "../components/FlipCard";
+import { words } from "../components/words";
+import { Button } from "../components/Button";
 
 let id = 1000;
 
@@ -10,40 +12,55 @@ const Title = styled.h1`
   text-align: center;
 `;
 
-const CenteringDiv = styled.div`
-  text-align: center;
-  justify-content: center;
+const ButtonDiv = styled.div`
   display: flex;
-`;
-
-const CardSide = styled.div`
-  display: flex;
-  align-self: center;
+  justify-content: space-between;
   align-items: center;
-  box-shadow: 0 0 15px black;
-  height: 30vh;
-  width: 30vh;
+  width: 13rem;
 `;
 
-const CardText = styled.p`
-  text-align: center;
-  margin: auto;
-`;
+const clampValue = (n: number, mod: number): number => {
+  if (n < 0) return n + mod;
+  if (n > mod - 1) return n - mod;
+  return n;
+};
+
 interface Props {}
 
 const IndexPage = ({}: Props) => {
+  const [index, setIndex] = React.useState(0);
+
+  const nextCard = () => {
+    setIndex((i) => clampValue(i + 1, words.length));
+  };
+  const lastCard = () => {
+    setIndex((i) => clampValue(i - 1, words.length));
+  };
+  const word = words[index];
   const frontCard: CardWord = {
-    text: "Jäätelö",
+    lang: "fi",
+    text: word.fi,
   };
   const backCard: CardWord = {
-    text: "Ice cream",
+    lang: "en",
+    text: word.en,
   };
   return (
     <App>
       <Title>Flashcards</Title>
-      <CenteringDiv style={{ marginBottom: "20px" }}>
-        <FlipCard back={backCard} front={frontCard}></FlipCard>
-      </CenteringDiv>
+      <div className="center-div">
+        <FlipCard key={index} back={backCard} front={frontCard}></FlipCard>
+        <span style={{ marginTop: "2rem" }}></span>
+        <ButtonDiv>
+          <Button type="button" onClick={(e) => lastCard()}>
+            Back
+          </Button>
+          {index + 1}/{words.length}
+          <Button type="button" onClick={(e) => nextCard()}>
+            Next
+          </Button>
+        </ButtonDiv>
+      </div>
     </App>
   );
 };

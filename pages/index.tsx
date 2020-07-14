@@ -5,6 +5,7 @@ import App from "../components/App";
 import { numberToString, shuffle } from "../helpers/numberToString";
 import { QuestionLine, Question } from "../components/QuestionLine";
 import { CSSTransition } from "react-transition-group";
+import { Button } from "../components/Button";
 
 let id = 1000;
 
@@ -33,28 +34,6 @@ const generateQuestions = (amount = 10): Question[] => {
 
 const Title = styled.h1`
   text-align: center;
-`;
-const NewQuestionsButton = styled.button`
-  background-color: #22bad9;
-  border: 0;
-  color: white;
-  padding: 0.3rem 0.6rem;
-  transition: background-color 0.3s;
-  font-size: 1.5rem;
-  text-align: center;
-  width: 20rem;
-  cursor: pointer;
-
-  &:active {
-    background-color: #1b9db7;
-  }
-
-  &:disabled {
-    background-color: #b5bebf;
-  }
-  &:focus {
-    outline: none;
-  }
 `;
 const Container = styled.div`
   display: flex;
@@ -138,20 +117,17 @@ const IndexPage = ({ initialQuestions }: Props) => {
             </CSSTransition>
           </div>
           {!showTotalResults ? (
-            <NewQuestionsButton
+            <Button
               type="button"
               disabled={loadingResults}
               onClick={(e) => submitResults()}
             >
               Show results
-            </NewQuestionsButton>
+            </Button>
           ) : (
-            <NewQuestionsButton
-              type="button"
-              onClick={(e) => generateNewQuestions()}
-            >
+            <Button type="button" onClick={(e) => generateNewQuestions()}>
               New Questions
-            </NewQuestionsButton>
+            </Button>
           )}
         </div>
       </ResultArea>

@@ -6,18 +6,16 @@ const CardSide = styled.div`
   display: flex;
   align-self: center;
   align-items: center;
-  box-shadow: 0 0 15px black;
+  flex-direction: column;
+  justify-content: center;
+  box-shadow: 0 0 10px rgba(38, 12, 12, 0.73);
   height: 30vh;
-  width: 30vh;
-  border-radius: 15%;
-`;
-
-const CardText = styled.p`
-  text-align: center;
-  margin: auto;
+  width: 20vh;
+  border-radius: 10%;
 `;
 
 export interface CardWord {
+  lang: string;
   text: string;
 }
 interface Props {
@@ -27,14 +25,17 @@ interface Props {
 
 const FlipCard = ({ front, back }: Props) => {
   const [animate, setAnim] = React.useState(false);
+
   return (
     <ReactCardFlip isFlipped={animate} flipDirection="horizontal">
       <CardSide key="front" onClick={(e) => setAnim((a) => !a)}>
-        <CardText>{front.text}</CardText>
+        <span>{front.text}</span>
+        <i>{front.lang}</i>
       </CardSide>
 
       <CardSide key="back" onClick={(e) => setAnim((a) => !a)}>
-        <CardText>{back.text}</CardText>
+        <span>{back.text}</span>
+        <i>{back.lang}</i>
       </CardSide>
     </ReactCardFlip>
   );
