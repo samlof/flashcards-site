@@ -5,6 +5,8 @@ import App from "../components/App";
 import FlipCard, { CardWord } from "../components/FlipCard";
 import { words } from "../components/words";
 import { Button } from "../components/Button";
+import { CSSTransition } from "react-transition-group";
+import { delayMs } from "../helpers/delay";
 
 let id = 1000;
 
@@ -19,6 +21,9 @@ const ButtonDiv = styled.div`
   width: 13rem;
 `;
 
+const CardDiv = styled.div`
+  height: 32vh;
+`;
 const clampValue = (n: number, mod: number): number => {
   if (n < 0) return n + mod;
   if (n > mod - 1) return n - mod;
@@ -29,12 +34,19 @@ interface Props {}
 
 const IndexPage = ({}: Props) => {
   const [index, setIndex] = React.useState(0);
+  const [cardVisible, setVisible] = React.useState(true);
 
-  const nextCard = () => {
+  const nextCard = async () => {
+    setVisible(false);
+    await delayMs(500);
     setIndex((i) => clampValue(i + 1, words.length));
+    setVisible(true);
   };
-  const lastCard = () => {
+  const lastCard = async () => {
+    setVisible(false);
+    await delayMs(500);
     setIndex((i) => clampValue(i - 1, words.length));
+    setVisible(true);
   };
   const word = words[index];
   const frontCard: CardWord = {
@@ -49,7 +61,16 @@ const IndexPage = ({}: Props) => {
     <App>
       <Title>Flashcards</Title>
       <div className="center-div">
-        <FlipCard key={index} back={backCard} front={frontCard}></FlipCard>
+        <CardDiv>
+          <CSSTransition
+            unmountOnExit
+            in={cardVisible}
+            timeout={300}
+            classNames="fade-in-out"
+          >
+            <FlipCard key={index} back={backCard} front={frontCard}></FlipCard>
+          </CSSTransition>
+        </CardDiv>
         <span style={{ marginTop: "2rem" }}></span>
         <ButtonDiv>
           <Button type="button" onClick={(e) => lastCard()}>
