@@ -30,6 +30,8 @@ const clampValue = (n: number, mod: number): number => {
   return n;
 };
 
+const animationSpeed = 200;
+
 interface Props {}
 
 const IndexPage = ({}: Props) => {
@@ -38,13 +40,13 @@ const IndexPage = ({}: Props) => {
 
   const nextCard = async () => {
     setVisible(false);
-    await delayMs(500);
+    await delayMs(animationSpeed);
     setIndex((i) => clampValue(i + 1, words.length));
     setVisible(true);
   };
   const lastCard = async () => {
     setVisible(false);
-    await delayMs(500);
+    await delayMs(animationSpeed);
     setIndex((i) => clampValue(i - 1, words.length));
     setVisible(true);
   };
@@ -65,7 +67,7 @@ const IndexPage = ({}: Props) => {
           <CSSTransition
             unmountOnExit
             in={cardVisible}
-            timeout={300}
+            timeout={animationSpeed}
             classNames="fade-in-out"
           >
             <FlipCard key={index} back={backCard} front={frontCard}></FlipCard>
