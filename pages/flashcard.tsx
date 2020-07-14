@@ -21,9 +21,6 @@ const ButtonDiv = styled.div`
   width: 13rem;
 `;
 
-const CardDiv = styled.div`
-  height: 32vh;
-`;
 const clampValue = (n: number, mod: number): number => {
   if (n < 0) return n + mod;
   if (n > mod - 1) return n - mod;
@@ -63,16 +60,13 @@ const IndexPage = ({}: Props) => {
     <App>
       <Title>Flashcards</Title>
       <div className="center-div">
-        <CardDiv>
-          <CSSTransition
-            unmountOnExit
-            in={cardVisible}
-            timeout={animationSpeed}
-            classNames="fade-in-out"
-          >
-            <FlipCard key={index} back={backCard} front={frontCard}></FlipCard>
-          </CSSTransition>
-        </CardDiv>
+        <CSSTransition
+          in={cardVisible}
+          timeout={animationSpeed}
+          classNames="fade-in-out"
+        >
+          <FlipCard key={index} back={backCard} front={frontCard}></FlipCard>
+        </CSSTransition>
         <span style={{ marginTop: "2rem" }}></span>
         <ButtonDiv>
           <Button type="button" onClick={(e) => lastCard()}>
