@@ -43,10 +43,6 @@ const Container = styled.div`
   height: 2rem;
 `;
 
-const ResultArea = styled.div`
-  margin-top: 3rem;
-  text-align: center;
-`;
 interface Props {
   initialQuestions: Question[];
 }
@@ -93,44 +89,43 @@ const IndexPage = ({ initialQuestions }: Props) => {
   return (
     <App>
       <Title>Write the number in Finnish and press submit</Title>
-      {questions.map((question) => (
-        <Container key={question.id}>
-          <QuestionLine
-            question={question}
-            showResults={showResults[question.id]}
-            resultChanged={answersChanged}
-          ></QuestionLine>
-        </Container>
-      ))}
-      <ResultArea>
-        <div style={{ display: "inline-block" }}>
-          <div style={{ height: "1rem" }}>
-            <CSSTransition
-              unmountOnExit
-              in={showTotalResults}
-              timeout={400}
-              classNames="fade-in-out"
-            >
-              <span>
-                Right answers: {rightAnswerCount} out of {questions.length}
-              </span>
-            </CSSTransition>
-          </div>
-          {!showTotalResults ? (
-            <Button
-              type="button"
-              disabled={loadingResults}
-              onClick={(e) => submitResults()}
-            >
-              Show results
-            </Button>
-          ) : (
-            <Button type="button" onClick={(e) => generateNewQuestions()}>
-              New Questions
-            </Button>
-          )}
+
+      <div className="center-div">
+        {questions.map((question) => (
+          <Container key={question.id}>
+            <QuestionLine
+              question={question}
+              showResults={showResults[question.id]}
+              resultChanged={answersChanged}
+            ></QuestionLine>
+          </Container>
+        ))}
+        <div style={{ height: "1.5rem" }}>
+          <CSSTransition
+            unmountOnExit
+            in={showTotalResults}
+            timeout={400}
+            classNames="fade-in-out"
+          >
+            <span>
+              Right answers: {rightAnswerCount} out of {questions.length}
+            </span>
+          </CSSTransition>
         </div>
-      </ResultArea>
+        {!showTotalResults ? (
+          <Button
+            type="button"
+            disabled={loadingResults}
+            onClick={(e) => submitResults()}
+          >
+            Show results
+          </Button>
+        ) : (
+          <Button type="button" onClick={(e) => generateNewQuestions()}>
+            New Questions
+          </Button>
+        )}
+      </div>
     </App>
   );
 };
