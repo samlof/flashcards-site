@@ -3,12 +3,11 @@ import React from "react";
 import styled from "styled-components";
 import App from "../components/App";
 import FlipCard, { CardWord } from "../components/FlipCard";
-import { words } from "../components/words";
+import { wordList, Word } from "../components/words";
 import { Button } from "../components/Button";
 import { CSSTransition } from "react-transition-group";
 import { delayMs } from "../helpers/delay";
-
-let id = 1000;
+import { shuffle } from "../helpers/numberToString";
 
 const Title = styled.h1`
   text-align: center;
@@ -18,7 +17,6 @@ const ButtonDiv = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  width: 13rem;
 `;
 
 const clampValue = (n: number, mod: number): number => {
@@ -29,13 +27,19 @@ const clampValue = (n: number, mod: number): number => {
 
 const animationSpeed = 175;
 
-interface Props {}
+interface Props {
+  initialWords: Word[];
+}
 
-const IndexPage = ({}: Props) => {
-  const [index, setIndex] = React.useState(0);
+const IndexPage = ({ initialWords }: Props) => {
+  const [index, setIndex] = React.useState(1);
   const [cardVisible, setVisible] = React.useState(true);
   const [animationName, setAnimationName] = React.useState("card-in-out");
-
+  const [words, setWords] = React.useState(initialWords);
+  React.useEffect(() => {
+    setWords((w) => shuffle(w));
+    setIndex(0);
+  }, []);
   const nextCard = async () => {
     setAnimationName("card-in-out");
     setVisible(false);
@@ -75,7 +79,9 @@ const IndexPage = ({}: Props) => {
           <Button type="button" onClick={(e) => lastCard()}>
             Back
           </Button>
-          {index + 1}/{words.length}
+          <span style={{ minWidth: "5rem" }}>
+            {index + 1}/{words.length}
+          </span>
           <Button type="button" onClick={(e) => nextCard()}>
             Next
           </Button>
@@ -125,10 +131,8 @@ const IndexPage = ({}: Props) => {
 };
 
 export const getStaticProps: GetStaticProps<Props> = async (context) => {
-  id = 1;
   return {
-    props: {},
-    unstable_revalidate: 1,
+    props: { initialWords: wordList },
   };
 };
 

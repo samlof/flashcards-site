@@ -2,9 +2,9 @@ export interface Word {
   fi: string;
   en: string;
 }
-export const words: Word[] = [
-  { fi: "Finnish", en: "English" },
-  { fi: "äidinkieli", en: "mother tounge" },
+export const wordList: Word[] = [
+  { fi: "Finnish", en: "Suomenkieli" },
+  { fi: "äidinkieli", en: "mother tongue" },
   { fi: "ajaa", en: "drive" },
   { fi: "anteeksi", en: "excuse me/sorry" },
   { fi: "arkkitehti", en: "architect" },
