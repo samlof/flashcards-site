@@ -5,24 +5,16 @@ config:
     Time: String
 
 generates:
-  src/graphql-types.ts:
-    - typescript
-  # Generate hooks for all GraphQL operations
-  src/:
-    preset: near-operation-file
+  generated_gql.ts:
     documents: 
       - 'pages/**/*.{ts,tsx,gql}'
       - 'components/**/*.{ts,tsx,gql}'
-      # Don't parse generated files
-      - '!(src/**/*.generated.{ts,tsx,gql})'
-    presetConfig:
-      extension: .generated.tsx
-      baseTypesPath: 'graphql-types'
-      folder: __generated__
+    config:
+      withHooks: true
+      withComponent: false
+      withHOC: false
+      reactApolloVersion: 3
     plugins:
+      - typescript
       - typescript-operations
-      - typescript-react-apollo:
-          reactApolloVersion: 3
-          withHooks: true
-          withHOC: false
-          withComponent: false
+      - typescript-react-apollo
