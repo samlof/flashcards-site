@@ -1,4 +1,4 @@
-import { GetStaticProps } from "next";
+import { GetStaticProps, GetServerSideProps } from "next";
 import React from "react";
 import styled from "styled-components";
 import App from "../components/App";
@@ -28,18 +28,13 @@ const clampValue = (n: number, mod: number): number => {
 const animationSpeed = 175;
 
 interface Props {
-  initialWords: Word[];
+  words: Word[];
 }
 
-const IndexPage = ({ initialWords }: Props) => {
+const IndexPage = ({ words }: Props) => {
   const [index, setIndex] = React.useState(1);
   const [cardVisible, setVisible] = React.useState(true);
   const [animationName, setAnimationName] = React.useState("card-in-out");
-  const [words, setWords] = React.useState(initialWords);
-  React.useEffect(() => {
-    setWords((w) => shuffle(w));
-    setIndex(0);
-  }, []);
   const nextCard = async () => {
     setAnimationName("card-in-out");
     setVisible(false);
@@ -130,9 +125,11 @@ const IndexPage = ({ initialWords }: Props) => {
   );
 };
 
-export const getStaticProps: GetStaticProps<Props> = async (context) => {
+export const getServerSideProps: GetServerSideProps<Props> = async () => {
+  const words = wordList;
+  shuffle(words);
   return {
-    props: { initialWords: wordList },
+    props: { words: wordList },
   };
 };
 
