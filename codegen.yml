@@ -1,8 +1,8 @@
-schema: http://localhost:8080
+schema: http://localhost:8080/query
 
 config:
   scalars:
-    Time: Date
+    Time: String
 
 generates:
   src/graphql-types.ts:
@@ -11,7 +11,8 @@ generates:
   src/:
     preset: near-operation-file
     documents: 
-      - 'src/**/*.{ts,tsx,gql}'
+      - 'pages/**/*.{ts,tsx,gql}'
+      - 'components/**/*.{ts,tsx,gql}'
       # Don't parse generated files
       - '!(src/**/*.generated.{ts,tsx,gql})'
     presetConfig:
