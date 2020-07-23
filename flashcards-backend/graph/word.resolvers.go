@@ -9,6 +9,7 @@ import (
 	"flashcards-backend/ent/word"
 	"flashcards-backend/graph/generated"
 	"flashcards-backend/graph/model"
+	"flashcards-backend/modelconv"
 	"fmt"
 	"strconv"
 )
@@ -19,31 +20,48 @@ func (r *mutationResolver) CreateWord(ctx context.Context, input model.NewWord) 
 		SetWord1(input.Word1).
 		SetWord2(input.Word2).Save(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("error saving word: %v", err)
+		return nil, fmt.Errorf("saving word: %v", err)
 	}
 
-	return &model.Word{
-		ID:       strconv.Itoa(word.ID),
-		LangData: word.LangData,
-		Word1:    word.Word1,
-		Word2:    word.Word2,
-	}, nil
+	return modelconv.Word(word), nil
+}
+
+func (r *mutationResolver) DeleteWord(ctx context.Context, id string) (string, error) {
+	idInt, err := strconv.Atoi(id)
+	if err != nil {
+		return "", fmt.Errorf("parsing id %s to int: %v", id, err)
+	}
+	err = r.DB.Word.DeleteOneID(idInt).Exec(ctx)
+	if err != nil {
+		return "", fmt.Errorf("deleting word: %v", err)
+	}
+	return id, nil
+}
+
+func (r *mutationResolver) UpdateWord(ctx context.Context, input model.UpdateWord) (*model.Word, error) {
+	idInt, err := strconv.Atoi(input.ID)
+	if err != nil {
+		return nil, fmt.Errorf("parsing id %s to int: %v", input.ID, err)
+	}
+	word, err := r.DB.Word.
+		UpdateOneID(idInt).
+		SetWord1(input.Word1).
+		SetWord2(input.Word2).
+		Save(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("updating word: %v", err)
+	}
+	return modelconv.Word(word), nil
 }
 
 func (r *queryResolver) GetWords(ctx context.Context) ([]*model.Word, error) {
 	words, err := r.DB.Word.Query().Order(ent.Desc(word.FieldCreatedAt)).All(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("error getting words: %v", err)
+		return nil, fmt.Errorf("getting words: %v", err)
 	}
 	ret := make([]*model.Word, 0, len(words))
 	for _, word := range words {
-		ret = append(ret, &model.Word{
-			ID:        strconv.Itoa(word.ID),
-			LangData:  word.LangData,
-			Word1:     word.Word1,
-			Word2:     word.Word2,
-			CreatedAt: word.CreatedAt,
-		})
+		ret = append(ret, modelconv.Word(word))
 	}
 	return ret, nil
 }

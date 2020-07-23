@@ -1,0 +1,19 @@
+// Package modelconv includes helpers to transform models
+package modelconv
+
+import (
+	"flashcards-backend/ent"
+	"flashcards-backend/graph/model"
+	"strconv"
+)
+
+// Word converts ent.Word to model.Word
+func Word(word *ent.Word) *model.Word {
+	return &model.Word{
+		ID:        strconv.Itoa(word.ID),
+		LangData:  word.LangData,
+		Word1:     word.Word1,
+		Word2:     word.Word2,
+		CreatedAt: word.CreatedAt,
+	}
+}

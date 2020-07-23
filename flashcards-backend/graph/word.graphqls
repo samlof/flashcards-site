@@ -18,6 +18,14 @@ input NewWord {
   word2: String!
 }
 
+input UpdateWord {
+  id: ID!
+  word1: String!
+  word2: String!
+}
+
 extend type Mutation {
   createWord(input: NewWord!): Word!
+  deleteWord(id: ID!): ID!
+  updateWord(input: UpdateWord!): Word!
 }
