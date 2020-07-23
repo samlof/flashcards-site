@@ -1,0 +1,23 @@
+scalar Time
+
+type Word {
+  id: ID!
+  langData: String!
+  word1: String!
+  word2: String!
+  createdAt: Time!
+}
+
+extend type Query {
+  getWords: [Word!]!
+}
+
+input NewWord {
+  langData: String!
+  word1: String!
+  word2: String!
+}
+
+extend type Mutation {
+  createWord(input: NewWord!): Word!
+}
