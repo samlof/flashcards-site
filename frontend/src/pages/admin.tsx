@@ -113,7 +113,4 @@ const AdminPage = ({}: Props) => {
   );
 };
 
-export const getServerSideProps: GetServerSideProps<Props> = async () => {
-  return { props: {} };
-};
 export default AdminPage;
