@@ -2,18 +2,20 @@ package main
 
 import (
 	"context"
-	"flashcards-backend/ent"
-	"flashcards-backend/ent/migrate"
-	"flashcards-backend/graph"
-	"flashcards-backend/graph/generated"
 	"log"
 	"net/http"
 	"os"
 
-	"github.com/99designs/gqlgen/graphql/handler"
-	"github.com/99designs/gqlgen/graphql/playground"
 	_ "github.com/lib/pq"
 	"github.com/rs/cors"
+
+	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/playground"
+
+	"flashcards-backend/ent"
+	"flashcards-backend/ent/migrate"
+	"flashcards-backend/graph"
+	"flashcards-backend/graph/generated"
 )
 
 const defaultPort = "8080"

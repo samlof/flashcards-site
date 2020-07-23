@@ -5,13 +5,14 @@ package graph
 
 import (
 	"context"
+	"fmt"
+	"strconv"
+
 	"flashcards-backend/ent"
 	"flashcards-backend/ent/word"
 	"flashcards-backend/graph/generated"
 	"flashcards-backend/graph/model"
 	"flashcards-backend/modelconv"
-	"fmt"
-	"strconv"
 )
 
 func (r *mutationResolver) CreateWord(ctx context.Context, input model.NewWord) (*model.Word, error) {

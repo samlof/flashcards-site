@@ -4,9 +4,15 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Go generate",
+      "label": "Gen gql",
       "type": "shell",
-      "command": "go generate youtube-service/..",
+      "command": "go generate ./graph",
+      "problemMatcher": []
+    },
+    {
+      "label": "Gen ent",
+      "type": "shell",
+      "command": "go generate ./ent",
       "problemMatcher": []
     },
     {

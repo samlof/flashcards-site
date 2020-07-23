@@ -2,9 +2,10 @@
 package modelconv
 
 import (
+	"strconv"
+
 	"flashcards-backend/ent"
 	"flashcards-backend/graph/model"
-	"strconv"
 )
 
 // Word converts ent.Word to model.Word
