@@ -10,6 +10,7 @@ export type Scalars = {
   Boolean: boolean;
   Int: number;
   Float: number;
+  Time: String;
 };
 
 export type Mutation = {
@@ -33,12 +34,14 @@ export type Query = {
   getWords: Array<Word>;
 };
 
+
 export type Word = {
   __typename?: 'Word';
   id: Scalars['ID'];
   langData: Scalars['String'];
   word1: Scalars['String'];
   word2: Scalars['String'];
+  createdAt: Scalars['Time'];
 };
 
 export type AllWordsQueryVariables = Exact<{ [key: string]: never; }>;

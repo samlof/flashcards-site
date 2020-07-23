@@ -1,6 +1,6 @@
 module.exports = {
   client: {
-    includes: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}"],
+    includes: ["./src/**/*.{ts,tsx}"],
     excludes: ["**/*.generated.{ts,tsx}"],
     service: {
       name: "Words",

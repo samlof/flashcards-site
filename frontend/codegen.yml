@@ -5,10 +5,11 @@ config:
     Time: String
 
 generates:
-  generated_gql.ts:
+  src/gql.generated.ts:
     documents: 
-      - 'pages/**/*.{ts,tsx,gql}'
-      - 'components/**/*.{ts,tsx,gql}'
+      - 'src/**/*.{ts,tsx,gql}'
+      # Don't parse generated files
+      - '!(src/**/*.generated.{ts,tsx,gql})'
     config:
       withHooks: true
       withComponent: false
