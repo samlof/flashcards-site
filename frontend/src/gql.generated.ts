@@ -13,16 +13,6 @@ export type Scalars = {
   Time: String;
 };
 
-export type Mutation = {
-  __typename?: 'Mutation';
-  createWord: Word;
-};
-
-
-export type MutationCreateWordArgs = {
-  input: NewWord;
-};
-
 export type NewWord = {
   langData: Scalars['String'];
   word1: Scalars['String'];
@@ -34,7 +24,6 @@ export type Query = {
   getWords: Array<Word>;
 };
 
-
 export type Word = {
   __typename?: 'Word';
   id: Scalars['ID'];
@@ -43,6 +32,17 @@ export type Word = {
   word2: Scalars['String'];
   createdAt: Scalars['Time'];
 };
+
+export type Mutation = {
+  __typename?: 'Mutation';
+  createWord: Word;
+};
+
+
+export type MutationCreateWordArgs = {
+  input: NewWord;
+};
+
 
 export type AllWordsQueryVariables = Exact<{ [key: string]: never; }>;
 

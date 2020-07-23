@@ -1,5 +1,5 @@
 {
-  "name": "with-apollo",
+  "name": "flashcards",
   "version": "1.0.0",
   "scripts": {
     "dev": "next",
@@ -9,24 +9,24 @@
     "genql": "graphql-codegen"
   },
   "dependencies": {
-    "@apollo/client": "^3.0.0-rc.2",
+    "@apollo/client": "^3.0.2",
     "babel-plugin-graphql-tag": "^2.5.0",
-    "graphql": "14.0.2 - 14.2.0 || ^14.3.1",
+    "graphql": "^15.3.0",
     "next": "latest",
     "react": "^16.13.1",
-    "react-card-flip": "^1.0.10",
+    "react-card-flip": "^1.0.11",
     "react-dom": "^16.13.1",
     "react-transition-group": "^4.4.1",
     "styled-components": "^5.1.1",
-    "typescript": "^3.9.6"
+    "typescript": "^3.9.7"
   },
   "devDependencies": {
-    "@graphql-codegen/cli": "^1.15.1",
-    "@graphql-codegen/near-operation-file-preset": "^1.15.1",
-    "@graphql-codegen/typescript": "^1.15.1",
-    "@graphql-codegen/typescript-operations": "^1.15.1",
-    "@graphql-codegen/typescript-react-apollo": "^1.15.1",
-    "@types/react": "^16.9.35",
+    "@graphql-codegen/cli": "^1.17.4",
+    "@graphql-codegen/near-operation-file-preset": "^1.17.4",
+    "@graphql-codegen/typescript": "^1.17.4",
+    "@graphql-codegen/typescript-operations": "^1.17.4",
+    "@graphql-codegen/typescript-react-apollo": "^1.17.4",
+    "@types/react": "^16.9.43",
     "@types/react-dom": "^16.9.8",
     "@types/react-transition-group": "^4.4.0",
     "@types/styled-components": "^5.1.1",

@@ -3,7 +3,7 @@ import App from "../components/App";
 import styled from "styled-components";
 import { GetServerSideProps } from "next";
 import { gql } from "@apollo/client";
-import { useAllWordsQuery, useAddWordMutation } from "../generated_gql";
+import { useAllWordsQuery, useAddWordMutation } from "../gql.generated";
 
 const Title = styled.h1`
   text-align: center;
