@@ -1,0 +1,20 @@
+schema: http://localhost:8080/query
+
+config:
+  scalars:
+    Time: String
+
+generates:
+  generated_gql.ts:
+    documents: 
+      - 'pages/**/*.{ts,tsx,gql}'
+      - 'components/**/*.{ts,tsx,gql}'
+    config:
+      withHooks: true
+      withComponent: false
+      withHOC: false
+      reactApolloVersion: 3
+    plugins:
+      - typescript
+      - typescript-operations
+      - typescript-react-apollo
