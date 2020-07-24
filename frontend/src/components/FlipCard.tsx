@@ -9,11 +9,11 @@ const CardSide = styled.div<{ front: boolean }>`
   align-items: center;
   flex-direction: column;
   justify-content: center;
-  box-shadow: ${(props) => props.front && "-"}2px 1px 10px var(--color-brown);
+  box-shadow: 2px 1px 10px var(--color-brown);
   height: 30vh;
   width: 20vh;
   border-radius: 10%;
-  background-color: var(--color-orange);
+  background-color: var(--color-white);
 `;
 
 export interface CardWord {

@@ -29,7 +29,8 @@ export default function App({ children }) {
           --color-orange: #fcd7ad;
           --color-brown: #6c4b5e;
           --color-red: #d55672;
-          background-color: #efefef;
+          --color-white: #efefef;
+          background-color: var(--color-orange);
         }
         .fade-in-out-enter {
           opacity: 0;
