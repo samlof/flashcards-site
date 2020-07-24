@@ -3,15 +3,26 @@ import styled from "styled-components";
 import App from "../components/App";
 import GqlError from "../components/GqlError";
 import Loading from "../components/Loading";
-import { useAddWordMutation, useAllWordsQuery } from "../gql.generated";
+import {
+  useAddWordMutation,
+  useAllWordsQuery,
+  useDeleteWordMutation,
+} from "../gql.generated";
 
 const Title = styled.h1`
   text-align: center;
 `;
 
+const WordTable = styled.table`
+  border-spacing: inherit;
+`;
+
 const WordRow = styled.tr`
-  &:nth-child(even) {
+  &:nth-child(odd) {
     background-color: #fff;
+  }
+  &:nth-child(even) {
+    background-color: var(--color-white);
   }
 `;
 
@@ -20,11 +31,16 @@ const AdminPage = ({}: Props) => {
   const { data, loading, error, refetch: refetchWords } = useAllWordsQuery();
   const [
     addWord,
-    { loading: mutationLoading, error: mutationError },
+    { loading: addWordLoading, error: addWordError },
   ] = useAddWordMutation();
+  const [
+    deleteWord,
+    { loading: deleteWordLoading, error: deleteWordError },
+  ] = useDeleteWordMutation();
 
   const [word1, setWord1] = React.useState("");
   const [word2, setWord2] = React.useState("");
+  const [csv, setcsv] = React.useState("");
 
   if (loading) return <Loading />;
   if (error) return <GqlError msg="Failed to get words" err={error} />;
@@ -39,6 +55,47 @@ const AdminPage = ({}: Props) => {
     });
     setWord1("");
     setWord2("");
+  };
+  const handleCsvFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const lines = csv.split("\n");
+    let pairs = lines
+      .map((x) => x.trim().split("\t"))
+      .filter((x) => !!x && x.length === 2)
+      .map((x) => x.map((y) => y.trim()))
+      .filter(
+        (pair) =>
+          !data.getWords.some(
+            (dword) =>
+              dword.word1.toLowerCase() === pair[0].toLowerCase() ||
+              dword.word2.toLowerCase() === pair[1].toLowerCase()
+          )
+      );
+
+    if (pairs.length === 0) return;
+
+    // Remove headers row
+    if (pairs[0][0].toLowerCase() === "finnish") {
+      pairs = pairs.slice(1);
+    }
+
+    Promise.all(
+      pairs.map((pair) =>
+        addWord({ variables: { word1: pair[0], word2: pair[1] } })
+      )
+    ).then((res) => {
+      refetchWords();
+    });
+  };
+
+  const handleDeleteWord = (
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+    id: string
+  ) => {
+    e.preventDefault();
+    deleteWord({ variables: { id: id } }).then((res) => {
+      refetchWords();
+    });
   };
   const words = data.getWords;
   return (
@@ -67,20 +124,48 @@ const AdminPage = ({}: Props) => {
             </label>
           </div>
           <button type="submit">Add</button>
-          {mutationError && (
-            <GqlError msg="Failed to add" err={mutationError} />
-          )}
+          {addWordError && <GqlError msg="Failed to add" err={addWordError} />}
         </form>
-        <table>
+        <form onSubmit={handleCsvFormSubmit}>
+          <div>
+            <label>
+              Paste from excel
+              <textarea
+                style={{
+                  width: "85vw",
+                  height: "300px",
+                }}
+                cols={10}
+                rows={10}
+                onChange={(e) => setcsv(e.target.value)}
+                value={csv}
+              ></textarea>
+            </label>
+          </div>
+          <button type="submit">Add excel words</button>
+          {addWordError && <GqlError msg="Failed to add" err={addWordError} />}
+        </form>
+        {deleteWordError && (
+          <GqlError msg="Failed to delete" err={deleteWordError} />
+        )}
+        <WordTable>
           <tbody>
             {words.map((word) => (
               <WordRow key={word.id}>
                 <td>{word.word1}</td>
                 <td>{word.word2}</td>
+                <td>
+                  <button
+                    type="button"
+                    onClick={(e) => handleDeleteWord(e, word.id)}
+                  >
+                    X
+                  </button>
+                </td>
               </WordRow>
             ))}
           </tbody>
-        </table>
+        </WordTable>
       </div>
     </App>
   );

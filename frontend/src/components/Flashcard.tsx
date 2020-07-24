@@ -6,11 +6,6 @@ import FlipCard, { CardWord } from "../components/FlipCard";
 import { Word } from "../components/words";
 import { delayMs } from "../helpers/delay";
 
-const Title = styled.h1`
-  color: var(--color-blue);
-  text-align: center;
-`;
-
 const ButtonDiv = styled.div`
   display: flex;
   justify-content: space-between;

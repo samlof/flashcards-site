@@ -5,10 +5,10 @@ import styled from "styled-components";
 import App from "../components/App";
 import Flashcard from "../components/Flashcard";
 import {
-  FlascardPageDocument,
-  FlascardPageQuery,
-  FlascardPageQueryVariables,
-  useFlascardPageQuery,
+  FlashcardPageDocument,
+  FlashcardPageQuery,
+  FlashcardPageQueryVariables,
+  useFlashcardPageQuery,
 } from "../gql.generated";
 import { initializeApollo } from "../lib/apolloClient";
 import { PageProps } from "./_app";
@@ -23,7 +23,7 @@ const Title = styled.h1`
 interface Props {}
 
 gql`
-  query FlascardPage {
+  query FlashcardPage {
     getWords {
       langData
       word1
@@ -33,7 +33,7 @@ gql`
 `;
 
 const IndexPage = () => {
-  const { loading, error, data } = useFlascardPageQuery();
+  const { loading, error, data } = useFlashcardPageQuery();
   if (loading) return <Loading />;
   if (error) return <GqlError msg="Error getting words" err={error} />;
   if (!data) return <span>No words</span>;
@@ -53,8 +53,8 @@ export const getServerSideProps: GetServerSideProps<
 > = async () => {
   const apolloClient = initializeApollo();
 
-  await apolloClient.query<FlascardPageQuery, FlascardPageQueryVariables>({
-    query: FlascardPageDocument,
+  await apolloClient.query<FlashcardPageQuery, FlashcardPageQueryVariables>({
+    query: FlashcardPageDocument,
   });
 
   return {

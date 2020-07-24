@@ -6,3 +6,7 @@ mutation AddWord($word1: String!, $word2: String!) {
     word2
   }
 }
+
+mutation DeleteWord($id: ID!) {
+  deleteWord(id: $id)
+}
