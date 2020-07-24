@@ -1,136 +1,64 @@
-import { GetStaticProps, GetServerSideProps } from "next";
+import { gql } from "@apollo/client";
+import { GetServerSideProps } from "next";
 import React from "react";
 import styled from "styled-components";
 import App from "../components/App";
-import FlipCard, { CardWord } from "../components/FlipCard";
-import { wordList, Word } from "../components/words";
-import { Button } from "../components/Button";
-import { CSSTransition } from "react-transition-group";
-import { delayMs } from "../helpers/delay";
-import { shuffle } from "../helpers/numberToString";
+import Flashcard from "../components/Flashcard";
+import {
+  FlascardPageDocument,
+  FlascardPageQuery,
+  FlascardPageQueryVariables,
+  useFlascardPageQuery,
+} from "../gql.generated";
+import { initializeApollo } from "../lib/apolloClient";
+import { ApolloProps } from "./_app";
+import Loading from "../components/Loading";
+import GqlError from "../components/GqlError";
 
 const Title = styled.h1`
   color: var(--color-blue);
   text-align: center;
 `;
 
-const ButtonDiv = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+interface Props {}
+
+gql`
+  query FlascardPage {
+    getWords {
+      langData
+      word1
+      word2
+    }
+  }
 `;
 
-const clampValue = (n: number, mod: number): number => {
-  if (n < 0) return n + mod;
-  if (n > mod - 1) return n - mod;
-  return n;
-};
+const IndexPage = () => {
+  const { loading, error, data } = useFlascardPageQuery();
+  if (loading) return <Loading />;
+  if (error) return <GqlError msg="Error getting words" err={error} />;
+  if (!data) return <span>No words</span>;
 
-const animationSpeed = 175;
-
-interface Props {
-  words: Word[];
-}
-
-const IndexPage = ({ words }: Props) => {
-  const [index, setIndex] = React.useState(1);
-  const [cardVisible, setVisible] = React.useState(true);
-  const [animationName, setAnimationName] = React.useState("card-in-out");
-  const nextCard = async () => {
-    setAnimationName("card-in-out");
-    setVisible(false);
-    await delayMs(animationSpeed);
-    setIndex((i) => clampValue(i + 1, words.length));
-    setVisible(true);
-  };
-  const lastCard = async () => {
-    setAnimationName("card-out-in");
-    setVisible(false);
-    await delayMs(animationSpeed);
-    setIndex((i) => clampValue(i - 1, words.length));
-    setVisible(true);
-  };
-  const word = words[index];
-  const frontCard: CardWord = {
-    lang: "fi",
-    text: word.fi,
-  };
-  const backCard: CardWord = {
-    lang: "en",
-    text: word.en,
-  };
+  const dbWords = data.getWords;
+  const words = dbWords.map((x) => ({ fi: x.word1, en: x.word2 }));
   return (
     <App>
       <Title>Flashcards</Title>
-      <div className="center-div">
-        <CSSTransition
-          in={cardVisible}
-          timeout={animationSpeed}
-          classNames={animationName}
-        >
-          <FlipCard key={index} back={backCard} front={frontCard}></FlipCard>
-        </CSSTransition>
-        <span style={{ marginTop: "2rem" }}></span>
-        <ButtonDiv>
-          <Button type="button" onClick={(e) => lastCard()}>
-            Back
-          </Button>
-          <span style={{ minWidth: "5rem" }}>
-            {index + 1}/{words.length}
-          </span>
-          <Button type="button" onClick={(e) => nextCard()}>
-            Next
-          </Button>
-        </ButtonDiv>
-      </div>
-
-      <style jsx global>{`
-        .card-in-out-enter {
-          opacity: 0;
-          transform: translateX(80px);
-        }
-        .card-in-out-enter-active {
-          transform: translateX(0px);
-          opacity: 1;
-          transition: opacity ${animationSpeed}ms, transform ${animationSpeed}ms;
-        }
-        .card-in-out-exit {
-          transform: translateX(0px);
-          opacity: 1;
-        }
-        .card-in-out-exit-active {
-          opacity: 0;
-          transform: translateX(-80px);
-          transition: opacity ${animationSpeed}ms, transform ${animationSpeed}ms;
-        }
-        .card-out-in-enter {
-          opacity: 0;
-          transform: translateX(-80px);
-        }
-        .card-out-in-enter-active {
-          transform: translateX(0px);
-          opacity: 1;
-          transition: opacity ${animationSpeed}ms, transform ${animationSpeed}ms;
-        }
-        .card-out-in-exit {
-          transform: translateX(0px);
-          opacity: 1;
-        }
-        .card-out-in-exit-active {
-          opacity: 0;
-          transform: translateX(80px);
-          transition: opacity ${animationSpeed}ms, transform ${animationSpeed}ms;
-        }
-      `}</style>
+      <Flashcard words={words} />
     </App>
   );
 };
 
-export const getServerSideProps: GetServerSideProps<Props> = async () => {
-  const words = wordList;
-  shuffle(words);
+export const getServerSideProps: GetServerSideProps<
+  Props & ApolloProps
+> = async () => {
+  const apolloClient = initializeApollo();
+
+  await apolloClient.query<FlascardPageQuery, FlascardPageQueryVariables>({
+    query: FlascardPageDocument,
+  });
+
   return {
-    props: { words: wordList },
+    props: { initialApolloState: apolloClient.cache.extract() },
   };
 };
 

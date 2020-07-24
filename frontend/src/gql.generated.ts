@@ -13,8 +13,9 @@ export type Scalars = {
   Time: String;
 };
 
-export type NewWord = {
-  langData: Scalars['String'];
+
+export type UpdateWord = {
+  id: Scalars['ID'];
   word1: Scalars['String'];
   word2: Scalars['String'];
 };
@@ -22,6 +23,28 @@ export type NewWord = {
 export type Query = {
   __typename?: 'Query';
   getWords: Array<Word>;
+};
+
+export type Mutation = {
+  __typename?: 'Mutation';
+  createWord: Word;
+  deleteWord: Scalars['ID'];
+  updateWord: Word;
+};
+
+
+export type MutationCreateWordArgs = {
+  input: NewWord;
+};
+
+
+export type MutationDeleteWordArgs = {
+  id: Scalars['ID'];
+};
+
+
+export type MutationUpdateWordArgs = {
+  input: UpdateWord;
 };
 
 export type Word = {
@@ -33,16 +56,11 @@ export type Word = {
   createdAt: Scalars['Time'];
 };
 
-export type Mutation = {
-  __typename?: 'Mutation';
-  createWord: Word;
+export type NewWord = {
+  langData: Scalars['String'];
+  word1: Scalars['String'];
+  word2: Scalars['String'];
 };
-
-
-export type MutationCreateWordArgs = {
-  input: NewWord;
-};
-
 
 export type AllWordsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -67,6 +85,17 @@ export type AddWordMutation = (
     { __typename?: 'Word' }
     & Pick<Word, 'id' | 'langData' | 'word1' | 'word2'>
   ) }
+);
+
+export type FlascardPageQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type FlascardPageQuery = (
+  { __typename?: 'Query' }
+  & { getWords: Array<(
+    { __typename?: 'Word' }
+    & Pick<Word, 'langData' | 'word1' | 'word2'>
+  )> }
 );
 
 
@@ -140,3 +169,37 @@ export function useAddWordMutation(baseOptions?: ApolloReactHooks.MutationHookOp
 export type AddWordMutationHookResult = ReturnType<typeof useAddWordMutation>;
 export type AddWordMutationResult = ApolloReactCommon.MutationResult<AddWordMutation>;
 export type AddWordMutationOptions = ApolloReactCommon.BaseMutationOptions<AddWordMutation, AddWordMutationVariables>;
+export const FlascardPageDocument = gql`
+    query FlascardPage {
+  getWords {
+    langData
+    word1
+    word2
+  }
+}
+    `;
+
+/**
+ * __useFlascardPageQuery__
+ *
+ * To run a query within a React component, call `useFlascardPageQuery` and pass it any options that fit your needs.
+ * When your component renders, `useFlascardPageQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useFlascardPageQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useFlascardPageQuery(baseOptions?: ApolloReactHooks.QueryHookOptions<FlascardPageQuery, FlascardPageQueryVariables>) {
+        return ApolloReactHooks.useQuery<FlascardPageQuery, FlascardPageQueryVariables>(FlascardPageDocument, baseOptions);
+      }
+export function useFlascardPageLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<FlascardPageQuery, FlascardPageQueryVariables>) {
+          return ApolloReactHooks.useLazyQuery<FlascardPageQuery, FlascardPageQueryVariables>(FlascardPageDocument, baseOptions);
+        }
+export type FlascardPageQueryHookResult = ReturnType<typeof useFlascardPageQuery>;
+export type FlascardPageLazyQueryHookResult = ReturnType<typeof useFlascardPageLazyQuery>;
+export type FlascardPageQueryResult = ApolloReactCommon.QueryResult<FlascardPageQuery, FlascardPageQueryVariables>;
