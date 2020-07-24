@@ -11,7 +11,7 @@ import {
   useFlascardPageQuery,
 } from "../gql.generated";
 import { initializeApollo } from "../lib/apolloClient";
-import { ApolloProps } from "./_app";
+import { PageProps } from "./_app";
 import Loading from "../components/Loading";
 import GqlError from "../components/GqlError";
 
@@ -49,7 +49,7 @@ const IndexPage = () => {
 };
 
 export const getServerSideProps: GetServerSideProps<
-  Props & ApolloProps
+  Props & PageProps
 > = async () => {
   const apolloClient = initializeApollo();
 

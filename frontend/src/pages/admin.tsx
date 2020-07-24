@@ -1,44 +1,17 @@
 import React from "react";
-import App from "../components/App";
 import styled from "styled-components";
-import { GetServerSideProps } from "next";
-import { gql } from "@apollo/client";
-import { useAllWordsQuery, useAddWordMutation } from "../gql.generated";
+import App from "../components/App";
+import GqlError from "../components/GqlError";
+import Loading from "../components/Loading";
+import { useAddWordMutation, useAllWordsQuery } from "../gql.generated";
 
 const Title = styled.h1`
   text-align: center;
 `;
 
-const GridContainer = styled.div`
-  display: grid;
-  grid-template-columns: auto auto;
-  grid-column-gap: 1rem;
-  grid-row-gap: 1rem;
-`;
-const FirstWord = styled.div`
-  text-align: left;
-`;
-const SecondWord = styled.div`
-  text-align: center;
-`;
-gql`
-  query AllWords {
-    getWords {
-      id
-      word1
-      word2
-    }
-  }
-`;
-
-gql`
-  mutation AddWord($word1: String!, $word2: String!) {
-    createWord(input: { langData: "fi-en", word1: $word1, word2: $word2 }) {
-      id
-      langData
-      word1
-      word2
-    }
+const WordRow = styled.tr`
+  &:nth-child(even) {
+    background-color: #fff;
   }
 `;
 
@@ -53,17 +26,8 @@ const AdminPage = ({}: Props) => {
   const [word1, setWord1] = React.useState("");
   const [word2, setWord2] = React.useState("");
 
-  if (loading) return <span>loading...</span>;
-  if (error) {
-    console.error("Error getting all words");
-    console.dir(error);
-    return (
-      <div>
-        <span>Error happened.</span>
-        <pre>{JSON.stringify(error, null, 2)}</pre>
-      </div>
-    );
-  }
+  if (loading) return <Loading />;
+  if (error) return <GqlError msg="Failed to get words" err={error} />;
 
   if (!data) return <span>No words</span>;
 
@@ -82,32 +46,41 @@ const AdminPage = ({}: Props) => {
       <Title>See all words</Title>
       <div className="center-div">
         <form onSubmit={handleFormSubmit}>
-          <label>
-            Finnish:
-            <input
-              type="text"
-              value={word1}
-              onChange={(e) => setWord1(e.target.value)}
-            />
-          </label>
-          <label>
-            English:
-            <input
-              type="text"
-              value={word2}
-              onChange={(e) => setWord2(e.target.value)}
-            />
-          </label>
+          <div>
+            <label>
+              Finnish:
+              <input
+                type="text"
+                value={word1}
+                onChange={(e) => setWord1(e.target.value)}
+              />
+            </label>
+          </div>
+          <div>
+            <label>
+              English:
+              <input
+                type="text"
+                value={word2}
+                onChange={(e) => setWord2(e.target.value)}
+              />
+            </label>
+          </div>
           <button type="submit">Add</button>
+          {mutationError && (
+            <GqlError msg="Failed to add" err={mutationError} />
+          )}
         </form>
-        <GridContainer>
-          {words.map((word) => (
-            <React.Fragment key={word.id}>
-              <FirstWord>{word.word1}</FirstWord>
-              <SecondWord>{word.word2}</SecondWord>
-            </React.Fragment>
-          ))}
-        </GridContainer>
+        <table>
+          <tbody>
+            {words.map((word) => (
+              <WordRow key={word.id}>
+                <td>{word.word1}</td>
+                <td>{word.word2}</td>
+              </WordRow>
+            ))}
+          </tbody>
+        </table>
       </div>
     </App>
   );

@@ -9,7 +9,7 @@ const theme = {
   },
 };
 
-export interface ApolloProps {
+export interface PageProps {
   initialApolloState: NormalizedCache;
 }
 export default function App({ Component, pageProps }: AppPropsType) {
