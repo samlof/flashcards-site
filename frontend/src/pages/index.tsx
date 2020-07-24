@@ -1,142 +1,136 @@
-import { GetStaticProps } from "next";
+import { GetStaticProps, GetServerSideProps } from "next";
 import React from "react";
 import styled from "styled-components";
 import App from "../components/App";
-import { numberToString, shuffle } from "../helpers/numberToString";
-import { QuestionLine, Question } from "../components/QuestionLine";
-import { CSSTransition } from "react-transition-group";
+import FlipCard, { CardWord } from "../components/FlipCard";
+import { wordList, Word } from "../components/words";
 import { Button } from "../components/Button";
-
-let id = 1000;
-
-const generateQuestions = (amount = 10): Question[] => {
-  const ret: Question[] = [];
-  const hundreds = Math.floor(amount / 10);
-  const ones = Math.floor(amount / 4);
-  for (let i = 0; i < hundreds; i++) {
-    const num = Math.floor(Math.random() * 899 + 100);
-    const answer = numberToString(num);
-    ret.push({ num, answer, id: id++ });
-  }
-  for (let i = 0; i < ones; i++) {
-    const num = Math.floor(Math.random() * 9 + 1);
-    const answer = numberToString(num);
-    ret.push({ num, answer, id: id++ });
-  }
-  for (let i = 0; i < amount - hundreds - ones; i++) {
-    const num = Math.floor(Math.random() * 89 + 10);
-    const answer = numberToString(num);
-    ret.push({ num, answer, id: id++ });
-  }
-
-  return shuffle(ret);
-};
+import { CSSTransition } from "react-transition-group";
+import { delayMs } from "../helpers/delay";
+import { shuffle } from "../helpers/numberToString";
 
 const Title = styled.h1`
+  color: var(--color-blue);
   text-align: center;
 `;
-const Container = styled.div`
+
+const ButtonDiv = styled.div`
   display: flex;
-  justify-content: center;
-  margin-bottom: 1rem;
+  justify-content: space-between;
   align-items: center;
-  height: 2rem;
 `;
 
+const clampValue = (n: number, mod: number): number => {
+  if (n < 0) return n + mod;
+  if (n > mod - 1) return n - mod;
+  return n;
+};
+
+const animationSpeed = 175;
+
 interface Props {
-  initialQuestions: Question[];
+  words: Word[];
 }
 
-const IndexPage = ({ initialQuestions }: Props) => {
-  const [questions, setQuestions] = React.useState<Question[]>(
-    initialQuestions || []
-  );
-  const [showResults, setShowResults] = React.useState<{
-    [key: number]: boolean;
-  }>({});
-  const [showTotalResults, setShowTotalResults] = React.useState(false);
-  const [loadingResults, setLoadingResults] = React.useState(false);
-  const [rightAnswerCount, setRightAnswerCount] = React.useState(0);
-
-  const generateNewQuestions = () => {
-    setQuestions(generateQuestions());
-    setRightAnswerCount(0);
-    setShowResults({});
-    setShowTotalResults(false);
-    setLoadingResults(false);
+const IndexPage = ({ words }: Props) => {
+  const [index, setIndex] = React.useState(1);
+  const [cardVisible, setVisible] = React.useState(true);
+  const [animationName, setAnimationName] = React.useState("card-in-out");
+  const nextCard = async () => {
+    setAnimationName("card-in-out");
+    setVisible(false);
+    await delayMs(animationSpeed);
+    setIndex((i) => clampValue(i + 1, words.length));
+    setVisible(true);
   };
-
-  const answersChanged = (res: boolean) => {
-    if (res) setRightAnswerCount((prev) => prev + 1);
-    else setRightAnswerCount((prev) => prev - 1);
+  const lastCard = async () => {
+    setAnimationName("card-out-in");
+    setVisible(false);
+    await delayMs(animationSpeed);
+    setIndex((i) => clampValue(i - 1, words.length));
+    setVisible(true);
   };
-
-  const submitResults = () => {
-    setLoadingResults(true);
-    for (let i = 0; i < questions.length; i++) {
-      const q = questions[i];
-      const waitTime = i * 500;
-      setTimeout(() => {
-        setShowResults((prev) => ({ ...prev, [q.id]: true }));
-      }, waitTime);
-    }
-    setTimeout(() => {
-      setShowTotalResults(true);
-      setLoadingResults(false);
-    }, questions.length * 500);
+  const word = words[index];
+  const frontCard: CardWord = {
+    lang: "fi",
+    text: word.fi,
   };
-
+  const backCard: CardWord = {
+    lang: "en",
+    text: word.en,
+  };
   return (
     <App>
-      <Title>Write the number in Finnish and press submit</Title>
-
+      <Title>Flashcards</Title>
       <div className="center-div">
-        {questions.map((question) => (
-          <Container key={question.id}>
-            <QuestionLine
-              question={question}
-              showResults={showResults[question.id]}
-              resultChanged={answersChanged}
-            ></QuestionLine>
-          </Container>
-        ))}
-        <div style={{ height: "1.5rem" }}>
-          <CSSTransition
-            unmountOnExit
-            in={showTotalResults}
-            timeout={400}
-            classNames="fade-in-out"
-          >
-            <span>
-              Right answers: {rightAnswerCount} out of {questions.length}
-            </span>
-          </CSSTransition>
-        </div>
-        {!showTotalResults ? (
-          <Button
-            type="button"
-            disabled={loadingResults}
-            onClick={(e) => submitResults()}
-          >
-            Show results
+        <CSSTransition
+          in={cardVisible}
+          timeout={animationSpeed}
+          classNames={animationName}
+        >
+          <FlipCard key={index} back={backCard} front={frontCard}></FlipCard>
+        </CSSTransition>
+        <span style={{ marginTop: "2rem" }}></span>
+        <ButtonDiv>
+          <Button type="button" onClick={(e) => lastCard()}>
+            Back
           </Button>
-        ) : (
-          <Button type="button" onClick={(e) => generateNewQuestions()}>
-            New Questions
+          <span style={{ minWidth: "5rem" }}>
+            {index + 1}/{words.length}
+          </span>
+          <Button type="button" onClick={(e) => nextCard()}>
+            Next
           </Button>
-        )}
+        </ButtonDiv>
       </div>
+
+      <style jsx global>{`
+        .card-in-out-enter {
+          opacity: 0;
+          transform: translateX(80px);
+        }
+        .card-in-out-enter-active {
+          transform: translateX(0px);
+          opacity: 1;
+          transition: opacity ${animationSpeed}ms, transform ${animationSpeed}ms;
+        }
+        .card-in-out-exit {
+          transform: translateX(0px);
+          opacity: 1;
+        }
+        .card-in-out-exit-active {
+          opacity: 0;
+          transform: translateX(-80px);
+          transition: opacity ${animationSpeed}ms, transform ${animationSpeed}ms;
+        }
+        .card-out-in-enter {
+          opacity: 0;
+          transform: translateX(-80px);
+        }
+        .card-out-in-enter-active {
+          transform: translateX(0px);
+          opacity: 1;
+          transition: opacity ${animationSpeed}ms, transform ${animationSpeed}ms;
+        }
+        .card-out-in-exit {
+          transform: translateX(0px);
+          opacity: 1;
+        }
+        .card-out-in-exit-active {
+          opacity: 0;
+          transform: translateX(80px);
+          transition: opacity ${animationSpeed}ms, transform ${animationSpeed}ms;
+        }
+      `}</style>
     </App>
   );
 };
 
-export const getStaticProps: GetStaticProps<Props> = async (context) => {
-  id = 1;
-  const questions = generateQuestions(10);
-  id = 1000;
+export const getServerSideProps: GetServerSideProps<Props> = async () => {
+  const words = wordList;
+  shuffle(words);
   return {
-    props: { initialQuestions: questions },
-    unstable_revalidate: 1,
+    props: { words: wordList },
   };
 };
 

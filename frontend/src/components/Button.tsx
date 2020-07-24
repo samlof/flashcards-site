@@ -1,7 +1,7 @@
 import styled from "styled-components";
 
 export const Button = styled.button`
-  background-color: #22bad9;
+  background-color: var(--color-green);
   border: 0;
   color: white;
   padding: 0.3rem 0.6rem;
@@ -12,7 +12,12 @@ export const Button = styled.button`
   border-radius: 5%;
 
   &:active {
-    background-color: #1b9db7;
+    box-shadow: 0 0 5px var(--color-blue);
+    transform: scale(0.97);
+  }
+
+  &:hover {
+    box-shadow: 0 0 2px var(--color-blue);
   }
 
   &:disabled {
