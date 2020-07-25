@@ -40,7 +40,7 @@ func main() {
 	if dbURL == "" {
 		log.Fatal("No DATABASE_URL set")
 	}
-	fmt.Println("Connecting to: ", dbURL)
+
 	// Make db client
 	client, err := ent.Open("postgres", dbURL)
 	if err != nil {
