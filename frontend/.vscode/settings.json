@@ -18,5 +18,6 @@
     "**/.DS_Store": true,
     "**/.next": true,
     "**/node_modules": true
-  }
+  },
+  "javascript.preferences.importModuleSpecifier": "non-relative"
 }
