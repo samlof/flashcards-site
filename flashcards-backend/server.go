@@ -6,12 +6,16 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"github.com/rs/cors"
 
 	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/handler/extension"
+	"github.com/99designs/gqlgen/graphql/handler/lru"
+	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
 
 	"flashcards-backend/ent"
@@ -23,7 +27,8 @@ import (
 const defaultPort = "8080"
 
 func main() {
-	applyDotEnv()
+
+	isProduction := applyDotEnv() == "production"
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -54,20 +59,43 @@ func main() {
 	graphResolver := &graph.Resolver{
 		DB: client,
 	}
-	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: graphResolver}))
+	srv := handler.New(generated.NewExecutableSchema(generated.Config{Resolvers: graphResolver}))
+
+	// Copied from handler.NewDefaultServer
+
+	srv.AddTransport(transport.Websocket{
+		KeepAlivePingInterval: 10 * time.Second,
+	})
+	srv.AddTransport(transport.Options{})
+	srv.AddTransport(transport.GET{})
+	srv.AddTransport(transport.POST{})
+	srv.AddTransport(transport.MultipartForm{})
+
+	srv.SetQueryCache(lru.New(1000))
+
+	srv.Use(extension.AutomaticPersistedQuery{
+		Cache: lru.New(100),
+	})
 
 	mux := http.NewServeMux()
-	mux.Handle("/", playground.Handler("GraphQL playground", "/query"))
+
+	// Disable introspection and playground for production
+	if !isProduction {
+		srv.Use(extension.Introspection{})
+		mux.Handle("/", playground.Handler("GraphQL playground", "/query"))
+		log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
+	}
+
 	mux.Handle("/query", srv)
 
 	handler := cors.Default().Handler(mux)
 
-	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
+	log.Printf("Listening at http://localhost:%s/query", port)
 	log.Fatal(http.ListenAndServe(":"+port, handler))
 }
 
-func applyDotEnv() {
-	env := os.Getenv("FOO_ENV")
+func applyDotEnv() string {
+	env := os.Getenv("FC_ENV")
 	if env == "" {
 		env = "development"
 	}
@@ -80,4 +108,5 @@ func applyDotEnv() {
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
+	return env
 }
