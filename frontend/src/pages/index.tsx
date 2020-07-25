@@ -48,18 +48,18 @@ const IndexPage = () => {
   );
 };
 
-export const getServerSideProps: GetServerSideProps<
-  Props & PageProps
-> = async () => {
-  const apolloClient = initializeApollo();
+// export const getServerSideProps: GetServerSideProps<
+//   Props & PageProps
+// > = async () => {
+//   const apolloClient = initializeApollo();
 
-  await apolloClient.query<FlashcardPageQuery, FlashcardPageQueryVariables>({
-    query: FlashcardPageDocument,
-  });
+//   await apolloClient.query<FlashcardPageQuery, FlashcardPageQueryVariables>({
+//     query: FlashcardPageDocument,
+//   });
 
-  return {
-    props: { initialApolloState: apolloClient.cache.extract() },
-  };
-};
+//   return {
+//     props: { initialApolloState: apolloClient.cache.extract() },
+//   };
+// };
 
 export default IndexPage;
