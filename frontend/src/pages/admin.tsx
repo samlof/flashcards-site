@@ -12,19 +12,6 @@ const Title = styled.h1`
   text-align: center;
 `;
 
-const WordTable = styled.table`
-  border-spacing: inherit;
-`;
-
-const WordRow = styled.tr`
-  &:nth-child(odd) {
-    background-color: #fff;
-  }
-  &:nth-child(even) {
-    background-color: var(--color-white);
-  }
-`;
-
 interface Props {}
 const AdminPage = ({}: Props) => {
   const { data, loading, error, refetch: refetchWords } = useAllWordsQuery();

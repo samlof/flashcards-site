@@ -22,6 +22,24 @@ export type Word = {
   createdAt: Scalars['Time'];
 };
 
+export type NewWord = {
+  langData: Scalars['String'];
+  word1: Scalars['String'];
+  word2: Scalars['String'];
+};
+
+export type UpdateWord = {
+  id: Scalars['ID'];
+  word1: Scalars['String'];
+  word2: Scalars['String'];
+};
+
+
+export type Query = {
+  __typename?: 'Query';
+  getWords: Array<Word>;
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
   createWord: Word;
@@ -42,24 +60,6 @@ export type MutationDeleteWordArgs = {
 
 export type MutationUpdateWordArgs = {
   input: UpdateWord;
-};
-
-export type NewWord = {
-  langData: Scalars['String'];
-  word1: Scalars['String'];
-  word2: Scalars['String'];
-};
-
-
-export type UpdateWord = {
-  id: Scalars['ID'];
-  word1: Scalars['String'];
-  word2: Scalars['String'];
-};
-
-export type Query = {
-  __typename?: 'Query';
-  getWords: Array<Word>;
 };
 
 export type AddWordMutationVariables = Exact<{

@@ -1,16 +1,3 @@
-mutation AddWord($word1: String!, $word2: String!) {
-  createWord(input: { langData: "fi-en", word1: $word1, word2: $word2 }) {
-    id
-    langData
-    word1
-    word2
-  }
-}
-
-mutation DeleteWord($id: ID!) {
-  deleteWord(id: $id)
-}
-
 query AllWords {
   getWords {
     id
