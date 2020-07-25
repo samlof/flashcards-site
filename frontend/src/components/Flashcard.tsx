@@ -12,6 +12,12 @@ const ButtonDiv = styled.div`
   align-items: center;
 `;
 
+const DirButton = styled(Button)`
+  &&& {
+    font-size: 1.5rem;
+  }
+`;
+
 const clampValue = (n: number, mod: number): number => {
   if (n < 0) return n + mod;
   if (n > mod - 1) return n - mod;
@@ -63,15 +69,15 @@ const Flashcard = ({ words }: Props) => {
         </CSSTransition>
         <span style={{ marginTop: "2rem" }}></span>
         <ButtonDiv>
-          <Button type="button" onClick={(e) => lastCard()}>
+          <DirButton type="button" onClick={(e) => lastCard()}>
             Back
-          </Button>
+          </DirButton>
           <span style={{ minWidth: "5rem" }}>
             {index + 1}/{words.length}
           </span>
-          <Button type="button" onClick={(e) => nextCard()}>
+          <DirButton type="button" onClick={(e) => nextCard()}>
             Next
-          </Button>
+          </DirButton>
         </ButtonDiv>
       </div>
 

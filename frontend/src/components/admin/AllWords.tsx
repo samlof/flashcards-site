@@ -1,14 +1,9 @@
 import React from "react";
 import styled from "styled-components";
 import { useAllWordsQuery, useDeleteWordMutation } from "../../gql.generated";
-import Loading from "../Loading";
 import GqlError from "../GqlError";
-import App from "../../pages/_app";
-import AddCsvWords from "./AddCsvWords";
-
-const Title = styled.h1`
-  text-align: center;
-`;
+import Loading from "../Loading";
+import { Button } from "../Button";
 
 const WordTable = styled.table`
   border-spacing: inherit;
@@ -54,9 +49,9 @@ const AllWords = ({}: Props) => {
       {deleteWordError && (
         <GqlError msg="Failed to delete" err={deleteWordError} />
       )}
-      <button type="button" onClick={(e) => setShowAllWords((s) => !s)}>
+      <Button type="button" onClick={(e) => setShowAllWords((s) => !s)}>
         Toggle all words
-      </button>
+      </Button>
       {showAllWords && (
         <WordTable>
           <tbody>

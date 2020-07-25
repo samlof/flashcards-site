@@ -3,6 +3,7 @@ import styled from "styled-components";
 import { AllWordsQuery, useAddWordMutation } from "../../gql.generated";
 import { levDistance } from "../../helpers/levenshteinDistance";
 import GqlError from "../GqlError";
+import { Button } from "../Button";
 
 const Title = styled.h1`
   text-align: center;
@@ -151,7 +152,7 @@ const AddCsvWords = ({ allWords, refetchWords }: Props) => {
             <div>Paste from excel</div>
             <textarea
               style={{
-                width: "85vw",
+                width: "30vw",
                 height: "300px",
               }}
               cols={10}
@@ -161,7 +162,7 @@ const AddCsvWords = ({ allWords, refetchWords }: Props) => {
             ></textarea>
           </label>
         </div>
-        <button type="submit">Add excel words</button>
+        <Button type="submit">Add excel words</Button>
         {addWordError && <GqlError msg="Failed to add" err={addWordError} />}
       </form>
       {addCsvResults && (

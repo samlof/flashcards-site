@@ -1,16 +1,12 @@
 import React from "react";
 import styled from "styled-components";
+import AddCsvWords from "../components/admin/AddCsvWords";
+import AddWord from "../components/admin/AddWord";
+import AllWords from "../components/admin/AllWords";
 import App from "../components/App";
 import GqlError from "../components/GqlError";
 import Loading from "../components/Loading";
-import {
-  useAddWordMutation,
-  useAllWordsQuery,
-  useDeleteWordMutation,
-} from "../gql.generated";
-import AddCsvWords from "../components/admin/AddCsvWords";
-import AllWords from "../components/admin/AllWords";
-import AddWord from "../components/admin/AddWord";
+import { useAllWordsQuery } from "../gql.generated";
 
 const Title = styled.h1`
   text-align: center;
@@ -40,7 +36,7 @@ const AdminPage = ({}: Props) => {
 
   return (
     <App>
-      <Title>See all words</Title>
+      <Title>Admin panel</Title>
       <div className="center-div">
         <AddWord refetchWords={refetchWords} />
         <AddCsvWords allWords={data} refetchWords={refetchWords} />

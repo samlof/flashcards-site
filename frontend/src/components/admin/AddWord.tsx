@@ -1,6 +1,7 @@
 import React from "react";
 import { useAddWordMutation } from "../../gql.generated";
 import GqlError from "../GqlError";
+import { Button } from "../Button";
 
 interface Props {
   refetchWords: () => void;
@@ -45,7 +46,7 @@ const AddWord = ({ refetchWords }: Props) => {
           />
         </label>
       </div>
-      <button type="submit">Add</button>
+      <Button type="submit">Add</Button>
       {addWordError && <GqlError msg="Failed to add" err={addWordError} />}
     </form>
   );
