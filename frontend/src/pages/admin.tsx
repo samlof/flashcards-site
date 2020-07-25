@@ -84,7 +84,6 @@ const AdminPage = ({}: Props) => {
       .filter((x) => !!x && x.length === 2)
       .map((x) => x.map((y) => y.trim()));
 
-    debugger;
     pairs = pairs.filter(
       (pair) =>
         !(
@@ -157,6 +156,13 @@ const AdminPage = ({}: Props) => {
     const word = addCsvResults?.words.find((x) => x.id === id);
     if (!word) return;
     addWord({ variables: { word1: word.pair[0], word2: word.pair[1] } });
+    setAddCsvResults(
+      (res) =>
+        res && {
+          ...res,
+          words: res.words.filter((w) => w.id !== id),
+        }
+    );
   };
   const handleSkipCsvWord = (
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
