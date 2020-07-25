@@ -54,6 +54,7 @@ const AdminPage = ({}: Props) => {
   const [addCsvResults, setAddCsvResults] = React.useState<
     AddCsvWordsResults | undefined
   >(undefined);
+  const [showAllWords, setShowAllWords] = React.useState(false);
 
   const [word1, setWord1] = React.useState("");
   const [word2, setWord2] = React.useState("");
@@ -201,7 +202,7 @@ const AdminPage = ({}: Props) => {
         <form onSubmit={handleCsvFormSubmit}>
           <div>
             <label>
-              Paste from excel
+              <div>Paste from excel</div>
               <textarea
                 style={{
                   width: "85vw",
@@ -284,24 +285,29 @@ const AdminPage = ({}: Props) => {
           <GqlError msg="Failed to delete" err={deleteWordError} />
         )}
         <h3>All current words</h3>
-        <WordTable>
-          <tbody>
-            {words.map((word) => (
-              <WordRow key={word.id}>
-                <td>{word.word1}</td>
-                <td>{word.word2}</td>
-                <td>
-                  <button
-                    type="button"
-                    onClick={(e) => handleDeleteWord(e, word.id)}
-                  >
-                    X
-                  </button>
-                </td>
-              </WordRow>
-            ))}
-          </tbody>
-        </WordTable>
+        <button type="button" onClick={(e) => setShowAllWords((s) => !s)}>
+          Toggle all words
+        </button>
+        {showAllWords && (
+          <WordTable>
+            <tbody>
+              {words.map((word) => (
+                <WordRow key={word.id}>
+                  <td>{word.word1}</td>
+                  <td>{word.word2}</td>
+                  <td>
+                    <button
+                      type="button"
+                      onClick={(e) => handleDeleteWord(e, word.id)}
+                    >
+                      X
+                    </button>
+                  </td>
+                </WordRow>
+              ))}
+            </tbody>
+          </WordTable>
+        )}
       </div>
     </App>
   );
