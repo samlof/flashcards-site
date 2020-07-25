@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -79,19 +81,45 @@ func main() {
 
 	mux := http.NewServeMux()
 
+	mux.Handle("/query", srv)
+
+	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("ok"))
+	})
+
 	// Disable introspection and playground for production
 	if !isProduction {
 		srv.Use(extension.Introspection{})
 		mux.Handle("/", playground.Handler("GraphQL playground", "/query"))
 		log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
 	}
-
-	mux.Handle("/query", srv)
-
 	handler := cors.Default().Handler(mux)
 
-	log.Printf("Listening at http://localhost:%s/query", port)
-	log.Fatal(http.ListenAndServe(":"+port, handler))
+	// Setup close handler
+	httpServer := http.Server{
+		Addr:    ":" + port,
+		Handler: handler,
+	}
+	// Start server in goroutine, this one will wait for interrupt signal
+	go func() {
+		log.Printf("Listening at http://localhost:%s/query", port)
+		err := httpServer.ListenAndServe()
+		if err != nil && err != http.ErrServerClosed {
+			log.Fatalf("Server shutdown: %v", err)
+		}
+	}()
+
+	// Graceful shutdown code
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	<-c
+	fmt.Println("Shutting down...")
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), time.Second*9)
+	defer cancel()
+	err = httpServer.Shutdown(shutdownCtx)
+	if err != nil {
+		log.Fatalf("Shutdown error: %v", err)
+	}
 }
 
 func applyDotEnv() string {
