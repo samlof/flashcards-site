@@ -1,7 +1,0 @@
-query AllWords {
-  getWords {
-    id
-    word1
-    word2
-  }
-}

@@ -10,3 +10,11 @@ mutation AddWord($word1: String!, $word2: String!) {
 mutation DeleteWord($id: ID!) {
   deleteWord(id: $id)
 }
+
+query AllWords {
+  getWords {
+    id
+    word1
+    word2
+  }
+}
