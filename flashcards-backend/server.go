@@ -2,10 +2,12 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"github.com/rs/cors"
 
@@ -21,13 +23,19 @@ import (
 const defaultPort = "8080"
 
 func main() {
+	applyDotEnv()
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = defaultPort
 	}
-
+	dbURL := os.Getenv("DATABASE_URL")
+	if dbURL == "" {
+		log.Fatal("No DATABASE_URL set")
+	}
+	fmt.Println("Connecting to: ", dbURL)
 	// Make db client
-	client, err := ent.Open("postgres", "host=localhost port=5432 user=postgres password=admin dbname=flashcards sslmode=disable")
+	client, err := ent.Open("postgres", dbURL)
 	if err != nil {
 		log.Fatalf("Failed connecting to postgres: %v", err)
 	}
@@ -56,4 +64,20 @@ func main() {
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
 	log.Fatal(http.ListenAndServe(":"+port, handler))
+}
+
+func applyDotEnv() {
+	env := os.Getenv("FOO_ENV")
+	if env == "" {
+		env = "development"
+	}
+	godotenv.Load(".env." + env + ".local")
+	if env != "test" {
+		godotenv.Load(".env.local")
+	}
+	godotenv.Load(".env." + env)
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 }
