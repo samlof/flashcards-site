@@ -1,3 +1,4 @@
+// +heroku goVersion 1.14
 module flashcards-backend
 
 go 1.14
