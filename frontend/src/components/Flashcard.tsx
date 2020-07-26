@@ -3,7 +3,6 @@ import { CSSTransition } from "react-transition-group";
 import styled from "styled-components";
 import { Button } from "../components/Button";
 import FlipCard, { CardWord } from "../components/FlipCard";
-import { Word } from "../components/words";
 import { delayMs } from "../helpers/delay";
 
 const ButtonDiv = styled.div`
@@ -25,12 +24,17 @@ const clampValue = (n: number, mod: number): number => {
 };
 
 const animationSpeed = 175;
-
+export interface Word {
+  word1: string;
+  word2: string;
+}
 interface Props {
+  lang1: string;
+  lang2: string;
   words: Word[];
 }
 
-const Flashcard = ({ words }: Props) => {
+const Flashcard = ({ words, lang1, lang2 }: Props) => {
   const [index, setIndex] = React.useState(0);
   const [cardVisible, setVisible] = React.useState(true);
   const [animationName, setAnimationName] = React.useState("card-in-out");
@@ -50,12 +54,12 @@ const Flashcard = ({ words }: Props) => {
   };
   const word = words[index];
   const frontCard: CardWord = {
-    lang: "fi",
-    text: word.fi,
+    lang: lang1,
+    text: word.word1,
   };
   const backCard: CardWord = {
-    lang: "en",
-    text: word.en,
+    lang: lang2,
+    text: word.word2,
   };
   return (
     <>

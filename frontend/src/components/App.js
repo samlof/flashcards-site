@@ -1,15 +1,9 @@
-import HeaderCss from "./HeaderCss";
-
 export default function App({ children }) {
   return (
     <main>
-      <HeaderCss />
       {children}
       <style jsx global>{`
         * {
-          font-family: "Raleway", Menlo, Monaco, "Lucida Console",
-            "Liberation Mono", "DejaVu Sans Mono", "Bitstream Vera Sans Mono",
-            "Courier New", monospace, serif;
           box-sizing: border-box;
         }
         h1,
@@ -31,6 +25,9 @@ export default function App({ children }) {
           flex-direction: column;
         }
         body {
+          font-family: "Raleway", Menlo, Monaco, "Lucida Console",
+            "Liberation Mono", "DejaVu Sans Mono", "Bitstream Vera Sans Mono",
+            "Courier New", monospace, serif;
           margin: 0;
           padding: 25px 50px;
           --color-green: #4c9f70;

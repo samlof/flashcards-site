@@ -1,19 +1,19 @@
 import { gql } from "@apollo/client";
-import { GetServerSideProps } from "next";
 import React from "react";
-import styled from "styled-components";
 import App from "../components/App";
-import Flashcard from "../components/Flashcard";
+import Flashcard, { Word } from "../components/Flashcard";
+import GqlError from "../components/GqlError";
+import Loading from "../components/Loading";
 import {
-  FlashcardPageDocument,
+  useFlashcardPageQuery,
   FlashcardPageQuery,
   FlashcardPageQueryVariables,
-  useFlashcardPageQuery,
+  FlashcardPageDocument,
 } from "../gql.generated";
-import { initializeApollo } from "../lib/apolloClient";
+import { shuffle } from "../helpers/numberToString";
+import { GetServerSideProps } from "next";
 import { PageProps } from "./_app";
-import Loading from "../components/Loading";
-import GqlError from "../components/GqlError";
+import { initializeApollo } from "../lib/apolloClient";
 
 interface Props {}
 
@@ -29,16 +29,24 @@ gql`
 
 const IndexPage = () => {
   const { loading, error, data } = useFlashcardPageQuery();
+  const [words, setWords] = React.useState<Word[]>([]);
+  React.useEffect(() => {
+    if (!data) return;
+    const copiedWords = [...data.getWords];
+    shuffle(copiedWords);
+    setWords(copiedWords);
+  }, [data]);
   if (loading) return <Loading />;
   if (error) return <GqlError msg="Error getting words" err={error} />;
-  if (!data || !data.getWords?.length) return <span>No words</span>;
+  if (!data || !data.getWords?.length || !words.length)
+    return <span>No words</span>;
 
   const dbWords = data.getWords;
-  const words = dbWords.map((x) => ({ fi: x.word1, en: x.word2 }));
+  const langInfo = dbWords[0].langData.split("-");
   return (
     <App>
       <h1>Flashcards</h1>
-      <Flashcard words={words} />
+      <Flashcard words={words} lang1={langInfo[0]} lang2={langInfo[1]} />
     </App>
   );
 };
@@ -56,5 +64,4 @@ export const getServerSideProps: GetServerSideProps<
     props: { initialApolloState: apolloClient.cache.extract() },
   };
 };
-
 export default IndexPage;
