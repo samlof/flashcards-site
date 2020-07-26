@@ -1,4 +1,4 @@
-import { ApolloProvider } from "@apollo/client";
+import { ApolloProvider, NormalizedCache } from "@apollo/client";
 import { useApollo } from "../lib/apolloClient";
 import { AppPropsType } from "next/dist/next-server/lib/utils";
 import { ThemeProvider } from "styled-components";
@@ -8,6 +8,10 @@ const theme = {
     primary: "#0070f3",
   },
 };
+
+export interface PageProps {
+  initialApolloState: NormalizedCache;
+}
 export default function App({ Component, pageProps }: AppPropsType) {
   const apolloClient = useApollo(pageProps.initialApolloState);
 

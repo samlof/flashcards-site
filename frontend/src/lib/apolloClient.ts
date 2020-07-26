@@ -9,10 +9,14 @@ import { useMemo } from "react";
 let apolloClient: ApolloClient<NormalizedCache>;
 
 function createApolloClient() {
+  const serverUrl = process.env.NEXT_PUBLIC_GRAPHQL_URL;
+  if (!serverUrl) {
+    throw new Error("Remember to set the env variable");
+  }
   return new ApolloClient({
     ssrMode: typeof window === "undefined",
     link: new HttpLink({
-      uri: "http://localhost:8080/query", // Server URL (must be absolute)
+      uri: serverUrl, // Server URL (must be absolute)
       credentials: "same-origin", // Additional fetch() options like `credentials` or `headers`
     }),
     cache: new InMemoryCache(),

@@ -16,7 +16,8 @@ export default function App({ children }) {
         h2,
         h3,
         h4,
-        h5 {
+        h5,
+        h6 {
           font-family: "Lato", Menlo, Monaco, "Lucida Console",
             "Liberation Mono", "DejaVu Sans Mono", "Bitstream Vera Sans Mono",
             "Courier New", monospace, serif;
