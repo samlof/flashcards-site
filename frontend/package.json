@@ -18,19 +18,18 @@
     "react-dom": "^16.13.1",
     "react-transition-group": "^4.4.1",
     "styled-components": "^5.1.1",
-    "typescript": "^3.9.7"
+    "typescript": "^3.9.7",
+    "babel-plugin-styled-components": "^1.10.7"
   },
   "devDependencies": {
     "@graphql-codegen/cli": "^1.17.4",
-    "@graphql-codegen/near-operation-file-preset": "^1.17.4",
     "@graphql-codegen/typescript": "^1.17.4",
     "@graphql-codegen/typescript-operations": "^1.17.4",
     "@graphql-codegen/typescript-react-apollo": "^1.17.4",
     "@types/react": "^16.9.43",
     "@types/react-dom": "^16.9.8",
     "@types/react-transition-group": "^4.4.0",
-    "@types/styled-components": "^5.1.1",
-    "babel-plugin-styled-components": "^1.10.7"
+    "@types/styled-components": "^5.1.1"
   },
   "license": "ISC"
 }

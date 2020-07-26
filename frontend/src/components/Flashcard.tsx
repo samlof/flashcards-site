@@ -31,7 +31,7 @@ interface Props {
 }
 
 const Flashcard = ({ words }: Props) => {
-  const [index, setIndex] = React.useState(1);
+  const [index, setIndex] = React.useState(0);
   const [cardVisible, setVisible] = React.useState(true);
   const [animationName, setAnimationName] = React.useState("card-in-out");
   const nextCard = async () => {
