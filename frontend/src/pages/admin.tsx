@@ -8,10 +8,6 @@ import GqlError from "../components/GqlError";
 import Loading from "../components/Loading";
 import { useAllWordsQuery } from "../gql.generated";
 
-const Title = styled.h1`
-  text-align: center;
-`;
-
 interface Props {}
 const AdminPage = ({}: Props) => {
   const { data, loading, error, refetch: refetchWords } = useAllWordsQuery();
@@ -23,12 +19,10 @@ const AdminPage = ({}: Props) => {
 
   return (
     <App>
-      <Title>Admin panel</Title>
-      <div className="center-div">
-        <AddWord refetchWords={refetchWords} />
-        <AddCsvWords allWords={data} refetchWords={refetchWords} />
-        <AllWords />
-      </div>
+      <h1>Admin panel</h1>
+      <AddWord refetchWords={refetchWords} />
+      <AddCsvWords allWords={data} refetchWords={refetchWords} />
+      <AllWords />
     </App>
   );
 };

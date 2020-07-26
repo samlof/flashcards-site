@@ -59,27 +59,25 @@ const Flashcard = ({ words }: Props) => {
   };
   return (
     <>
-      <div className="center-div">
-        <CSSTransition
-          in={cardVisible}
-          timeout={animationSpeed}
-          classNames={animationName}
-        >
-          <FlipCard key={index} back={backCard} front={frontCard}></FlipCard>
-        </CSSTransition>
-        <span style={{ marginTop: "2rem" }}></span>
-        <ButtonDiv>
-          <DirButton type="button" onClick={(e) => lastCard()}>
-            Back
-          </DirButton>
-          <span style={{ minWidth: "5rem" }}>
-            {index + 1}/{words.length}
-          </span>
-          <DirButton type="button" onClick={(e) => nextCard()}>
-            Next
-          </DirButton>
-        </ButtonDiv>
-      </div>
+      <CSSTransition
+        in={cardVisible}
+        timeout={animationSpeed}
+        classNames={animationName}
+      >
+        <FlipCard key={index} back={backCard} front={frontCard}></FlipCard>
+      </CSSTransition>
+      <div style={{ height: "2rem" }}></div>
+      <ButtonDiv>
+        <DirButton type="button" onClick={(e) => lastCard()}>
+          Back
+        </DirButton>
+        <span style={{ minWidth: "5rem" }}>
+          {index + 1}/{words.length}
+        </span>
+        <DirButton type="button" onClick={(e) => nextCard()}>
+          Next
+        </DirButton>
+      </ButtonDiv>
 
       <style jsx global>{`
         .card-in-out-enter {

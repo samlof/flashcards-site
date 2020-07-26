@@ -21,6 +21,14 @@ export default function App({ children }) {
           font-family: "Lato", Menlo, Monaco, "Lucida Console",
             "Liberation Mono", "DejaVu Sans Mono", "Bitstream Vera Sans Mono",
             "Courier New", monospace, serif;
+          color: var(--color-blue);
+        }
+        main {
+          text-align: center;
+          justify-content: center;
+          display: flex;
+          align-items: center;
+          flex-direction: column;
         }
         body {
           margin: 0;
@@ -32,6 +40,7 @@ export default function App({ children }) {
           --color-red: #d55672;
           --color-white: #efefef;
           background-color: var(--color-orange);
+          font-size: 14px;
         }
         .fade-in-out-enter {
           opacity: 0;

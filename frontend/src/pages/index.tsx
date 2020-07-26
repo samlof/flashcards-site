@@ -15,11 +15,6 @@ import { PageProps } from "./_app";
 import Loading from "../components/Loading";
 import GqlError from "../components/GqlError";
 
-const Title = styled.h1`
-  color: var(--color-blue);
-  text-align: center;
-`;
-
 interface Props {}
 
 gql`
@@ -36,13 +31,13 @@ const IndexPage = () => {
   const { loading, error, data } = useFlashcardPageQuery();
   if (loading) return <Loading />;
   if (error) return <GqlError msg="Error getting words" err={error} />;
-  if (!data) return <span>No words</span>;
+  if (!data || !data.getWords?.length) return <span>No words</span>;
 
   const dbWords = data.getWords;
   const words = dbWords.map((x) => ({ fi: x.word1, en: x.word2 }));
   return (
     <App>
-      <Title>Flashcards</Title>
+      <h1>Flashcards</h1>
       <Flashcard words={words} />
     </App>
   );

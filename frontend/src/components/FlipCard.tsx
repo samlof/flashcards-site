@@ -10,10 +10,14 @@ const CardSide = styled.div<{ front: boolean }>`
   flex-direction: column;
   justify-content: center;
   box-shadow: 2px 1px 10px var(--color-brown);
-  height: 30vh;
-  width: 20vh;
+  height: 11rem;
+  width: 10rem;
   border-radius: 10%;
   background-color: var(--color-white);
+`;
+
+const LanguageText = styled.i`
+  padding-top: 1rem;
 `;
 
 export interface CardWord {
@@ -51,12 +55,12 @@ const FlipCard = ({ front, back }: Props) => {
         front={isFrontVisible}
       >
         <span>{front.text}</span>
-        <i>{front.lang}</i>
+        <LanguageText>{front.lang}</LanguageText>
       </CardSide>
 
       <CardSide key="back" onClick={(e) => handleFlip()} front={isFrontVisible}>
         <span>{back.text}</span>
-        <i>{back.lang}</i>
+        <LanguageText>{back.lang}</LanguageText>
       </CardSide>
     </ReactCardFlip>
   );
