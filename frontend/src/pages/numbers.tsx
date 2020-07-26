@@ -2,10 +2,12 @@ import { GetStaticProps } from "next";
 import React from "react";
 import styled from "styled-components";
 import App from "../components/App";
-import { numberToString, shuffle } from "../helpers/numberToString";
+import { numberToString } from "../helpers/numberToString";
+import { shuffle } from "../helpers/shuffle";
 import { QuestionLine, Question } from "../components/QuestionLine";
 import { CSSTransition } from "react-transition-group";
 import { Button } from "../components/Button";
+import Head from "next/head";
 
 let id = 1000;
 
@@ -32,10 +34,7 @@ const generateQuestions = (amount = 10): Question[] => {
   return shuffle(ret);
 };
 
-const Title = styled.h1`
-  text-align: center;
-`;
-const Container = styled.div`
+const QuestionContainer = styled.div`
   display: flex;
   justify-content: center;
   margin-bottom: 1rem;
@@ -43,14 +42,10 @@ const Container = styled.div`
   height: 2rem;
 `;
 
-interface Props {
-  initialQuestions: Question[];
-}
+interface Props {}
 
-const IndexPage = ({ initialQuestions }: Props) => {
-  const [questions, setQuestions] = React.useState<Question[]>(
-    initialQuestions || []
-  );
+const NumbersPage = ({}: Props) => {
+  const [questions, setQuestions] = React.useState<Question[]>([]);
   const [showResults, setShowResults] = React.useState<{
     [key: number]: boolean;
   }>({});
@@ -58,6 +53,9 @@ const IndexPage = ({ initialQuestions }: Props) => {
   const [loadingResults, setLoadingResults] = React.useState(false);
   const [rightAnswerCount, setRightAnswerCount] = React.useState(0);
 
+  React.useEffect(() => {
+    if (questions.length === 0) setQuestions(generateQuestions());
+  }, []);
   const generateNewQuestions = () => {
     setQuestions(generateQuestions());
     setRightAnswerCount(0);
@@ -88,17 +86,20 @@ const IndexPage = ({ initialQuestions }: Props) => {
 
   return (
     <App>
-      <Title>Write the number in Finnish and press submit</Title>
+      <Head>
+        <title>Number quiz | kieli.club</title>
+      </Head>
+      <h1>Write the number in Finnish and press submit</h1>
 
       <div className="center-div">
         {questions.map((question) => (
-          <Container key={question.id}>
+          <QuestionContainer key={question.id}>
             <QuestionLine
               question={question}
               showResults={showResults[question.id]}
               resultChanged={answersChanged}
             ></QuestionLine>
-          </Container>
+          </QuestionContainer>
         ))}
         <div style={{ height: "1.5rem" }}>
           <CSSTransition
@@ -130,14 +131,4 @@ const IndexPage = ({ initialQuestions }: Props) => {
   );
 };
 
-export const getStaticProps: GetStaticProps<Props> = async (context) => {
-  id = 1;
-  const questions = generateQuestions(10);
-  id = 1000;
-  return {
-    props: { initialQuestions: questions },
-    unstable_revalidate: 1,
-  };
-};
-
-export default IndexPage;
+export default NumbersPage;

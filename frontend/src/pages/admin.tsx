@@ -7,6 +7,7 @@ import App from "../components/App";
 import GqlError from "../components/GqlError";
 import Loading from "../components/Loading";
 import { useAllWordsQuery } from "../gql.generated";
+import Head from "next/head";
 
 interface Props {}
 const AdminPage = ({}: Props) => {
@@ -19,6 +20,9 @@ const AdminPage = ({}: Props) => {
 
   return (
     <App>
+      <Head>
+        <title>Admin | kieli.club</title>
+      </Head>
       <h1>Admin panel</h1>
       <AddWord refetchWords={refetchWords} />
       <AddCsvWords allWords={data} refetchWords={refetchWords} />

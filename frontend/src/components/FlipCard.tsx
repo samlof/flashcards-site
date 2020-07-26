@@ -42,6 +42,7 @@ const FlipCard = ({ front, back }: Props) => {
     await delayMs(flipSpeedHalf - 100);
     setIsFrontVisible((f) => !f);
   };
+
   return (
     <ReactCardFlip
       isFlipped={isFront}

@@ -2,8 +2,13 @@ import React from "react";
 import { CSSTransition } from "react-transition-group";
 import styled from "styled-components";
 import { Button } from "../components/Button";
-import FlipCard, { CardWord } from "../components/FlipCard";
+import FlipCard from "../components/FlipCard";
 import { delayMs } from "../helpers/delay";
+import { modulus } from "../helpers/modulus";
+import Loading from "./Loading";
+import GqlError from "./GqlError";
+import { shuffle } from "../helpers/shuffle";
+import { useFlashcardPageQuery, Word } from "../gql.generated";
 
 const ButtonDiv = styled.div`
   display: flex;
@@ -17,50 +22,45 @@ const DirButton = styled(Button)`
   }
 `;
 
-const clampValue = (n: number, mod: number): number => {
-  if (n < 0) return n + mod;
-  if (n > mod - 1) return n - mod;
-  return n;
-};
-
-const animationSpeed = 175;
-export interface Word {
+interface FlashWord {
   word1: string;
   word2: string;
+  langData: string;
 }
-interface Props {
-  lang1: string;
-  lang2: string;
-  words: Word[];
-}
+const animationSpeed = 175;
+interface Props {}
 
-const Flashcard = ({ words, lang1, lang2 }: Props) => {
+const Flashcard = ({}: Props) => {
   const [index, setIndex] = React.useState(0);
   const [cardVisible, setVisible] = React.useState(true);
   const [animationName, setAnimationName] = React.useState("card-in-out");
-  const nextCard = async () => {
-    setAnimationName("card-in-out");
+
+  const { loading, error, data } = useFlashcardPageQuery();
+  const [words, setWords] = React.useState<FlashWord[]>([]);
+  React.useEffect(() => {
+    if (!data) return;
+    const copiedWords = [...data.getWords];
+    shuffle(copiedWords);
+    setWords(copiedWords);
+  }, [data]);
+  if (loading) return <Loading />;
+  if (error) return <GqlError msg="Error getting words" err={error} />;
+  if (!data || !data.getWords?.length || !words.length)
+    return <span>No words</span>;
+
+  const nextCard = async (next: boolean) => {
+    if (next) setAnimationName("card-in-out");
+    else setAnimationName("card-out-in");
+
     setVisible(false);
     await delayMs(animationSpeed);
-    setIndex((i) => clampValue(i + 1, words.length));
+    if (next) setIndex((i) => modulus(i + 1, words.length));
+    else setIndex((i) => modulus(i - 1, words.length));
     setVisible(true);
   };
-  const lastCard = async () => {
-    setAnimationName("card-out-in");
-    setVisible(false);
-    await delayMs(animationSpeed);
-    setIndex((i) => clampValue(i - 1, words.length));
-    setVisible(true);
-  };
+
+  const langInfo = data.getWords[0].langData.split("-");
   const word = words[index];
-  const frontCard: CardWord = {
-    lang: lang1,
-    text: word.word1,
-  };
-  const backCard: CardWord = {
-    lang: lang2,
-    text: word.word2,
-  };
   return (
     <>
       <CSSTransition
@@ -68,17 +68,21 @@ const Flashcard = ({ words, lang1, lang2 }: Props) => {
         timeout={animationSpeed}
         classNames={animationName}
       >
-        <FlipCard key={index} back={backCard} front={frontCard}></FlipCard>
+        <FlipCard
+          key={index}
+          front={{ lang: langInfo[0], text: word.word1 }}
+          back={{ lang: langInfo[1], text: word.word2 }}
+        ></FlipCard>
       </CSSTransition>
       <div style={{ height: "2rem" }}></div>
       <ButtonDiv>
-        <DirButton type="button" onClick={(e) => lastCard()}>
+        <DirButton type="button" onClick={(e) => nextCard(false)}>
           Back
         </DirButton>
         <span style={{ minWidth: "5rem" }}>
           {index + 1}/{words.length}
         </span>
-        <DirButton type="button" onClick={(e) => nextCard()}>
+        <DirButton type="button" onClick={(e) => nextCard(true)}>
           Next
         </DirButton>
       </ButtonDiv>

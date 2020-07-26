@@ -1,7 +1,12 @@
+import Head from "next/head";
+
 export default function App({ children }) {
   return (
     <main>
       {children}
+      <Head>
+        <meta name="viewport" content="initial-scale=1.0, width=device-width" />
+      </Head>
       <style jsx global>{`
         * {
           box-sizing: border-box;
