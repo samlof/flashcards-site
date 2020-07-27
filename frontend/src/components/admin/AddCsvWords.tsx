@@ -122,6 +122,7 @@ const AddCsvWords = ({ allWords, refetchWords }: Props) => {
     e.preventDefault();
     const word = addCsvResults?.words.find((x) => x.id === id);
     if (!word) return;
+
     addWord({ variables: { word1: word.pair[0], word2: word.pair[1] } });
     setAddCsvResults(
       (res) =>
@@ -152,7 +153,7 @@ const AddCsvWords = ({ allWords, refetchWords }: Props) => {
             <div>Paste from excel</div>
             <textarea
               style={{
-                width: "30vw",
+                width: "15rem",
                 height: "300px",
               }}
               cols={10}
@@ -163,7 +164,11 @@ const AddCsvWords = ({ allWords, refetchWords }: Props) => {
           </label>
         </div>
         <Button type="submit">Add excel words</Button>
-        {addWordError && <GqlError msg="Failed to add" err={addWordError} />}
+        {addWordError && (
+          <div style={{ color: "var(--color-red)" }}>
+            <GqlError msg="Failed to add" err={addWordError} />
+          </div>
+        )}
       </form>
       {addCsvResults && (
         <>
@@ -211,13 +216,13 @@ const AddCsvWords = ({ allWords, refetchWords }: Props) => {
                           type="button"
                           onClick={(e) => handleAddCsvWord(e, word.id)}
                         >
-                          +
+                          Add
                         </button>
                         <button
                           type="button"
                           onClick={(e) => handleSkipCsvWord(e, word.id)}
                         >
-                          -
+                          Skip
                         </button>
                       </td>
                     </WordRow>

@@ -92,10 +92,31 @@ func IDLTE(id int) predicate.Word {
 	})
 }
 
-// LangData applies equality check predicate on the "langData" field. It's identical to LangDataEQ.
-func LangData(v string) predicate.Word {
+// CreateTime applies equality check predicate on the "create_time" field. It's identical to CreateTimeEQ.
+func CreateTime(v time.Time) predicate.Word {
 	return predicate.Word(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldLangData), v))
+		s.Where(sql.EQ(s.C(FieldCreateTime), v))
+	})
+}
+
+// UpdateTime applies equality check predicate on the "update_time" field. It's identical to UpdateTimeEQ.
+func UpdateTime(v time.Time) predicate.Word {
+	return predicate.Word(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldUpdateTime), v))
+	})
+}
+
+// Lang1 applies equality check predicate on the "lang1" field. It's identical to Lang1EQ.
+func Lang1(v string) predicate.Word {
+	return predicate.Word(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldLang1), v))
+	})
+}
+
+// Lang2 applies equality check predicate on the "lang2" field. It's identical to Lang2EQ.
+func Lang2(v string) predicate.Word {
+	return predicate.Word(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldLang2), v))
 	})
 }
 
@@ -113,29 +134,22 @@ func Word2(v string) predicate.Word {
 	})
 }
 
-// CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
-func CreatedAt(v time.Time) predicate.Word {
+// CreateTimeEQ applies the EQ predicate on the "create_time" field.
+func CreateTimeEQ(v time.Time) predicate.Word {
 	return predicate.Word(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldCreatedAt), v))
+		s.Where(sql.EQ(s.C(FieldCreateTime), v))
 	})
 }
 
-// LangDataEQ applies the EQ predicate on the "langData" field.
-func LangDataEQ(v string) predicate.Word {
+// CreateTimeNEQ applies the NEQ predicate on the "create_time" field.
+func CreateTimeNEQ(v time.Time) predicate.Word {
 	return predicate.Word(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldLangData), v))
+		s.Where(sql.NEQ(s.C(FieldCreateTime), v))
 	})
 }
 
-// LangDataNEQ applies the NEQ predicate on the "langData" field.
-func LangDataNEQ(v string) predicate.Word {
-	return predicate.Word(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldLangData), v))
-	})
-}
-
-// LangDataIn applies the In predicate on the "langData" field.
-func LangDataIn(vs ...string) predicate.Word {
+// CreateTimeIn applies the In predicate on the "create_time" field.
+func CreateTimeIn(vs ...time.Time) predicate.Word {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -147,12 +161,12 @@ func LangDataIn(vs ...string) predicate.Word {
 			s.Where(sql.False())
 			return
 		}
-		s.Where(sql.In(s.C(FieldLangData), v...))
+		s.Where(sql.In(s.C(FieldCreateTime), v...))
 	})
 }
 
-// LangDataNotIn applies the NotIn predicate on the "langData" field.
-func LangDataNotIn(vs ...string) predicate.Word {
+// CreateTimeNotIn applies the NotIn predicate on the "create_time" field.
+func CreateTimeNotIn(vs ...time.Time) predicate.Word {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -164,70 +178,333 @@ func LangDataNotIn(vs ...string) predicate.Word {
 			s.Where(sql.False())
 			return
 		}
-		s.Where(sql.NotIn(s.C(FieldLangData), v...))
+		s.Where(sql.NotIn(s.C(FieldCreateTime), v...))
 	})
 }
 
-// LangDataGT applies the GT predicate on the "langData" field.
-func LangDataGT(v string) predicate.Word {
+// CreateTimeGT applies the GT predicate on the "create_time" field.
+func CreateTimeGT(v time.Time) predicate.Word {
 	return predicate.Word(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldLangData), v))
+		s.Where(sql.GT(s.C(FieldCreateTime), v))
 	})
 }
 
-// LangDataGTE applies the GTE predicate on the "langData" field.
-func LangDataGTE(v string) predicate.Word {
+// CreateTimeGTE applies the GTE predicate on the "create_time" field.
+func CreateTimeGTE(v time.Time) predicate.Word {
 	return predicate.Word(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldLangData), v))
+		s.Where(sql.GTE(s.C(FieldCreateTime), v))
 	})
 }
 
-// LangDataLT applies the LT predicate on the "langData" field.
-func LangDataLT(v string) predicate.Word {
+// CreateTimeLT applies the LT predicate on the "create_time" field.
+func CreateTimeLT(v time.Time) predicate.Word {
 	return predicate.Word(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldLangData), v))
+		s.Where(sql.LT(s.C(FieldCreateTime), v))
 	})
 }
 
-// LangDataLTE applies the LTE predicate on the "langData" field.
-func LangDataLTE(v string) predicate.Word {
+// CreateTimeLTE applies the LTE predicate on the "create_time" field.
+func CreateTimeLTE(v time.Time) predicate.Word {
 	return predicate.Word(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldLangData), v))
+		s.Where(sql.LTE(s.C(FieldCreateTime), v))
 	})
 }
 
-// LangDataContains applies the Contains predicate on the "langData" field.
-func LangDataContains(v string) predicate.Word {
+// UpdateTimeEQ applies the EQ predicate on the "update_time" field.
+func UpdateTimeEQ(v time.Time) predicate.Word {
 	return predicate.Word(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldLangData), v))
+		s.Where(sql.EQ(s.C(FieldUpdateTime), v))
 	})
 }
 
-// LangDataHasPrefix applies the HasPrefix predicate on the "langData" field.
-func LangDataHasPrefix(v string) predicate.Word {
+// UpdateTimeNEQ applies the NEQ predicate on the "update_time" field.
+func UpdateTimeNEQ(v time.Time) predicate.Word {
 	return predicate.Word(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldLangData), v))
+		s.Where(sql.NEQ(s.C(FieldUpdateTime), v))
 	})
 }
 
-// LangDataHasSuffix applies the HasSuffix predicate on the "langData" field.
-func LangDataHasSuffix(v string) predicate.Word {
+// UpdateTimeIn applies the In predicate on the "update_time" field.
+func UpdateTimeIn(vs ...time.Time) predicate.Word {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
 	return predicate.Word(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldLangData), v))
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldUpdateTime), v...))
 	})
 }
 
-// LangDataEqualFold applies the EqualFold predicate on the "langData" field.
-func LangDataEqualFold(v string) predicate.Word {
+// UpdateTimeNotIn applies the NotIn predicate on the "update_time" field.
+func UpdateTimeNotIn(vs ...time.Time) predicate.Word {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
 	return predicate.Word(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldLangData), v))
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldUpdateTime), v...))
 	})
 }
 
-// LangDataContainsFold applies the ContainsFold predicate on the "langData" field.
-func LangDataContainsFold(v string) predicate.Word {
+// UpdateTimeGT applies the GT predicate on the "update_time" field.
+func UpdateTimeGT(v time.Time) predicate.Word {
 	return predicate.Word(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldLangData), v))
+		s.Where(sql.GT(s.C(FieldUpdateTime), v))
+	})
+}
+
+// UpdateTimeGTE applies the GTE predicate on the "update_time" field.
+func UpdateTimeGTE(v time.Time) predicate.Word {
+	return predicate.Word(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldUpdateTime), v))
+	})
+}
+
+// UpdateTimeLT applies the LT predicate on the "update_time" field.
+func UpdateTimeLT(v time.Time) predicate.Word {
+	return predicate.Word(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldUpdateTime), v))
+	})
+}
+
+// UpdateTimeLTE applies the LTE predicate on the "update_time" field.
+func UpdateTimeLTE(v time.Time) predicate.Word {
+	return predicate.Word(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldUpdateTime), v))
+	})
+}
+
+// Lang1EQ applies the EQ predicate on the "lang1" field.
+func Lang1EQ(v string) predicate.Word {
+	return predicate.Word(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldLang1), v))
+	})
+}
+
+// Lang1NEQ applies the NEQ predicate on the "lang1" field.
+func Lang1NEQ(v string) predicate.Word {
+	return predicate.Word(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldLang1), v))
+	})
+}
+
+// Lang1In applies the In predicate on the "lang1" field.
+func Lang1In(vs ...string) predicate.Word {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Word(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldLang1), v...))
+	})
+}
+
+// Lang1NotIn applies the NotIn predicate on the "lang1" field.
+func Lang1NotIn(vs ...string) predicate.Word {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Word(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldLang1), v...))
+	})
+}
+
+// Lang1GT applies the GT predicate on the "lang1" field.
+func Lang1GT(v string) predicate.Word {
+	return predicate.Word(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldLang1), v))
+	})
+}
+
+// Lang1GTE applies the GTE predicate on the "lang1" field.
+func Lang1GTE(v string) predicate.Word {
+	return predicate.Word(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldLang1), v))
+	})
+}
+
+// Lang1LT applies the LT predicate on the "lang1" field.
+func Lang1LT(v string) predicate.Word {
+	return predicate.Word(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldLang1), v))
+	})
+}
+
+// Lang1LTE applies the LTE predicate on the "lang1" field.
+func Lang1LTE(v string) predicate.Word {
+	return predicate.Word(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldLang1), v))
+	})
+}
+
+// Lang1Contains applies the Contains predicate on the "lang1" field.
+func Lang1Contains(v string) predicate.Word {
+	return predicate.Word(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldLang1), v))
+	})
+}
+
+// Lang1HasPrefix applies the HasPrefix predicate on the "lang1" field.
+func Lang1HasPrefix(v string) predicate.Word {
+	return predicate.Word(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldLang1), v))
+	})
+}
+
+// Lang1HasSuffix applies the HasSuffix predicate on the "lang1" field.
+func Lang1HasSuffix(v string) predicate.Word {
+	return predicate.Word(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldLang1), v))
+	})
+}
+
+// Lang1EqualFold applies the EqualFold predicate on the "lang1" field.
+func Lang1EqualFold(v string) predicate.Word {
+	return predicate.Word(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldLang1), v))
+	})
+}
+
+// Lang1ContainsFold applies the ContainsFold predicate on the "lang1" field.
+func Lang1ContainsFold(v string) predicate.Word {
+	return predicate.Word(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldLang1), v))
+	})
+}
+
+// Lang2EQ applies the EQ predicate on the "lang2" field.
+func Lang2EQ(v string) predicate.Word {
+	return predicate.Word(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldLang2), v))
+	})
+}
+
+// Lang2NEQ applies the NEQ predicate on the "lang2" field.
+func Lang2NEQ(v string) predicate.Word {
+	return predicate.Word(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldLang2), v))
+	})
+}
+
+// Lang2In applies the In predicate on the "lang2" field.
+func Lang2In(vs ...string) predicate.Word {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Word(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldLang2), v...))
+	})
+}
+
+// Lang2NotIn applies the NotIn predicate on the "lang2" field.
+func Lang2NotIn(vs ...string) predicate.Word {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Word(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldLang2), v...))
+	})
+}
+
+// Lang2GT applies the GT predicate on the "lang2" field.
+func Lang2GT(v string) predicate.Word {
+	return predicate.Word(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldLang2), v))
+	})
+}
+
+// Lang2GTE applies the GTE predicate on the "lang2" field.
+func Lang2GTE(v string) predicate.Word {
+	return predicate.Word(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldLang2), v))
+	})
+}
+
+// Lang2LT applies the LT predicate on the "lang2" field.
+func Lang2LT(v string) predicate.Word {
+	return predicate.Word(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldLang2), v))
+	})
+}
+
+// Lang2LTE applies the LTE predicate on the "lang2" field.
+func Lang2LTE(v string) predicate.Word {
+	return predicate.Word(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldLang2), v))
+	})
+}
+
+// Lang2Contains applies the Contains predicate on the "lang2" field.
+func Lang2Contains(v string) predicate.Word {
+	return predicate.Word(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldLang2), v))
+	})
+}
+
+// Lang2HasPrefix applies the HasPrefix predicate on the "lang2" field.
+func Lang2HasPrefix(v string) predicate.Word {
+	return predicate.Word(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldLang2), v))
+	})
+}
+
+// Lang2HasSuffix applies the HasSuffix predicate on the "lang2" field.
+func Lang2HasSuffix(v string) predicate.Word {
+	return predicate.Word(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldLang2), v))
+	})
+}
+
+// Lang2EqualFold applies the EqualFold predicate on the "lang2" field.
+func Lang2EqualFold(v string) predicate.Word {
+	return predicate.Word(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldLang2), v))
+	})
+}
+
+// Lang2ContainsFold applies the ContainsFold predicate on the "lang2" field.
+func Lang2ContainsFold(v string) predicate.Word {
+	return predicate.Word(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldLang2), v))
 	})
 }
 
@@ -450,82 +727,6 @@ func Word2EqualFold(v string) predicate.Word {
 func Word2ContainsFold(v string) predicate.Word {
 	return predicate.Word(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldWord2), v))
-	})
-}
-
-// CreatedAtEQ applies the EQ predicate on the "created_at" field.
-func CreatedAtEQ(v time.Time) predicate.Word {
-	return predicate.Word(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldCreatedAt), v))
-	})
-}
-
-// CreatedAtNEQ applies the NEQ predicate on the "created_at" field.
-func CreatedAtNEQ(v time.Time) predicate.Word {
-	return predicate.Word(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldCreatedAt), v))
-	})
-}
-
-// CreatedAtIn applies the In predicate on the "created_at" field.
-func CreatedAtIn(vs ...time.Time) predicate.Word {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Word(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.In(s.C(FieldCreatedAt), v...))
-	})
-}
-
-// CreatedAtNotIn applies the NotIn predicate on the "created_at" field.
-func CreatedAtNotIn(vs ...time.Time) predicate.Word {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Word(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.NotIn(s.C(FieldCreatedAt), v...))
-	})
-}
-
-// CreatedAtGT applies the GT predicate on the "created_at" field.
-func CreatedAtGT(v time.Time) predicate.Word {
-	return predicate.Word(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldCreatedAt), v))
-	})
-}
-
-// CreatedAtGTE applies the GTE predicate on the "created_at" field.
-func CreatedAtGTE(v time.Time) predicate.Word {
-	return predicate.Word(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldCreatedAt), v))
-	})
-}
-
-// CreatedAtLT applies the LT predicate on the "created_at" field.
-func CreatedAtLT(v time.Time) predicate.Word {
-	return predicate.Word(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldCreatedAt), v))
-	})
-}
-
-// CreatedAtLTE applies the LTE predicate on the "created_at" field.
-func CreatedAtLTE(v time.Time) predicate.Word {
-	return predicate.Word(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldCreatedAt), v))
 	})
 }
 

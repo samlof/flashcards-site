@@ -31,10 +31,12 @@ type WordMutation struct {
 	op            Op
 	typ           string
 	id            *int
-	langData      *string
+	create_time   *time.Time
+	update_time   *time.Time
+	lang1         *string
+	lang2         *string
 	word1         *string
 	word2         *string
-	created_at    *time.Time
 	clearedFields map[string]struct{}
 	done          bool
 	oldValue      func(context.Context) (*Word, error)
@@ -119,41 +121,152 @@ func (m *WordMutation) ID() (id int, exists bool) {
 	return *m.id, true
 }
 
-// SetLangData sets the langData field.
-func (m *WordMutation) SetLangData(s string) {
-	m.langData = &s
+// SetCreateTime sets the create_time field.
+func (m *WordMutation) SetCreateTime(t time.Time) {
+	m.create_time = &t
 }
 
-// LangData returns the langData value in the mutation.
-func (m *WordMutation) LangData() (r string, exists bool) {
-	v := m.langData
+// CreateTime returns the create_time value in the mutation.
+func (m *WordMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.create_time
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldLangData returns the old langData value of the Word.
+// OldCreateTime returns the old create_time value of the Word.
 // If the Word object wasn't provided to the builder, the object is fetched
 // from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
-func (m *WordMutation) OldLangData(ctx context.Context) (v string, err error) {
+func (m *WordMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldLangData is allowed only on UpdateOne operations")
+		return v, fmt.Errorf("OldCreateTime is allowed only on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldLangData requires an ID field in the mutation")
+		return v, fmt.Errorf("OldCreateTime requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldLangData: %w", err)
+		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
 	}
-	return oldValue.LangData, nil
+	return oldValue.CreateTime, nil
 }
 
-// ResetLangData reset all changes of the "langData" field.
-func (m *WordMutation) ResetLangData() {
-	m.langData = nil
+// ResetCreateTime reset all changes of the "create_time" field.
+func (m *WordMutation) ResetCreateTime() {
+	m.create_time = nil
+}
+
+// SetUpdateTime sets the update_time field.
+func (m *WordMutation) SetUpdateTime(t time.Time) {
+	m.update_time = &t
+}
+
+// UpdateTime returns the update_time value in the mutation.
+func (m *WordMutation) UpdateTime() (r time.Time, exists bool) {
+	v := m.update_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdateTime returns the old update_time value of the Word.
+// If the Word object wasn't provided to the builder, the object is fetched
+// from the database.
+// An error is returned if the mutation operation is not UpdateOne, or database query fails.
+func (m *WordMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldUpdateTime is allowed only on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldUpdateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
+	}
+	return oldValue.UpdateTime, nil
+}
+
+// ResetUpdateTime reset all changes of the "update_time" field.
+func (m *WordMutation) ResetUpdateTime() {
+	m.update_time = nil
+}
+
+// SetLang1 sets the lang1 field.
+func (m *WordMutation) SetLang1(s string) {
+	m.lang1 = &s
+}
+
+// Lang1 returns the lang1 value in the mutation.
+func (m *WordMutation) Lang1() (r string, exists bool) {
+	v := m.lang1
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLang1 returns the old lang1 value of the Word.
+// If the Word object wasn't provided to the builder, the object is fetched
+// from the database.
+// An error is returned if the mutation operation is not UpdateOne, or database query fails.
+func (m *WordMutation) OldLang1(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldLang1 is allowed only on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldLang1 requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLang1: %w", err)
+	}
+	return oldValue.Lang1, nil
+}
+
+// ResetLang1 reset all changes of the "lang1" field.
+func (m *WordMutation) ResetLang1() {
+	m.lang1 = nil
+}
+
+// SetLang2 sets the lang2 field.
+func (m *WordMutation) SetLang2(s string) {
+	m.lang2 = &s
+}
+
+// Lang2 returns the lang2 value in the mutation.
+func (m *WordMutation) Lang2() (r string, exists bool) {
+	v := m.lang2
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLang2 returns the old lang2 value of the Word.
+// If the Word object wasn't provided to the builder, the object is fetched
+// from the database.
+// An error is returned if the mutation operation is not UpdateOne, or database query fails.
+func (m *WordMutation) OldLang2(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldLang2 is allowed only on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldLang2 requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLang2: %w", err)
+	}
+	return oldValue.Lang2, nil
+}
+
+// ResetLang2 reset all changes of the "lang2" field.
+func (m *WordMutation) ResetLang2() {
+	m.lang2 = nil
 }
 
 // SetWord1 sets the word1 field.
@@ -230,43 +343,6 @@ func (m *WordMutation) ResetWord2() {
 	m.word2 = nil
 }
 
-// SetCreatedAt sets the created_at field.
-func (m *WordMutation) SetCreatedAt(t time.Time) {
-	m.created_at = &t
-}
-
-// CreatedAt returns the created_at value in the mutation.
-func (m *WordMutation) CreatedAt() (r time.Time, exists bool) {
-	v := m.created_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCreatedAt returns the old created_at value of the Word.
-// If the Word object wasn't provided to the builder, the object is fetched
-// from the database.
-// An error is returned if the mutation operation is not UpdateOne, or database query fails.
-func (m *WordMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldCreatedAt is allowed only on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldCreatedAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
-	}
-	return oldValue.CreatedAt, nil
-}
-
-// ResetCreatedAt reset all changes of the "created_at" field.
-func (m *WordMutation) ResetCreatedAt() {
-	m.created_at = nil
-}
-
 // Op returns the operation name.
 func (m *WordMutation) Op() Op {
 	return m.op
@@ -281,18 +357,24 @@ func (m *WordMutation) Type() string {
 // this mutation. Note that, in order to get all numeric
 // fields that were in/decremented, call AddedFields().
 func (m *WordMutation) Fields() []string {
-	fields := make([]string, 0, 4)
-	if m.langData != nil {
-		fields = append(fields, word.FieldLangData)
+	fields := make([]string, 0, 6)
+	if m.create_time != nil {
+		fields = append(fields, word.FieldCreateTime)
+	}
+	if m.update_time != nil {
+		fields = append(fields, word.FieldUpdateTime)
+	}
+	if m.lang1 != nil {
+		fields = append(fields, word.FieldLang1)
+	}
+	if m.lang2 != nil {
+		fields = append(fields, word.FieldLang2)
 	}
 	if m.word1 != nil {
 		fields = append(fields, word.FieldWord1)
 	}
 	if m.word2 != nil {
 		fields = append(fields, word.FieldWord2)
-	}
-	if m.created_at != nil {
-		fields = append(fields, word.FieldCreatedAt)
 	}
 	return fields
 }
@@ -302,14 +384,18 @@ func (m *WordMutation) Fields() []string {
 // not set, or was not define in the schema.
 func (m *WordMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case word.FieldLangData:
-		return m.LangData()
+	case word.FieldCreateTime:
+		return m.CreateTime()
+	case word.FieldUpdateTime:
+		return m.UpdateTime()
+	case word.FieldLang1:
+		return m.Lang1()
+	case word.FieldLang2:
+		return m.Lang2()
 	case word.FieldWord1:
 		return m.Word1()
 	case word.FieldWord2:
 		return m.Word2()
-	case word.FieldCreatedAt:
-		return m.CreatedAt()
 	}
 	return nil, false
 }
@@ -319,14 +405,18 @@ func (m *WordMutation) Field(name string) (ent.Value, bool) {
 // or the query to the database was failed.
 func (m *WordMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case word.FieldLangData:
-		return m.OldLangData(ctx)
+	case word.FieldCreateTime:
+		return m.OldCreateTime(ctx)
+	case word.FieldUpdateTime:
+		return m.OldUpdateTime(ctx)
+	case word.FieldLang1:
+		return m.OldLang1(ctx)
+	case word.FieldLang2:
+		return m.OldLang2(ctx)
 	case word.FieldWord1:
 		return m.OldWord1(ctx)
 	case word.FieldWord2:
 		return m.OldWord2(ctx)
-	case word.FieldCreatedAt:
-		return m.OldCreatedAt(ctx)
 	}
 	return nil, fmt.Errorf("unknown Word field %s", name)
 }
@@ -336,12 +426,33 @@ func (m *WordMutation) OldField(ctx context.Context, name string) (ent.Value, er
 // type mismatch the field type.
 func (m *WordMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case word.FieldLangData:
+	case word.FieldCreateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreateTime(v)
+		return nil
+	case word.FieldUpdateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdateTime(v)
+		return nil
+	case word.FieldLang1:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetLangData(v)
+		m.SetLang1(v)
+		return nil
+	case word.FieldLang2:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLang2(v)
 		return nil
 	case word.FieldWord1:
 		v, ok := value.(string)
@@ -356,13 +467,6 @@ func (m *WordMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetWord2(v)
-		return nil
-	case word.FieldCreatedAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCreatedAt(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Word field %s", name)
@@ -414,17 +518,23 @@ func (m *WordMutation) ClearField(name string) error {
 // defined in the schema.
 func (m *WordMutation) ResetField(name string) error {
 	switch name {
-	case word.FieldLangData:
-		m.ResetLangData()
+	case word.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
+	case word.FieldUpdateTime:
+		m.ResetUpdateTime()
+		return nil
+	case word.FieldLang1:
+		m.ResetLang1()
+		return nil
+	case word.FieldLang2:
+		m.ResetLang2()
 		return nil
 	case word.FieldWord1:
 		m.ResetWord1()
 		return nil
 	case word.FieldWord2:
 		m.ResetWord2()
-		return nil
-	case word.FieldCreatedAt:
-		m.ResetCreatedAt()
 		return nil
 	}
 	return fmt.Errorf("unknown Word field %s", name)

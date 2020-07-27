@@ -4,19 +4,19 @@ import React from "react";
 import App from "../components/App";
 import Flashcard from "../components/Flashcard";
 
-interface Props {}
-
 gql`
   query FlashcardPage {
     getWords {
-      langData
+      lang1
+      lang2
       word1
       word2
     }
   }
 `;
 
-const IndexPage = () => {
+interface Props {}
+const IndexPage = ({}: Props) => {
   return (
     <App>
       <Head>
@@ -28,17 +28,4 @@ const IndexPage = () => {
   );
 };
 
-// export const getServerSideProps: GetServerSideProps<
-//   Props & PageProps
-// > = async () => {
-//   const apolloClient = initializeApollo();
-
-//   await apolloClient.query<FlashcardPageQuery, FlashcardPageQueryVariables>({
-//     query: FlashcardPageDocument,
-//   });
-
-//   return {
-//     props: { initialApolloState: apolloClient.cache.extract() },
-//   };
-// };
 export default IndexPage;

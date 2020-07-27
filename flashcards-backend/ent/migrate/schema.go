@@ -11,10 +11,12 @@ var (
 	// WordsColumns holds the columns for the "words" table.
 	WordsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "lang_data", Type: field.TypeString, Size: 15},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "lang1", Type: field.TypeString, Size: 15},
+		{Name: "lang2", Type: field.TypeString, Size: 15},
 		{Name: "word1", Type: field.TypeString, Size: 255},
 		{Name: "word2", Type: field.TypeString, Size: 255},
-		{Name: "created_at", Type: field.TypeTime},
 	}
 	// WordsTable holds the schema information for the "words" table.
 	WordsTable = &schema.Table{

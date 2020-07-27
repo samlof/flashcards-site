@@ -20,9 +20,43 @@ type WordCreate struct {
 	hooks    []Hook
 }
 
-// SetLangData sets the langData field.
-func (wc *WordCreate) SetLangData(s string) *WordCreate {
-	wc.mutation.SetLangData(s)
+// SetCreateTime sets the create_time field.
+func (wc *WordCreate) SetCreateTime(t time.Time) *WordCreate {
+	wc.mutation.SetCreateTime(t)
+	return wc
+}
+
+// SetNillableCreateTime sets the create_time field if the given value is not nil.
+func (wc *WordCreate) SetNillableCreateTime(t *time.Time) *WordCreate {
+	if t != nil {
+		wc.SetCreateTime(*t)
+	}
+	return wc
+}
+
+// SetUpdateTime sets the update_time field.
+func (wc *WordCreate) SetUpdateTime(t time.Time) *WordCreate {
+	wc.mutation.SetUpdateTime(t)
+	return wc
+}
+
+// SetNillableUpdateTime sets the update_time field if the given value is not nil.
+func (wc *WordCreate) SetNillableUpdateTime(t *time.Time) *WordCreate {
+	if t != nil {
+		wc.SetUpdateTime(*t)
+	}
+	return wc
+}
+
+// SetLang1 sets the lang1 field.
+func (wc *WordCreate) SetLang1(s string) *WordCreate {
+	wc.mutation.SetLang1(s)
+	return wc
+}
+
+// SetLang2 sets the lang2 field.
+func (wc *WordCreate) SetLang2(s string) *WordCreate {
+	wc.mutation.SetLang2(s)
 	return wc
 }
 
@@ -38,20 +72,6 @@ func (wc *WordCreate) SetWord2(s string) *WordCreate {
 	return wc
 }
 
-// SetCreatedAt sets the created_at field.
-func (wc *WordCreate) SetCreatedAt(t time.Time) *WordCreate {
-	wc.mutation.SetCreatedAt(t)
-	return wc
-}
-
-// SetNillableCreatedAt sets the created_at field if the given value is not nil.
-func (wc *WordCreate) SetNillableCreatedAt(t *time.Time) *WordCreate {
-	if t != nil {
-		wc.SetCreatedAt(*t)
-	}
-	return wc
-}
-
 // Mutation returns the WordMutation object of the builder.
 func (wc *WordCreate) Mutation() *WordMutation {
 	return wc.mutation
@@ -59,12 +79,28 @@ func (wc *WordCreate) Mutation() *WordMutation {
 
 // Save creates the Word in the database.
 func (wc *WordCreate) Save(ctx context.Context) (*Word, error) {
-	if _, ok := wc.mutation.LangData(); !ok {
-		return nil, &ValidationError{Name: "langData", err: errors.New("ent: missing required field \"langData\"")}
+	if _, ok := wc.mutation.CreateTime(); !ok {
+		v := word.DefaultCreateTime()
+		wc.mutation.SetCreateTime(v)
 	}
-	if v, ok := wc.mutation.LangData(); ok {
-		if err := word.LangDataValidator(v); err != nil {
-			return nil, &ValidationError{Name: "langData", err: fmt.Errorf("ent: validator failed for field \"langData\": %w", err)}
+	if _, ok := wc.mutation.UpdateTime(); !ok {
+		v := word.DefaultUpdateTime()
+		wc.mutation.SetUpdateTime(v)
+	}
+	if _, ok := wc.mutation.Lang1(); !ok {
+		return nil, &ValidationError{Name: "lang1", err: errors.New("ent: missing required field \"lang1\"")}
+	}
+	if v, ok := wc.mutation.Lang1(); ok {
+		if err := word.Lang1Validator(v); err != nil {
+			return nil, &ValidationError{Name: "lang1", err: fmt.Errorf("ent: validator failed for field \"lang1\": %w", err)}
+		}
+	}
+	if _, ok := wc.mutation.Lang2(); !ok {
+		return nil, &ValidationError{Name: "lang2", err: errors.New("ent: missing required field \"lang2\"")}
+	}
+	if v, ok := wc.mutation.Lang2(); ok {
+		if err := word.Lang2Validator(v); err != nil {
+			return nil, &ValidationError{Name: "lang2", err: fmt.Errorf("ent: validator failed for field \"lang2\": %w", err)}
 		}
 	}
 	if _, ok := wc.mutation.Word1(); !ok {
@@ -82,10 +118,6 @@ func (wc *WordCreate) Save(ctx context.Context) (*Word, error) {
 		if err := word.Word2Validator(v); err != nil {
 			return nil, &ValidationError{Name: "word2", err: fmt.Errorf("ent: validator failed for field \"word2\": %w", err)}
 		}
-	}
-	if _, ok := wc.mutation.CreatedAt(); !ok {
-		v := word.DefaultCreatedAt()
-		wc.mutation.SetCreatedAt(v)
 	}
 	var (
 		err  error
@@ -147,13 +179,37 @@ func (wc *WordCreate) createSpec() (*Word, *sqlgraph.CreateSpec) {
 			},
 		}
 	)
-	if value, ok := wc.mutation.LangData(); ok {
+	if value, ok := wc.mutation.CreateTime(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: word.FieldCreateTime,
+		})
+		w.CreateTime = value
+	}
+	if value, ok := wc.mutation.UpdateTime(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: word.FieldUpdateTime,
+		})
+		w.UpdateTime = value
+	}
+	if value, ok := wc.mutation.Lang1(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
-			Column: word.FieldLangData,
+			Column: word.FieldLang1,
 		})
-		w.LangData = value
+		w.Lang1 = value
+	}
+	if value, ok := wc.mutation.Lang2(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: word.FieldLang2,
+		})
+		w.Lang2 = value
 	}
 	if value, ok := wc.mutation.Word1(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -170,14 +226,6 @@ func (wc *WordCreate) createSpec() (*Word, *sqlgraph.CreateSpec) {
 			Column: word.FieldWord2,
 		})
 		w.Word2 = value
-	}
-	if value, ok := wc.mutation.CreatedAt(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: word.FieldCreatedAt,
-		})
-		w.CreatedAt = value
 	}
 	return w, _spec
 }

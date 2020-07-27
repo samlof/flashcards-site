@@ -16,24 +16,30 @@ type Word struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
-	// LangData holds the value of the "langData" field.
-	LangData string `json:"langData,omitempty"`
+	// CreateTime holds the value of the "create_time" field.
+	CreateTime time.Time `json:"create_time,omitempty"`
+	// UpdateTime holds the value of the "update_time" field.
+	UpdateTime time.Time `json:"update_time,omitempty"`
+	// Lang1 holds the value of the "lang1" field.
+	Lang1 string `json:"lang1,omitempty"`
+	// Lang2 holds the value of the "lang2" field.
+	Lang2 string `json:"lang2,omitempty"`
 	// Word1 holds the value of the "word1" field.
 	Word1 string `json:"word1,omitempty"`
 	// Word2 holds the value of the "word2" field.
 	Word2 string `json:"word2,omitempty"`
-	// CreatedAt holds the value of the "created_at" field.
-	CreatedAt time.Time `json:"created_at,omitempty"`
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Word) scanValues() []interface{} {
 	return []interface{}{
 		&sql.NullInt64{},  // id
-		&sql.NullString{}, // langData
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
+		&sql.NullString{}, // lang1
+		&sql.NullString{}, // lang2
 		&sql.NullString{}, // word1
 		&sql.NullString{}, // word2
-		&sql.NullTime{},   // created_at
 	}
 }
 
@@ -49,25 +55,35 @@ func (w *Word) assignValues(values ...interface{}) error {
 	}
 	w.ID = int(value.Int64)
 	values = values[1:]
-	if value, ok := values[0].(*sql.NullString); !ok {
-		return fmt.Errorf("unexpected type %T for field langData", values[0])
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field create_time", values[0])
 	} else if value.Valid {
-		w.LangData = value.String
+		w.CreateTime = value.Time
 	}
-	if value, ok := values[1].(*sql.NullString); !ok {
-		return fmt.Errorf("unexpected type %T for field word1", values[1])
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field update_time", values[1])
+	} else if value.Valid {
+		w.UpdateTime = value.Time
+	}
+	if value, ok := values[2].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field lang1", values[2])
+	} else if value.Valid {
+		w.Lang1 = value.String
+	}
+	if value, ok := values[3].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field lang2", values[3])
+	} else if value.Valid {
+		w.Lang2 = value.String
+	}
+	if value, ok := values[4].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field word1", values[4])
 	} else if value.Valid {
 		w.Word1 = value.String
 	}
-	if value, ok := values[2].(*sql.NullString); !ok {
-		return fmt.Errorf("unexpected type %T for field word2", values[2])
+	if value, ok := values[5].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field word2", values[5])
 	} else if value.Valid {
 		w.Word2 = value.String
-	}
-	if value, ok := values[3].(*sql.NullTime); !ok {
-		return fmt.Errorf("unexpected type %T for field created_at", values[3])
-	} else if value.Valid {
-		w.CreatedAt = value.Time
 	}
 	return nil
 }
@@ -95,14 +111,18 @@ func (w *Word) String() string {
 	var builder strings.Builder
 	builder.WriteString("Word(")
 	builder.WriteString(fmt.Sprintf("id=%v", w.ID))
-	builder.WriteString(", langData=")
-	builder.WriteString(w.LangData)
+	builder.WriteString(", create_time=")
+	builder.WriteString(w.CreateTime.Format(time.ANSIC))
+	builder.WriteString(", update_time=")
+	builder.WriteString(w.UpdateTime.Format(time.ANSIC))
+	builder.WriteString(", lang1=")
+	builder.WriteString(w.Lang1)
+	builder.WriteString(", lang2=")
+	builder.WriteString(w.Lang2)
 	builder.WriteString(", word1=")
 	builder.WriteString(w.Word1)
 	builder.WriteString(", word2=")
 	builder.WriteString(w.Word2)
-	builder.WriteString(", created_at=")
-	builder.WriteString(w.CreatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -2,10 +2,12 @@ scalar Time
 
 type Word {
   id: ID!
-  langData: String!
+  lang1: String!
+  lang2: String!
   word1: String!
   word2: String!
-  createdAt: Time!
+  createTime: Time!
+  updateTime: Time!
 }
 
 extend type Query {
@@ -13,7 +15,8 @@ extend type Query {
 }
 
 input NewWord {
-  langData: String!
+  lang1: String!
+  lang2: String!
   word1: String!
   word2: String!
 }

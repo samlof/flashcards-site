@@ -237,12 +237,12 @@ func (wq *WordQuery) Clone() *WordQuery {
 // Example:
 //
 //	var v []struct {
-//		LangData string `json:"langData,omitempty"`
+//		CreateTime time.Time `json:"create_time,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Word.Query().
-//		GroupBy(word.FieldLangData).
+//		GroupBy(word.FieldCreateTime).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 //
@@ -263,11 +263,11 @@ func (wq *WordQuery) GroupBy(field string, fields ...string) *WordGroupBy {
 // Example:
 //
 //	var v []struct {
-//		LangData string `json:"langData,omitempty"`
+//		CreateTime time.Time `json:"create_time,omitempty"`
 //	}
 //
 //	client.Word.Query().
-//		Select(word.FieldLangData).
+//		Select(word.FieldCreateTime).
 //		Scan(ctx, &v)
 //
 func (wq *WordQuery) Select(field string, fields ...string) *WordSelect {

@@ -16,20 +16,17 @@ export type Scalars = {
 export type Word = {
   __typename?: 'Word';
   id: Scalars['ID'];
-  langData: Scalars['String'];
+  lang1: Scalars['String'];
+  lang2: Scalars['String'];
   word1: Scalars['String'];
   word2: Scalars['String'];
-  createdAt: Scalars['Time'];
+  createTime: Scalars['Time'];
+  updateTime: Scalars['Time'];
 };
 
 export type NewWord = {
-  langData: Scalars['String'];
-  word1: Scalars['String'];
-  word2: Scalars['String'];
-};
-
-export type UpdateWord = {
-  id: Scalars['ID'];
+  lang1: Scalars['String'];
+  lang2: Scalars['String'];
   word1: Scalars['String'];
   word2: Scalars['String'];
 };
@@ -38,6 +35,12 @@ export type UpdateWord = {
 export type Query = {
   __typename?: 'Query';
   getWords: Array<Word>;
+};
+
+export type UpdateWord = {
+  id: Scalars['ID'];
+  word1: Scalars['String'];
+  word2: Scalars['String'];
 };
 
 export type Mutation = {
@@ -72,7 +75,7 @@ export type AddWordMutation = (
   { __typename?: 'Mutation' }
   & { createWord: (
     { __typename?: 'Word' }
-    & Pick<Word, 'id' | 'langData' | 'word1' | 'word2'>
+    & Pick<Word, 'id' | 'word1' | 'word2'>
   ) }
 );
 
@@ -84,6 +87,21 @@ export type DeleteWordMutationVariables = Exact<{
 export type DeleteWordMutation = (
   { __typename?: 'Mutation' }
   & Pick<Mutation, 'deleteWord'>
+);
+
+export type EditWordMutationVariables = Exact<{
+  id: Scalars['ID'];
+  word1: Scalars['String'];
+  word2: Scalars['String'];
+}>;
+
+
+export type EditWordMutation = (
+  { __typename?: 'Mutation' }
+  & { updateWord: (
+    { __typename?: 'Word' }
+    & Pick<Word, 'id'>
+  ) }
 );
 
 export type AllWordsQueryVariables = Exact<{ [key: string]: never; }>;
@@ -104,16 +122,15 @@ export type FlashcardPageQuery = (
   { __typename?: 'Query' }
   & { getWords: Array<(
     { __typename?: 'Word' }
-    & Pick<Word, 'langData' | 'word1' | 'word2'>
+    & Pick<Word, 'lang1' | 'lang2' | 'word1' | 'word2'>
   )> }
 );
 
 
 export const AddWordDocument = gql`
     mutation AddWord($word1: String!, $word2: String!) {
-  createWord(input: {langData: "fi-en", word1: $word1, word2: $word2}) {
+  createWord(input: {lang1: "fi", lang2: "en", word1: $word1, word2: $word2}) {
     id
-    langData
     word1
     word2
   }
@@ -175,6 +192,40 @@ export function useDeleteWordMutation(baseOptions?: ApolloReactHooks.MutationHoo
 export type DeleteWordMutationHookResult = ReturnType<typeof useDeleteWordMutation>;
 export type DeleteWordMutationResult = ApolloReactCommon.MutationResult<DeleteWordMutation>;
 export type DeleteWordMutationOptions = ApolloReactCommon.BaseMutationOptions<DeleteWordMutation, DeleteWordMutationVariables>;
+export const EditWordDocument = gql`
+    mutation EditWord($id: ID!, $word1: String!, $word2: String!) {
+  updateWord(input: {id: $id, word1: $word1, word2: $word2}) {
+    id
+  }
+}
+    `;
+export type EditWordMutationFn = ApolloReactCommon.MutationFunction<EditWordMutation, EditWordMutationVariables>;
+
+/**
+ * __useEditWordMutation__
+ *
+ * To run a mutation, you first call `useEditWordMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useEditWordMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [editWordMutation, { data, loading, error }] = useEditWordMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      word1: // value for 'word1'
+ *      word2: // value for 'word2'
+ *   },
+ * });
+ */
+export function useEditWordMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<EditWordMutation, EditWordMutationVariables>) {
+        return ApolloReactHooks.useMutation<EditWordMutation, EditWordMutationVariables>(EditWordDocument, baseOptions);
+      }
+export type EditWordMutationHookResult = ReturnType<typeof useEditWordMutation>;
+export type EditWordMutationResult = ApolloReactCommon.MutationResult<EditWordMutation>;
+export type EditWordMutationOptions = ApolloReactCommon.BaseMutationOptions<EditWordMutation, EditWordMutationVariables>;
 export const AllWordsDocument = gql`
     query AllWords {
   getWords {
@@ -212,7 +263,8 @@ export type AllWordsQueryResult = ApolloReactCommon.QueryResult<AllWordsQuery, A
 export const FlashcardPageDocument = gql`
     query FlashcardPage {
   getWords {
-    langData
+    lang1
+    lang2
     word1
     word2
   }

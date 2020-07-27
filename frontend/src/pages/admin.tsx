@@ -13,20 +13,26 @@ interface Props {}
 const AdminPage = ({}: Props) => {
   const { data, loading, error, refetch: refetchWords } = useAllWordsQuery();
 
-  if (loading) return <Loading />;
-  if (error) return <GqlError msg="Failed to get words" err={error} />;
+  const handleStatuses = () => {
+    if (loading) return <Loading />;
+    if (error) return <GqlError msg="Failed to get words" err={error} />;
 
-  if (!data) return <span>No words</span>;
-
+    if (!data) return <span>No words</span>;
+    return null;
+  };
   return (
     <App>
       <Head>
         <title>Admin | kieli.club</title>
       </Head>
       <h1>Admin panel</h1>
-      <AddWord refetchWords={refetchWords} />
-      <AddCsvWords allWords={data} refetchWords={refetchWords} />
-      <AllWords />
+      {handleStatuses() || (
+        <>
+          <AddWord refetchWords={refetchWords} />
+          <AddCsvWords allWords={data!} refetchWords={refetchWords} />
+          <AllWords />
+        </>
+      )}
     </App>
   );
 };

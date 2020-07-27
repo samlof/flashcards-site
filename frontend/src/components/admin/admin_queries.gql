@@ -1,7 +1,8 @@
 mutation AddWord($word1: String!, $word2: String!) {
-  createWord(input: { langData: "fi-en", word1: $word1, word2: $word2 }) {
+  createWord(
+    input: { lang1: "fi", lang2: "en", word1: $word1, word2: $word2 }
+  ) {
     id
-    langData
     word1
     word2
   }
@@ -9,4 +10,10 @@ mutation AddWord($word1: String!, $word2: String!) {
 
 mutation DeleteWord($id: ID!) {
   deleteWord(id: $id)
+}
+
+mutation EditWord($id: ID!, $word1: String!, $word2: String!) {
+  updateWord(input: { id: $id, word1: $word1, word2: $word2 }) {
+    id
+  }
 }

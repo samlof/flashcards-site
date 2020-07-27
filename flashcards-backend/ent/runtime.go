@@ -12,20 +12,50 @@ import (
 // code (default values, validators or hooks) and stitches it
 // to their package variables.
 func init() {
+	wordMixin := schema.Word{}.Mixin()
+	wordMixinFields0 := wordMixin[0].Fields()
 	wordFields := schema.Word{}.Fields()
 	_ = wordFields
-	// wordDescLangData is the schema descriptor for langData field.
-	wordDescLangData := wordFields[0].Descriptor()
-	// word.LangDataValidator is a validator for the "langData" field. It is called by the builders before save.
-	word.LangDataValidator = func() func(string) error {
-		validators := wordDescLangData.Validators
+	// wordDescCreateTime is the schema descriptor for create_time field.
+	wordDescCreateTime := wordMixinFields0[0].Descriptor()
+	// word.DefaultCreateTime holds the default value on creation for the create_time field.
+	word.DefaultCreateTime = wordDescCreateTime.Default.(func() time.Time)
+	// wordDescUpdateTime is the schema descriptor for update_time field.
+	wordDescUpdateTime := wordMixinFields0[1].Descriptor()
+	// word.DefaultUpdateTime holds the default value on creation for the update_time field.
+	word.DefaultUpdateTime = wordDescUpdateTime.Default.(func() time.Time)
+	// word.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	word.UpdateDefaultUpdateTime = wordDescUpdateTime.UpdateDefault.(func() time.Time)
+	// wordDescLang1 is the schema descriptor for lang1 field.
+	wordDescLang1 := wordFields[0].Descriptor()
+	// word.Lang1Validator is a validator for the "lang1" field. It is called by the builders before save.
+	word.Lang1Validator = func() func(string) error {
+		validators := wordDescLang1.Validators
 		fns := [...]func(string) error{
 			validators[0].(func(string) error),
 			validators[1].(func(string) error),
 		}
-		return func(langData string) error {
+		return func(lang1 string) error {
 			for _, fn := range fns {
-				if err := fn(langData); err != nil {
+				if err := fn(lang1); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// wordDescLang2 is the schema descriptor for lang2 field.
+	wordDescLang2 := wordFields[1].Descriptor()
+	// word.Lang2Validator is a validator for the "lang2" field. It is called by the builders before save.
+	word.Lang2Validator = func() func(string) error {
+		validators := wordDescLang2.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(lang2 string) error {
+			for _, fn := range fns {
+				if err := fn(lang2); err != nil {
 					return err
 				}
 			}
@@ -33,7 +63,7 @@ func init() {
 		}
 	}()
 	// wordDescWord1 is the schema descriptor for word1 field.
-	wordDescWord1 := wordFields[1].Descriptor()
+	wordDescWord1 := wordFields[2].Descriptor()
 	// word.Word1Validator is a validator for the "word1" field. It is called by the builders before save.
 	word.Word1Validator = func() func(string) error {
 		validators := wordDescWord1.Validators
@@ -51,7 +81,7 @@ func init() {
 		}
 	}()
 	// wordDescWord2 is the schema descriptor for word2 field.
-	wordDescWord2 := wordFields[2].Descriptor()
+	wordDescWord2 := wordFields[3].Descriptor()
 	// word.Word2Validator is a validator for the "word2" field. It is called by the builders before save.
 	word.Word2Validator = func() func(string) error {
 		validators := wordDescWord2.Validators
@@ -68,8 +98,4 @@ func init() {
 			return nil
 		}
 	}()
-	// wordDescCreatedAt is the schema descriptor for created_at field.
-	wordDescCreatedAt := wordFields[3].Descriptor()
-	// word.DefaultCreatedAt holds the default value on creation for the created_at field.
-	word.DefaultCreatedAt = wordDescCreatedAt.Default.(func() time.Time)
 }

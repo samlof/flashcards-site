@@ -11,14 +11,18 @@ const (
 	Label = "word"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldLangData holds the string denoting the langdata field in the database.
-	FieldLangData = "lang_data"
+	// FieldCreateTime holds the string denoting the create_time field in the database.
+	FieldCreateTime = "create_time"
+	// FieldUpdateTime holds the string denoting the update_time field in the database.
+	FieldUpdateTime = "update_time"
+	// FieldLang1 holds the string denoting the lang1 field in the database.
+	FieldLang1 = "lang1"
+	// FieldLang2 holds the string denoting the lang2 field in the database.
+	FieldLang2 = "lang2"
 	// FieldWord1 holds the string denoting the word1 field in the database.
 	FieldWord1 = "word1"
 	// FieldWord2 holds the string denoting the word2 field in the database.
 	FieldWord2 = "word2"
-	// FieldCreatedAt holds the string denoting the created_at field in the database.
-	FieldCreatedAt = "created_at"
 
 	// Table holds the table name of the word in the database.
 	Table = "words"
@@ -27,19 +31,27 @@ const (
 // Columns holds all SQL columns for word fields.
 var Columns = []string{
 	FieldID,
-	FieldLangData,
+	FieldCreateTime,
+	FieldUpdateTime,
+	FieldLang1,
+	FieldLang2,
 	FieldWord1,
 	FieldWord2,
-	FieldCreatedAt,
 }
 
 var (
-	// LangDataValidator is a validator for the "langData" field. It is called by the builders before save.
-	LangDataValidator func(string) error
+	// DefaultCreateTime holds the default value on creation for the create_time field.
+	DefaultCreateTime func() time.Time
+	// DefaultUpdateTime holds the default value on creation for the update_time field.
+	DefaultUpdateTime func() time.Time
+	// UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	UpdateDefaultUpdateTime func() time.Time
+	// Lang1Validator is a validator for the "lang1" field. It is called by the builders before save.
+	Lang1Validator func(string) error
+	// Lang2Validator is a validator for the "lang2" field. It is called by the builders before save.
+	Lang2Validator func(string) error
 	// Word1Validator is a validator for the "word1" field. It is called by the builders before save.
 	Word1Validator func(string) error
 	// Word2Validator is a validator for the "word2" field. It is called by the builders before save.
 	Word2Validator func(string) error
-	// DefaultCreatedAt holds the default value on creation for the created_at field.
-	DefaultCreatedAt func() time.Time
 )

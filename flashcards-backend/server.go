@@ -50,10 +50,10 @@ func main() {
 
 	// Run migrations
 	ctx := context.Background()
-	err = client.Schema.Create(ctx, migrate.WithGlobalUniqueID(true))
-	//migrate.WithDropIndex(true),
-	//migrate.WithDropColumn(true),
-
+	err = client.Schema.Create(ctx, migrate.WithGlobalUniqueID(true),
+		//err = client.Schema.WriteTo(ctx, os.Stdout, migrate.WithGlobalUniqueID(true),
+		migrate.WithDropIndex(true),
+		migrate.WithDropColumn(true))
 	if err != nil {
 		log.Fatalf("failed to create schema: %v", err)
 	}
@@ -62,6 +62,58 @@ func main() {
 		DB: client,
 	}
 	srv := handler.New(generated.NewExecutableSchema(generated.Config{Resolvers: graphResolver}))
+	configureGqlServer(srv)
+
+	mux := http.NewServeMux()
+
+	mux.Handle("/query", srv)
+
+	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("ok"))
+	})
+
+	// Enable introspection and playground for development
+	if !isProduction {
+		srv.Use(extension.Introspection{})
+		mux.Handle("/", playground.Handler("GraphQL playground", "/query"))
+		log.Printf("connect to http://localhost:%s/ for GraphQL playground\n", port)
+	}
+	handler := cors.Default().Handler(mux)
+
+	// Setup close handler
+	httpServer := http.Server{
+		Addr:              ":" + port,
+		Handler:           handler,
+		ReadHeaderTimeout: time.Second * 5,
+		IdleTimeout:       time.Minute * 1,
+	}
+	// Start server in goroutine, this one will wait for interrupt signal
+	go func() {
+		log.Printf("Listening at http://localhost:%s/query", port)
+		err := httpServer.ListenAndServe()
+		if err != nil && err != http.ErrServerClosed {
+			log.Fatalf("Server error: %v", err)
+		}
+	}()
+
+	// Graceful shutdown code
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	<-c
+
+	fmt.Println("Shutting down...")
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), time.Second*9)
+	defer cancel()
+
+	err = httpServer.Shutdown(shutdownCtx)
+	if err != nil {
+		log.Printf("Graceful shutdown error: %v\n", err)
+	} else {
+		fmt.Println("Shutdown succesfully")
+	}
+}
+
+func configureGqlServer(srv *handler.Server) {
 
 	// Copied from handler.NewDefaultServer
 
@@ -78,48 +130,6 @@ func main() {
 	srv.Use(extension.AutomaticPersistedQuery{
 		Cache: lru.New(100),
 	})
-
-	mux := http.NewServeMux()
-
-	mux.Handle("/query", srv)
-
-	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("ok"))
-	})
-
-	// Disable introspection and playground for production
-	if !isProduction {
-		srv.Use(extension.Introspection{})
-		mux.Handle("/", playground.Handler("GraphQL playground", "/query"))
-		log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
-	}
-	handler := cors.Default().Handler(mux)
-
-	// Setup close handler
-	httpServer := http.Server{
-		Addr:    ":" + port,
-		Handler: handler,
-	}
-	// Start server in goroutine, this one will wait for interrupt signal
-	go func() {
-		log.Printf("Listening at http://localhost:%s/query", port)
-		err := httpServer.ListenAndServe()
-		if err != nil && err != http.ErrServerClosed {
-			log.Fatalf("Server shutdown: %v", err)
-		}
-	}()
-
-	// Graceful shutdown code
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
-	<-c
-	fmt.Println("Shutting down...")
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), time.Second*9)
-	defer cancel()
-	err = httpServer.Shutdown(shutdownCtx)
-	if err != nil {
-		log.Fatalf("Shutdown error: %v", err)
-	}
 }
 
 func applyDotEnv() string {

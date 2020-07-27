@@ -55,11 +55,13 @@ type ComplexityRoot struct {
 	}
 
 	Word struct {
-		CreatedAt func(childComplexity int) int
-		ID        func(childComplexity int) int
-		LangData  func(childComplexity int) int
-		Word1     func(childComplexity int) int
-		Word2     func(childComplexity int) int
+		CreateTime func(childComplexity int) int
+		ID         func(childComplexity int) int
+		Lang1      func(childComplexity int) int
+		Lang2      func(childComplexity int) int
+		UpdateTime func(childComplexity int) int
+		Word1      func(childComplexity int) int
+		Word2      func(childComplexity int) int
 	}
 }
 
@@ -130,12 +132,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetWords(childComplexity), true
 
-	case "Word.createdAt":
-		if e.complexity.Word.CreatedAt == nil {
+	case "Word.createTime":
+		if e.complexity.Word.CreateTime == nil {
 			break
 		}
 
-		return e.complexity.Word.CreatedAt(childComplexity), true
+		return e.complexity.Word.CreateTime(childComplexity), true
 
 	case "Word.id":
 		if e.complexity.Word.ID == nil {
@@ -144,12 +146,26 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Word.ID(childComplexity), true
 
-	case "Word.langData":
-		if e.complexity.Word.LangData == nil {
+	case "Word.lang1":
+		if e.complexity.Word.Lang1 == nil {
 			break
 		}
 
-		return e.complexity.Word.LangData(childComplexity), true
+		return e.complexity.Word.Lang1(childComplexity), true
+
+	case "Word.lang2":
+		if e.complexity.Word.Lang2 == nil {
+			break
+		}
+
+		return e.complexity.Word.Lang2(childComplexity), true
+
+	case "Word.updateTime":
+		if e.complexity.Word.UpdateTime == nil {
+			break
+		}
+
+		return e.complexity.Word.UpdateTime(childComplexity), true
 
 	case "Word.word1":
 		if e.complexity.Word.Word1 == nil {
@@ -233,10 +249,12 @@ var sources = []*ast.Source{
 
 type Word {
   id: ID!
-  langData: String!
+  lang1: String!
+  lang2: String!
   word1: String!
   word2: String!
-  createdAt: Time!
+  createTime: Time!
+  updateTime: Time!
 }
 
 extend type Query {
@@ -244,7 +262,8 @@ extend type Query {
 }
 
 input NewWord {
-  langData: String!
+  lang1: String!
+  lang2: String!
   word1: String!
   word2: String!
 }
@@ -620,7 +639,7 @@ func (ec *executionContext) _Word_id(ctx context.Context, field graphql.Collecte
 	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Word_langData(ctx context.Context, field graphql.CollectedField, obj *model.Word) (ret graphql.Marshaler) {
+func (ec *executionContext) _Word_lang1(ctx context.Context, field graphql.CollectedField, obj *model.Word) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -637,7 +656,41 @@ func (ec *executionContext) _Word_langData(ctx context.Context, field graphql.Co
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.LangData, nil
+		return obj.Lang1, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Word_lang2(ctx context.Context, field graphql.CollectedField, obj *model.Word) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Word",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Lang2, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -722,7 +775,7 @@ func (ec *executionContext) _Word_word2(ctx context.Context, field graphql.Colle
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Word_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.Word) (ret graphql.Marshaler) {
+func (ec *executionContext) _Word_createTime(ctx context.Context, field graphql.CollectedField, obj *model.Word) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -739,7 +792,41 @@ func (ec *executionContext) _Word_createdAt(ctx context.Context, field graphql.C
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.CreatedAt, nil
+		return obj.CreateTime, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Word_updateTime(ctx context.Context, field graphql.CollectedField, obj *model.Word) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Word",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdateTime, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1817,9 +1904,15 @@ func (ec *executionContext) unmarshalInputNewWord(ctx context.Context, obj inter
 
 	for k, v := range asMap {
 		switch k {
-		case "langData":
+		case "lang1":
 			var err error
-			it.LangData, err = ec.unmarshalNString2string(ctx, v)
+			it.Lang1, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "lang2":
+			var err error
+			it.Lang2, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -1980,8 +2073,13 @@ func (ec *executionContext) _Word(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "langData":
-			out.Values[i] = ec._Word_langData(ctx, field, obj)
+		case "lang1":
+			out.Values[i] = ec._Word_lang1(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "lang2":
+			out.Values[i] = ec._Word_lang2(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -1995,8 +2093,13 @@ func (ec *executionContext) _Word(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "createdAt":
-			out.Values[i] = ec._Word_createdAt(ctx, field, obj)
+		case "createTime":
+			out.Values[i] = ec._Word_createTime(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updateTime":
+			out.Values[i] = ec._Word_updateTime(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

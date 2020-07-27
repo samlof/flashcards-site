@@ -7,9 +7,10 @@ import (
 )
 
 type NewWord struct {
-	LangData string `json:"langData"`
-	Word1    string `json:"word1"`
-	Word2    string `json:"word2"`
+	Lang1 string `json:"lang1"`
+	Lang2 string `json:"lang2"`
+	Word1 string `json:"word1"`
+	Word2 string `json:"word2"`
 }
 
 type UpdateWord struct {
@@ -19,9 +20,11 @@ type UpdateWord struct {
 }
 
 type Word struct {
-	ID        string    `json:"id"`
-	LangData  string    `json:"langData"`
-	Word1     string    `json:"word1"`
-	Word2     string    `json:"word2"`
-	CreatedAt time.Time `json:"createdAt"`
+	ID         string    `json:"id"`
+	Lang1      string    `json:"lang1"`
+	Lang2      string    `json:"lang2"`
+	Word1      string    `json:"word1"`
+	Word2      string    `json:"word2"`
+	CreateTime time.Time `json:"createTime"`
+	UpdateTime time.Time `json:"updateTime"`
 }

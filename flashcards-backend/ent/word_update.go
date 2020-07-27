@@ -27,9 +27,15 @@ func (wu *WordUpdate) Where(ps ...predicate.Word) *WordUpdate {
 	return wu
 }
 
-// SetLangData sets the langData field.
-func (wu *WordUpdate) SetLangData(s string) *WordUpdate {
-	wu.mutation.SetLangData(s)
+// SetLang1 sets the lang1 field.
+func (wu *WordUpdate) SetLang1(s string) *WordUpdate {
+	wu.mutation.SetLang1(s)
+	return wu
+}
+
+// SetLang2 sets the lang2 field.
+func (wu *WordUpdate) SetLang2(s string) *WordUpdate {
+	wu.mutation.SetLang2(s)
 	return wu
 }
 
@@ -52,9 +58,18 @@ func (wu *WordUpdate) Mutation() *WordMutation {
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (wu *WordUpdate) Save(ctx context.Context) (int, error) {
-	if v, ok := wu.mutation.LangData(); ok {
-		if err := word.LangDataValidator(v); err != nil {
-			return 0, &ValidationError{Name: "langData", err: fmt.Errorf("ent: validator failed for field \"langData\": %w", err)}
+	if _, ok := wu.mutation.UpdateTime(); !ok {
+		v := word.UpdateDefaultUpdateTime()
+		wu.mutation.SetUpdateTime(v)
+	}
+	if v, ok := wu.mutation.Lang1(); ok {
+		if err := word.Lang1Validator(v); err != nil {
+			return 0, &ValidationError{Name: "lang1", err: fmt.Errorf("ent: validator failed for field \"lang1\": %w", err)}
+		}
+	}
+	if v, ok := wu.mutation.Lang2(); ok {
+		if err := word.Lang2Validator(v); err != nil {
+			return 0, &ValidationError{Name: "lang2", err: fmt.Errorf("ent: validator failed for field \"lang2\": %w", err)}
 		}
 	}
 	if v, ok := wu.mutation.Word1(); ok {
@@ -134,11 +149,25 @@ func (wu *WordUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := wu.mutation.LangData(); ok {
+	if value, ok := wu.mutation.UpdateTime(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: word.FieldUpdateTime,
+		})
+	}
+	if value, ok := wu.mutation.Lang1(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
-			Column: word.FieldLangData,
+			Column: word.FieldLang1,
+		})
+	}
+	if value, ok := wu.mutation.Lang2(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: word.FieldLang2,
 		})
 	}
 	if value, ok := wu.mutation.Word1(); ok {
@@ -173,9 +202,15 @@ type WordUpdateOne struct {
 	mutation *WordMutation
 }
 
-// SetLangData sets the langData field.
-func (wuo *WordUpdateOne) SetLangData(s string) *WordUpdateOne {
-	wuo.mutation.SetLangData(s)
+// SetLang1 sets the lang1 field.
+func (wuo *WordUpdateOne) SetLang1(s string) *WordUpdateOne {
+	wuo.mutation.SetLang1(s)
+	return wuo
+}
+
+// SetLang2 sets the lang2 field.
+func (wuo *WordUpdateOne) SetLang2(s string) *WordUpdateOne {
+	wuo.mutation.SetLang2(s)
 	return wuo
 }
 
@@ -198,9 +233,18 @@ func (wuo *WordUpdateOne) Mutation() *WordMutation {
 
 // Save executes the query and returns the updated entity.
 func (wuo *WordUpdateOne) Save(ctx context.Context) (*Word, error) {
-	if v, ok := wuo.mutation.LangData(); ok {
-		if err := word.LangDataValidator(v); err != nil {
-			return nil, &ValidationError{Name: "langData", err: fmt.Errorf("ent: validator failed for field \"langData\": %w", err)}
+	if _, ok := wuo.mutation.UpdateTime(); !ok {
+		v := word.UpdateDefaultUpdateTime()
+		wuo.mutation.SetUpdateTime(v)
+	}
+	if v, ok := wuo.mutation.Lang1(); ok {
+		if err := word.Lang1Validator(v); err != nil {
+			return nil, &ValidationError{Name: "lang1", err: fmt.Errorf("ent: validator failed for field \"lang1\": %w", err)}
+		}
+	}
+	if v, ok := wuo.mutation.Lang2(); ok {
+		if err := word.Lang2Validator(v); err != nil {
+			return nil, &ValidationError{Name: "lang2", err: fmt.Errorf("ent: validator failed for field \"lang2\": %w", err)}
 		}
 	}
 	if v, ok := wuo.mutation.Word1(); ok {
@@ -278,11 +322,25 @@ func (wuo *WordUpdateOne) sqlSave(ctx context.Context) (w *Word, err error) {
 		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing Word.ID for update")}
 	}
 	_spec.Node.ID.Value = id
-	if value, ok := wuo.mutation.LangData(); ok {
+	if value, ok := wuo.mutation.UpdateTime(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: word.FieldUpdateTime,
+		})
+	}
+	if value, ok := wuo.mutation.Lang1(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
-			Column: word.FieldLangData,
+			Column: word.FieldLang1,
+		})
+	}
+	if value, ok := wuo.mutation.Lang2(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: word.FieldLang2,
 		})
 	}
 	if value, ok := wuo.mutation.Word1(); ok {
