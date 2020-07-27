@@ -25,7 +25,8 @@ const DirButton = styled(Button)`
 interface FlashWord {
   word1: string;
   word2: string;
-  langData: string;
+  lang1: string;
+  lang2: string;
 }
 const animationSpeed = 175;
 interface Props {}
@@ -59,7 +60,6 @@ const Flashcard = ({}: Props) => {
     setVisible(true);
   };
 
-  const langInfo = data.getWords[0].langData.split("-");
   const word = words[index];
   return (
     <>
@@ -70,8 +70,8 @@ const Flashcard = ({}: Props) => {
       >
         <FlipCard
           key={index}
-          front={{ lang: langInfo[0], text: word.word1 }}
-          back={{ lang: langInfo[1], text: word.word2 }}
+          front={{ lang: word.lang1, text: word.word1 }}
+          back={{ lang: word.lang2, text: word.word2 }}
         ></FlipCard>
       </CSSTransition>
       <div style={{ height: "2rem" }}></div>
