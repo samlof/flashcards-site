@@ -8,6 +8,49 @@ import (
 )
 
 var (
+	// CardStatusColumns holds the columns for the "card_status" table.
+	CardStatusColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "done_last", Type: field.TypeTime},
+		{Name: "card_status_card", Type: field.TypeInt, Nullable: true},
+		{Name: "user_card_statuses", Type: field.TypeInt, Nullable: true},
+	}
+	// CardStatusTable holds the schema information for the "card_status" table.
+	CardStatusTable = &schema.Table{
+		Name:       "card_status",
+		Columns:    CardStatusColumns,
+		PrimaryKey: []*schema.Column{CardStatusColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:  "card_status_words_card",
+				Columns: []*schema.Column{CardStatusColumns[2]},
+
+				RefColumns: []*schema.Column{WordsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:  "card_status_users_cardStatuses",
+				Columns: []*schema.Column{CardStatusColumns[3]},
+
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// UsersColumns holds the columns for the "users" table.
+	UsersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "email", Type: field.TypeString, Size: 255},
+	}
+	// UsersTable holds the schema information for the "users" table.
+	UsersTable = &schema.Table{
+		Name:        "users",
+		Columns:     UsersColumns,
+		PrimaryKey:  []*schema.Column{UsersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{},
+	}
 	// WordsColumns holds the columns for the "words" table.
 	WordsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -27,9 +70,13 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		CardStatusTable,
+		UsersTable,
 		WordsTable,
 	}
 )
 
 func init() {
+	CardStatusTable.ForeignKeys[0].RefTable = WordsTable
+	CardStatusTable.ForeignKeys[1].RefTable = UsersTable
 }

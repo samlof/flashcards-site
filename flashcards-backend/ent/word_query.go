@@ -4,7 +4,9 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"errors"
+	"flashcards-backend/ent/cardstatus"
 	"flashcards-backend/ent/predicate"
 	"flashcards-backend/ent/word"
 	"fmt"
@@ -23,6 +25,8 @@ type WordQuery struct {
 	order      []OrderFunc
 	unique     []string
 	predicates []predicate.Word
+	// eager-loading edges.
+	withCardStatuses *CardStatusQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -50,6 +54,24 @@ func (wq *WordQuery) Offset(offset int) *WordQuery {
 func (wq *WordQuery) Order(o ...OrderFunc) *WordQuery {
 	wq.order = append(wq.order, o...)
 	return wq
+}
+
+// QueryCardStatuses chains the current query on the cardStatuses edge.
+func (wq *WordQuery) QueryCardStatuses() *CardStatusQuery {
+	query := &CardStatusQuery{config: wq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := wq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(word.Table, word.FieldID, wq.sqlQuery()),
+			sqlgraph.To(cardstatus.Table, cardstatus.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, word.CardStatusesTable, word.CardStatusesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(wq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first Word entity in the query. Returns *NotFoundError when no word was found.
@@ -231,6 +253,17 @@ func (wq *WordQuery) Clone() *WordQuery {
 	}
 }
 
+//  WithCardStatuses tells the query-builder to eager-loads the nodes that are connected to
+// the "cardStatuses" edge. The optional arguments used to configure the query builder of the edge.
+func (wq *WordQuery) WithCardStatuses(opts ...func(*CardStatusQuery)) *WordQuery {
+	query := &CardStatusQuery{config: wq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	wq.withCardStatuses = query
+	return wq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -295,8 +328,11 @@ func (wq *WordQuery) prepareQuery(ctx context.Context) error {
 
 func (wq *WordQuery) sqlAll(ctx context.Context) ([]*Word, error) {
 	var (
-		nodes = []*Word{}
-		_spec = wq.querySpec()
+		nodes       = []*Word{}
+		_spec       = wq.querySpec()
+		loadedTypes = [1]bool{
+			wq.withCardStatuses != nil,
+		}
 	)
 	_spec.ScanValues = func() []interface{} {
 		node := &Word{config: wq.config}
@@ -309,6 +345,7 @@ func (wq *WordQuery) sqlAll(ctx context.Context) ([]*Word, error) {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, wq.driver, _spec); err != nil {
@@ -317,6 +354,35 @@ func (wq *WordQuery) sqlAll(ctx context.Context) ([]*Word, error) {
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+
+	if query := wq.withCardStatuses; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[int]*Word)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.CardStatus(func(s *sql.Selector) {
+			s.Where(sql.InValues(word.CardStatusesColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.card_status_card
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "card_status_card" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "card_status_card" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.CardStatuses = append(node.Edges.CardStatuses, n)
+		}
+	}
+
 	return nodes, nil
 }
 

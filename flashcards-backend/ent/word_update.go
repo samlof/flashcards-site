@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"flashcards-backend/ent/cardstatus"
 	"flashcards-backend/ent/predicate"
 	"flashcards-backend/ent/word"
 	"fmt"
@@ -51,9 +52,39 @@ func (wu *WordUpdate) SetWord2(s string) *WordUpdate {
 	return wu
 }
 
+// AddCardStatuseIDs adds the cardStatuses edge to CardStatus by ids.
+func (wu *WordUpdate) AddCardStatuseIDs(ids ...int) *WordUpdate {
+	wu.mutation.AddCardStatuseIDs(ids...)
+	return wu
+}
+
+// AddCardStatuses adds the cardStatuses edges to CardStatus.
+func (wu *WordUpdate) AddCardStatuses(c ...*CardStatus) *WordUpdate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return wu.AddCardStatuseIDs(ids...)
+}
+
 // Mutation returns the WordMutation object of the builder.
 func (wu *WordUpdate) Mutation() *WordMutation {
 	return wu.mutation
+}
+
+// RemoveCardStatuseIDs removes the cardStatuses edge to CardStatus by ids.
+func (wu *WordUpdate) RemoveCardStatuseIDs(ids ...int) *WordUpdate {
+	wu.mutation.RemoveCardStatuseIDs(ids...)
+	return wu
+}
+
+// RemoveCardStatuses removes cardStatuses edges to CardStatus.
+func (wu *WordUpdate) RemoveCardStatuses(c ...*CardStatus) *WordUpdate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return wu.RemoveCardStatuseIDs(ids...)
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
@@ -82,6 +113,7 @@ func (wu *WordUpdate) Save(ctx context.Context) (int, error) {
 			return 0, &ValidationError{Name: "word2", err: fmt.Errorf("ent: validator failed for field \"word2\": %w", err)}
 		}
 	}
+
 	var (
 		err      error
 		affected int
@@ -184,6 +216,44 @@ func (wu *WordUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: word.FieldWord2,
 		})
 	}
+	if nodes := wu.mutation.RemovedCardStatusesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   word.CardStatusesTable,
+			Columns: []string{word.CardStatusesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: cardstatus.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wu.mutation.CardStatusesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   word.CardStatusesTable,
+			Columns: []string{word.CardStatusesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: cardstatus.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, wu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{word.Label}
@@ -226,9 +296,39 @@ func (wuo *WordUpdateOne) SetWord2(s string) *WordUpdateOne {
 	return wuo
 }
 
+// AddCardStatuseIDs adds the cardStatuses edge to CardStatus by ids.
+func (wuo *WordUpdateOne) AddCardStatuseIDs(ids ...int) *WordUpdateOne {
+	wuo.mutation.AddCardStatuseIDs(ids...)
+	return wuo
+}
+
+// AddCardStatuses adds the cardStatuses edges to CardStatus.
+func (wuo *WordUpdateOne) AddCardStatuses(c ...*CardStatus) *WordUpdateOne {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return wuo.AddCardStatuseIDs(ids...)
+}
+
 // Mutation returns the WordMutation object of the builder.
 func (wuo *WordUpdateOne) Mutation() *WordMutation {
 	return wuo.mutation
+}
+
+// RemoveCardStatuseIDs removes the cardStatuses edge to CardStatus by ids.
+func (wuo *WordUpdateOne) RemoveCardStatuseIDs(ids ...int) *WordUpdateOne {
+	wuo.mutation.RemoveCardStatuseIDs(ids...)
+	return wuo
+}
+
+// RemoveCardStatuses removes cardStatuses edges to CardStatus.
+func (wuo *WordUpdateOne) RemoveCardStatuses(c ...*CardStatus) *WordUpdateOne {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return wuo.RemoveCardStatuseIDs(ids...)
 }
 
 // Save executes the query and returns the updated entity.
@@ -257,6 +357,7 @@ func (wuo *WordUpdateOne) Save(ctx context.Context) (*Word, error) {
 			return nil, &ValidationError{Name: "word2", err: fmt.Errorf("ent: validator failed for field \"word2\": %w", err)}
 		}
 	}
+
 	var (
 		err  error
 		node *Word
@@ -356,6 +457,44 @@ func (wuo *WordUpdateOne) sqlSave(ctx context.Context) (w *Word, err error) {
 			Value:  value,
 			Column: word.FieldWord2,
 		})
+	}
+	if nodes := wuo.mutation.RemovedCardStatusesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   word.CardStatusesTable,
+			Columns: []string{word.CardStatusesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: cardstatus.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wuo.mutation.CardStatusesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   word.CardStatusesTable,
+			Columns: []string{word.CardStatusesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: cardstatus.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	w = &Word{config: wuo.config}
 	_spec.Assign = w.assignValues

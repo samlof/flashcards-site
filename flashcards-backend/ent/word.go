@@ -28,6 +28,27 @@ type Word struct {
 	Word1 string `json:"word1,omitempty"`
 	// Word2 holds the value of the "word2" field.
 	Word2 string `json:"word2,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the WordQuery when eager-loading is set.
+	Edges WordEdges `json:"edges"`
+}
+
+// WordEdges holds the relations/edges for other nodes in the graph.
+type WordEdges struct {
+	// CardStatuses holds the value of the cardStatuses edge.
+	CardStatuses []*CardStatus
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// CardStatusesOrErr returns the CardStatuses value or an error if the edge
+// was not loaded in eager-loading.
+func (e WordEdges) CardStatusesOrErr() ([]*CardStatus, error) {
+	if e.loadedTypes[0] {
+		return e.CardStatuses, nil
+	}
+	return nil, &NotLoadedError{edge: "cardStatuses"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -86,6 +107,11 @@ func (w *Word) assignValues(values ...interface{}) error {
 		w.Word2 = value.String
 	}
 	return nil
+}
+
+// QueryCardStatuses queries the cardStatuses edge of the Word.
+func (w *Word) QueryCardStatuses() *CardStatusQuery {
+	return (&WordClient{config: w.config}).QueryCardStatuses(w)
 }
 
 // Update returns a builder for updating this Word.

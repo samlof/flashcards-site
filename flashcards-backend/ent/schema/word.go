@@ -3,6 +3,7 @@ package schema
 
 import (
 	"github.com/facebookincubator/ent"
+	"github.com/facebookincubator/ent/schema/edge"
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/ent/schema/mixin"
 )
@@ -31,5 +32,7 @@ func (Word) Fields() []ent.Field {
 
 // Edges of the Word.
 func (Word) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{
+		edge.From("cardStatuses", CardStatus.Type).Ref("card"),
+	}
 }

@@ -9,10 +9,13 @@ import (
 
 	"flashcards-backend/ent/migrate"
 
+	"flashcards-backend/ent/cardstatus"
+	"flashcards-backend/ent/user"
 	"flashcards-backend/ent/word"
 
 	"github.com/facebookincubator/ent/dialect"
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 )
 
 // Client is the client that holds all ent builders.
@@ -20,6 +23,10 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// CardStatus is the client for interacting with the CardStatus builders.
+	CardStatus *CardStatusClient
+	// User is the client for interacting with the User builders.
+	User *UserClient
 	// Word is the client for interacting with the Word builders.
 	Word *WordClient
 }
@@ -35,6 +42,8 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.CardStatus = NewCardStatusClient(c.config)
+	c.User = NewUserClient(c.config)
 	c.Word = NewWordClient(c.config)
 }
 
@@ -66,9 +75,11 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	}
 	cfg := config{driver: tx, log: c.log, debug: c.debug, hooks: c.hooks}
 	return &Tx{
-		ctx:    ctx,
-		config: cfg,
-		Word:   NewWordClient(cfg),
+		ctx:        ctx,
+		config:     cfg,
+		CardStatus: NewCardStatusClient(cfg),
+		User:       NewUserClient(cfg),
+		Word:       NewWordClient(cfg),
 	}, nil
 }
 
@@ -83,15 +94,17 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	}
 	cfg := config{driver: &txDriver{tx: tx, drv: c.driver}, log: c.log, debug: c.debug, hooks: c.hooks}
 	return &Tx{
-		config: cfg,
-		Word:   NewWordClient(cfg),
+		config:     cfg,
+		CardStatus: NewCardStatusClient(cfg),
+		User:       NewUserClient(cfg),
+		Word:       NewWordClient(cfg),
 	}, nil
 }
 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		Word.
+//		CardStatus.
 //		Query().
 //		Count(ctx)
 //
@@ -113,7 +126,223 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
+	c.CardStatus.Use(hooks...)
+	c.User.Use(hooks...)
 	c.Word.Use(hooks...)
+}
+
+// CardStatusClient is a client for the CardStatus schema.
+type CardStatusClient struct {
+	config
+}
+
+// NewCardStatusClient returns a client for the CardStatus from the given config.
+func NewCardStatusClient(c config) *CardStatusClient {
+	return &CardStatusClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `cardstatus.Hooks(f(g(h())))`.
+func (c *CardStatusClient) Use(hooks ...Hook) {
+	c.hooks.CardStatus = append(c.hooks.CardStatus, hooks...)
+}
+
+// Create returns a create builder for CardStatus.
+func (c *CardStatusClient) Create() *CardStatusCreate {
+	mutation := newCardStatusMutation(c.config, OpCreate)
+	return &CardStatusCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Update returns an update builder for CardStatus.
+func (c *CardStatusClient) Update() *CardStatusUpdate {
+	mutation := newCardStatusMutation(c.config, OpUpdate)
+	return &CardStatusUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CardStatusClient) UpdateOne(cs *CardStatus) *CardStatusUpdateOne {
+	mutation := newCardStatusMutation(c.config, OpUpdateOne, withCardStatus(cs))
+	return &CardStatusUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CardStatusClient) UpdateOneID(id int) *CardStatusUpdateOne {
+	mutation := newCardStatusMutation(c.config, OpUpdateOne, withCardStatusID(id))
+	return &CardStatusUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for CardStatus.
+func (c *CardStatusClient) Delete() *CardStatusDelete {
+	mutation := newCardStatusMutation(c.config, OpDelete)
+	return &CardStatusDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *CardStatusClient) DeleteOne(cs *CardStatus) *CardStatusDeleteOne {
+	return c.DeleteOneID(cs.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *CardStatusClient) DeleteOneID(id int) *CardStatusDeleteOne {
+	builder := c.Delete().Where(cardstatus.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CardStatusDeleteOne{builder}
+}
+
+// Create returns a query builder for CardStatus.
+func (c *CardStatusClient) Query() *CardStatusQuery {
+	return &CardStatusQuery{config: c.config}
+}
+
+// Get returns a CardStatus entity by its id.
+func (c *CardStatusClient) Get(ctx context.Context, id int) (*CardStatus, error) {
+	return c.Query().Where(cardstatus.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CardStatusClient) GetX(ctx context.Context, id int) *CardStatus {
+	cs, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return cs
+}
+
+// QueryUser queries the user edge of a CardStatus.
+func (c *CardStatusClient) QueryUser(cs *CardStatus) *UserQuery {
+	query := &UserQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := cs.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(cardstatus.Table, cardstatus.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, cardstatus.UserTable, cardstatus.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(cs.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCard queries the card edge of a CardStatus.
+func (c *CardStatusClient) QueryCard(cs *CardStatus) *WordQuery {
+	query := &WordQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := cs.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(cardstatus.Table, cardstatus.FieldID, id),
+			sqlgraph.To(word.Table, word.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, cardstatus.CardTable, cardstatus.CardColumn),
+		)
+		fromV = sqlgraph.Neighbors(cs.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *CardStatusClient) Hooks() []Hook {
+	return c.hooks.CardStatus
+}
+
+// UserClient is a client for the User schema.
+type UserClient struct {
+	config
+}
+
+// NewUserClient returns a client for the User from the given config.
+func NewUserClient(c config) *UserClient {
+	return &UserClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `user.Hooks(f(g(h())))`.
+func (c *UserClient) Use(hooks ...Hook) {
+	c.hooks.User = append(c.hooks.User, hooks...)
+}
+
+// Create returns a create builder for User.
+func (c *UserClient) Create() *UserCreate {
+	mutation := newUserMutation(c.config, OpCreate)
+	return &UserCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Update returns an update builder for User.
+func (c *UserClient) Update() *UserUpdate {
+	mutation := newUserMutation(c.config, OpUpdate)
+	return &UserUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *UserClient) UpdateOne(u *User) *UserUpdateOne {
+	mutation := newUserMutation(c.config, OpUpdateOne, withUser(u))
+	return &UserUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *UserClient) UpdateOneID(id int) *UserUpdateOne {
+	mutation := newUserMutation(c.config, OpUpdateOne, withUserID(id))
+	return &UserUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for User.
+func (c *UserClient) Delete() *UserDelete {
+	mutation := newUserMutation(c.config, OpDelete)
+	return &UserDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *UserClient) DeleteOne(u *User) *UserDeleteOne {
+	return c.DeleteOneID(u.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *UserClient) DeleteOneID(id int) *UserDeleteOne {
+	builder := c.Delete().Where(user.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &UserDeleteOne{builder}
+}
+
+// Create returns a query builder for User.
+func (c *UserClient) Query() *UserQuery {
+	return &UserQuery{config: c.config}
+}
+
+// Get returns a User entity by its id.
+func (c *UserClient) Get(ctx context.Context, id int) (*User, error) {
+	return c.Query().Where(user.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *UserClient) GetX(ctx context.Context, id int) *User {
+	u, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return u
+}
+
+// QueryCardStatuses queries the cardStatuses edge of a User.
+func (c *UserClient) QueryCardStatuses(u *User) *CardStatusQuery {
+	query := &CardStatusQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(cardstatus.Table, cardstatus.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.CardStatusesTable, user.CardStatusesColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *UserClient) Hooks() []Hook {
+	return c.hooks.User
 }
 
 // WordClient is a client for the Word schema.
@@ -192,6 +421,22 @@ func (c *WordClient) GetX(ctx context.Context, id int) *Word {
 		panic(err)
 	}
 	return w
+}
+
+// QueryCardStatuses queries the cardStatuses edge of a Word.
+func (c *WordClient) QueryCardStatuses(w *Word) *CardStatusQuery {
+	query := &CardStatusQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := w.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(word.Table, word.FieldID, id),
+			sqlgraph.To(cardstatus.Table, cardstatus.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, word.CardStatusesTable, word.CardStatusesColumn),
+		)
+		fromV = sqlgraph.Neighbors(w.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // Hooks returns the client hooks.

@@ -5,6 +5,7 @@ package ent
 import (
 	"context"
 	"errors"
+	"flashcards-backend/ent/cardstatus"
 	"flashcards-backend/ent/word"
 	"fmt"
 	"time"
@@ -70,6 +71,21 @@ func (wc *WordCreate) SetWord1(s string) *WordCreate {
 func (wc *WordCreate) SetWord2(s string) *WordCreate {
 	wc.mutation.SetWord2(s)
 	return wc
+}
+
+// AddCardStatuseIDs adds the cardStatuses edge to CardStatus by ids.
+func (wc *WordCreate) AddCardStatuseIDs(ids ...int) *WordCreate {
+	wc.mutation.AddCardStatuseIDs(ids...)
+	return wc
+}
+
+// AddCardStatuses adds the cardStatuses edges to CardStatus.
+func (wc *WordCreate) AddCardStatuses(c ...*CardStatus) *WordCreate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return wc.AddCardStatuseIDs(ids...)
 }
 
 // Mutation returns the WordMutation object of the builder.
@@ -226,6 +242,25 @@ func (wc *WordCreate) createSpec() (*Word, *sqlgraph.CreateSpec) {
 			Column: word.FieldWord2,
 		})
 		w.Word2 = value
+	}
+	if nodes := wc.mutation.CardStatusesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   word.CardStatusesTable,
+			Columns: []string{word.CardStatusesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: cardstatus.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return w, _spec
 }

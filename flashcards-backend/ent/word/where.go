@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 )
 
 // ID filters vertices based on their identifier.
@@ -727,6 +728,34 @@ func Word2EqualFold(v string) predicate.Word {
 func Word2ContainsFold(v string) predicate.Word {
 	return predicate.Word(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldWord2), v))
+	})
+}
+
+// HasCardStatuses applies the HasEdge predicate on the "cardStatuses" edge.
+func HasCardStatuses() predicate.Word {
+	return predicate.Word(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CardStatusesTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, CardStatusesTable, CardStatusesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCardStatusesWith applies the HasEdge predicate on the "cardStatuses" edge with a given conditions (other predicates).
+func HasCardStatusesWith(preds ...predicate.CardStatus) predicate.Word {
+	return predicate.Word(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CardStatusesInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, CardStatusesTable, CardStatusesColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
 	})
 }
 
