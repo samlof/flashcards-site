@@ -10,10 +10,11 @@ const CardSide = styled.div<{ front: boolean }>`
   flex-direction: column;
   justify-content: center;
   box-shadow: 2px 1px 10px var(--color-brown);
-  height: 11rem;
-  width: 10rem;
+  height: 18rem;
+  width: 14rem;
   border-radius: 10%;
   background-color: var(--color-white);
+  font-size: 2rem;
 `;
 
 const LanguageText = styled.i`
