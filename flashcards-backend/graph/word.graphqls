@@ -23,6 +23,8 @@ input NewWord {
 
 input UpdateWord {
   id: ID!
+  lang1: String!
+  lang2: String!
   word1: String!
   word2: String!
 }

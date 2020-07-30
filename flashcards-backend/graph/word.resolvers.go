@@ -17,16 +17,20 @@ import (
 
 func (r *mutationResolver) CreateWord(ctx context.Context, input model.NewWord) (*model.Word, error) {
 	// Check duplicate
-	exists, err := r.DB.Word.
-		Query().
-		Where(word.And(word.Word1EqualFold(input.Word1), word.Word2EqualFold(input.Word2))).
-		Exist(ctx)
+	exists, err := r.DB.Word.Query().
+		Where(word.And(
+			word.Lang1EqualFold(input.Lang1), word.Lang2EqualFold(input.Lang2),
+			word.Word1EqualFold(input.Word1), word.Word2EqualFold(input.Word2))).
+		Limit(1).
+		All(ctx)
+
 	if err != nil {
 		return nil, fmt.Errorf("checking duplicate: %v", err)
 	}
 
-	if exists {
-		return nil, errors.New("word already exists")
+	// If found a duplicate, return the existing one
+	if len(exists) > 0 {
+		return modelconv.Word(exists[0]), nil
 	}
 
 	word, err := r.DB.Word.Create().
@@ -62,7 +66,10 @@ func (r *mutationResolver) UpdateWord(ctx context.Context, input model.UpdateWor
 	// Check duplicate
 	exists, err := r.DB.Word.
 		Query().
-		Where(word.And(word.Word1EqualFold(input.Word1), word.Word2EqualFold(input.Word2))).
+		Where(
+			word.And(
+				word.Lang1EqualFold(input.Lang1), word.Lang2EqualFold(input.Lang2),
+				word.Word1EqualFold(input.Word1), word.Word2EqualFold(input.Word2))).
 		Exist(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("checking duplicate: %v", err)

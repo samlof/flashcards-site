@@ -15,6 +15,8 @@ type NewWord struct {
 
 type UpdateWord struct {
 	ID    string `json:"id"`
+	Lang1 string `json:"lang1"`
+	Lang2 string `json:"lang2"`
 	Word1 string `json:"word1"`
 	Word2 string `json:"word2"`
 }

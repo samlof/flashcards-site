@@ -270,6 +270,8 @@ input NewWord {
 
 input UpdateWord {
   id: ID!
+  lang1: String!
+  lang2: String!
   word1: String!
   word2: String!
 }
@@ -1943,6 +1945,18 @@ func (ec *executionContext) unmarshalInputUpdateWord(ctx context.Context, obj in
 		case "id":
 			var err error
 			it.ID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "lang1":
+			var err error
+			it.Lang1, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "lang2":
+			var err error
+			it.Lang2, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
