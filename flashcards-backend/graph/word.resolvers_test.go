@@ -61,6 +61,46 @@ func TestAddNewWord(t *testing.T) {
 	}
 }
 
+func TestDeleteWord(t *testing.T) {
+	resolver := makeResolver(t)
+
+	ctx := context.Background()
+	newWord := model.NewWord{
+		Lang1: "fi",
+		Lang2: "en",
+		Word1: "jäätelö",
+		Word2: "icecream",
+	}
+	word, err := resolver.Mutation().CreateWord(ctx, newWord)
+	if err != nil {
+		t.Errorf("adding word: %v", err)
+	}
+
+	// Try to get the same word
+	returnedWord, err := resolver.Query().GetWords(ctx)
+	if err != nil {
+		t.Errorf("getting words: %v", err)
+	}
+
+	if returnedWord[0].ID != word.ID {
+		t.Error("Didn't get same word")
+	}
+
+	_, err = resolver.Mutation().DeleteWord(ctx, word.ID)
+	if err != nil {
+		t.Errorf("getting words: %v", err)
+	}
+
+	// Get words again
+	returnedWord, err = resolver.Query().GetWords(ctx)
+	if err != nil {
+		t.Errorf("getting words: %v", err)
+	}
+	if len(returnedWord) > 0 {
+		t.Errorf("Word exists in db even afte deleting it")
+	}
+}
+
 func TestAddDuplicateWord(t *testing.T) {
 	resolver := makeResolver(t)
 
@@ -141,5 +181,4 @@ func TestUpdateWord(t *testing.T) {
 	if err == nil {
 		t.Error("Should not update to a reversed word")
 	}
-
 }

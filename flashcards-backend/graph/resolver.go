@@ -1,7 +1,9 @@
 // Package graph includes gqlgen
 package graph
 
-import "flashcards-backend/ent"
+import (
+	"flashcards-backend/ent"
+)
 
 //go:generate go run github.com/99designs/gqlgen
 

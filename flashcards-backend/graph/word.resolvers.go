@@ -16,6 +16,15 @@ import (
 )
 
 func (r *mutationResolver) CreateWord(ctx context.Context, input model.NewWord) (*model.Word, error) {
+	shouldSwap, err := testLanguageSwap(ctx, r.DB, input.Lang1, input.Lang2)
+	if err != nil {
+		return nil, fmt.Errorf("checking swap: %v", err)
+	}
+	if shouldSwap {
+		input.Lang1, input.Lang2 = input.Lang2, input.Lang1
+		input.Word1, input.Word2 = input.Word2, input.Word1
+	}
+
 	// Check duplicate
 	exists, err := r.DB.Word.Query().
 		Where(word.And(
@@ -63,6 +72,14 @@ func (r *mutationResolver) UpdateWord(ctx context.Context, input model.UpdateWor
 		return nil, fmt.Errorf("parsing id %s to int: %v", input.ID, err)
 	}
 
+	shouldSwap, err := testLanguageSwap(ctx, r.DB, input.Lang1, input.Lang2)
+	if err != nil {
+		return nil, fmt.Errorf("checking swap: %v", err)
+	}
+	if shouldSwap {
+		input.Lang1, input.Lang2 = input.Lang2, input.Lang1
+		input.Word1, input.Word2 = input.Word2, input.Word1
+	}
 	// Check duplicate
 	exists, err := r.DB.Word.
 		Query().
