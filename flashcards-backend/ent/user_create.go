@@ -5,7 +5,7 @@ package ent
 import (
 	"context"
 	"errors"
-	"flashcards-backend/ent/cardstatus"
+	"flashcards-backend/ent/cardlog"
 	"flashcards-backend/ent/user"
 	"fmt"
 	"time"
@@ -55,19 +55,19 @@ func (uc *UserCreate) SetEmail(s string) *UserCreate {
 	return uc
 }
 
-// AddCardStatuseIDs adds the cardStatuses edge to CardStatus by ids.
-func (uc *UserCreate) AddCardStatuseIDs(ids ...int) *UserCreate {
-	uc.mutation.AddCardStatuseIDs(ids...)
+// AddCardLogIDs adds the cardLogs edge to CardLog by ids.
+func (uc *UserCreate) AddCardLogIDs(ids ...int) *UserCreate {
+	uc.mutation.AddCardLogIDs(ids...)
 	return uc
 }
 
-// AddCardStatuses adds the cardStatuses edges to CardStatus.
-func (uc *UserCreate) AddCardStatuses(c ...*CardStatus) *UserCreate {
+// AddCardLogs adds the cardLogs edges to CardLog.
+func (uc *UserCreate) AddCardLogs(c ...*CardLog) *UserCreate {
 	ids := make([]int, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
-	return uc.AddCardStatuseIDs(ids...)
+	return uc.AddCardLogIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -177,17 +177,17 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		})
 		u.Email = value
 	}
-	if nodes := uc.mutation.CardStatusesIDs(); len(nodes) > 0 {
+	if nodes := uc.mutation.CardLogsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.CardStatusesTable,
-			Columns: []string{user.CardStatusesColumn},
+			Table:   user.CardLogsTable,
+			Columns: []string{user.CardLogsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: cardstatus.FieldID,
+					Column: cardlog.FieldID,
 				},
 			},
 		}

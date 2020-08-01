@@ -5,7 +5,7 @@ package ent
 import (
 	"context"
 	"errors"
-	"flashcards-backend/ent/cardstatus"
+	"flashcards-backend/ent/cardlog"
 	"flashcards-backend/ent/word"
 	"fmt"
 	"time"
@@ -73,19 +73,19 @@ func (wc *WordCreate) SetWord2(s string) *WordCreate {
 	return wc
 }
 
-// AddCardStatuseIDs adds the cardStatuses edge to CardStatus by ids.
-func (wc *WordCreate) AddCardStatuseIDs(ids ...int) *WordCreate {
-	wc.mutation.AddCardStatuseIDs(ids...)
+// AddCardLogIDs adds the cardLogs edge to CardLog by ids.
+func (wc *WordCreate) AddCardLogIDs(ids ...int) *WordCreate {
+	wc.mutation.AddCardLogIDs(ids...)
 	return wc
 }
 
-// AddCardStatuses adds the cardStatuses edges to CardStatus.
-func (wc *WordCreate) AddCardStatuses(c ...*CardStatus) *WordCreate {
+// AddCardLogs adds the cardLogs edges to CardLog.
+func (wc *WordCreate) AddCardLogs(c ...*CardLog) *WordCreate {
 	ids := make([]int, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
-	return wc.AddCardStatuseIDs(ids...)
+	return wc.AddCardLogIDs(ids...)
 }
 
 // Mutation returns the WordMutation object of the builder.
@@ -243,17 +243,17 @@ func (wc *WordCreate) createSpec() (*Word, *sqlgraph.CreateSpec) {
 		})
 		w.Word2 = value
 	}
-	if nodes := wc.mutation.CardStatusesIDs(); len(nodes) > 0 {
+	if nodes := wc.mutation.CardLogsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
-			Table:   word.CardStatusesTable,
-			Columns: []string{word.CardStatusesColumn},
+			Table:   word.CardLogsTable,
+			Columns: []string{word.CardLogsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: cardstatus.FieldID,
+					Column: cardlog.FieldID,
 				},
 			},
 		}

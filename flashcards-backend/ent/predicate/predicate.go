@@ -6,8 +6,8 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 )
 
-// CardStatus is the predicate function for cardstatus builders.
-type CardStatus func(*sql.Selector)
+// CardLog is the predicate function for cardlog builders.
+type CardLog func(*sql.Selector)
 
 // User is the predicate function for user builders.
 type User func(*sql.Selector)

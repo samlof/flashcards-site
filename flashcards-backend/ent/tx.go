@@ -12,8 +12,8 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
-	// CardStatus is the client for interacting with the CardStatus builders.
-	CardStatus *CardStatusClient
+	// CardLog is the client for interacting with the CardLog builders.
+	CardLog *CardLogClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 	// Word is the client for interacting with the Word builders.
@@ -153,7 +153,7 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
-	tx.CardStatus = NewCardStatusClient(tx.config)
+	tx.CardLog = NewCardLogClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 	tx.Word = NewWordClient(tx.config)
 }
@@ -165,7 +165,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: CardStatus.QueryXXX(), the query will be executed
+// applies a query, for example: CardLog.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

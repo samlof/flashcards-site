@@ -18,18 +18,18 @@ const (
 	// FieldEmail holds the string denoting the email field in the database.
 	FieldEmail = "email"
 
-	// EdgeCardStatuses holds the string denoting the cardstatuses edge name in mutations.
-	EdgeCardStatuses = "cardStatuses"
+	// EdgeCardLogs holds the string denoting the cardlogs edge name in mutations.
+	EdgeCardLogs = "cardLogs"
 
 	// Table holds the table name of the user in the database.
 	Table = "users"
-	// CardStatusesTable is the table the holds the cardStatuses relation/edge.
-	CardStatusesTable = "card_status"
-	// CardStatusesInverseTable is the table name for the CardStatus entity.
-	// It exists in this package in order to avoid circular dependency with the "cardstatus" package.
-	CardStatusesInverseTable = "card_status"
-	// CardStatusesColumn is the table column denoting the cardStatuses relation/edge.
-	CardStatusesColumn = "user_card_statuses"
+	// CardLogsTable is the table the holds the cardLogs relation/edge.
+	CardLogsTable = "card_logs"
+	// CardLogsInverseTable is the table name for the CardLog entity.
+	// It exists in this package in order to avoid circular dependency with the "cardlog" package.
+	CardLogsInverseTable = "card_logs"
+	// CardLogsColumn is the table column denoting the cardLogs relation/edge.
+	CardLogsColumn = "user_card_logs"
 )
 
 // Columns holds all SQL columns for user fields.

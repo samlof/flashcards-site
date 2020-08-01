@@ -33,6 +33,6 @@ func (Word) Fields() []ent.Field {
 // Edges of the Word.
 func (Word) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("cardStatuses", CardStatus.Type).Ref("card"),
+		edge.From("cardLogs", CardLog.Type).Ref("card"),
 	}
 }

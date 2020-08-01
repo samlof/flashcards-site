@@ -731,25 +731,25 @@ func Word2ContainsFold(v string) predicate.Word {
 	})
 }
 
-// HasCardStatuses applies the HasEdge predicate on the "cardStatuses" edge.
-func HasCardStatuses() predicate.Word {
+// HasCardLogs applies the HasEdge predicate on the "cardLogs" edge.
+func HasCardLogs() predicate.Word {
 	return predicate.Word(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(CardStatusesTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, true, CardStatusesTable, CardStatusesColumn),
+			sqlgraph.To(CardLogsTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, CardLogsTable, CardLogsColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasCardStatusesWith applies the HasEdge predicate on the "cardStatuses" edge with a given conditions (other predicates).
-func HasCardStatusesWith(preds ...predicate.CardStatus) predicate.Word {
+// HasCardLogsWith applies the HasEdge predicate on the "cardLogs" edge with a given conditions (other predicates).
+func HasCardLogsWith(preds ...predicate.CardLog) predicate.Word {
 	return predicate.Word(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(CardStatusesInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, true, CardStatusesTable, CardStatusesColumn),
+			sqlgraph.To(CardLogsInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, CardLogsTable, CardLogsColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

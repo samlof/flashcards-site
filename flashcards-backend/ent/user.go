@@ -29,20 +29,20 @@ type User struct {
 
 // UserEdges holds the relations/edges for other nodes in the graph.
 type UserEdges struct {
-	// CardStatuses holds the value of the cardStatuses edge.
-	CardStatuses []*CardStatus
+	// CardLogs holds the value of the cardLogs edge.
+	CardLogs []*CardLog
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [1]bool
 }
 
-// CardStatusesOrErr returns the CardStatuses value or an error if the edge
+// CardLogsOrErr returns the CardLogs value or an error if the edge
 // was not loaded in eager-loading.
-func (e UserEdges) CardStatusesOrErr() ([]*CardStatus, error) {
+func (e UserEdges) CardLogsOrErr() ([]*CardLog, error) {
 	if e.loadedTypes[0] {
-		return e.CardStatuses, nil
+		return e.CardLogs, nil
 	}
-	return nil, &NotLoadedError{edge: "cardStatuses"}
+	return nil, &NotLoadedError{edge: "cardLogs"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -85,9 +85,9 @@ func (u *User) assignValues(values ...interface{}) error {
 	return nil
 }
 
-// QueryCardStatuses queries the cardStatuses edge of the User.
-func (u *User) QueryCardStatuses() *CardStatusQuery {
-	return (&UserClient{config: u.config}).QueryCardStatuses(u)
+// QueryCardLogs queries the cardLogs edge of the User.
+func (u *User) QueryCardLogs() *CardLogQuery {
+	return (&UserClient{config: u.config}).QueryCardLogs(u)
 }
 
 // Update returns a builder for updating this User.

@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"flashcards-backend/ent/cardlog"
 	"flashcards-backend/ent/schema"
 	"flashcards-backend/ent/user"
 	"flashcards-backend/ent/word"
@@ -13,6 +14,14 @@ import (
 // code (default values, validators or hooks) and stitches it
 // to their package variables.
 func init() {
+	cardlogMixin := schema.CardLog{}.Mixin()
+	cardlogMixinFields0 := cardlogMixin[0].Fields()
+	cardlogFields := schema.CardLog{}.Fields()
+	_ = cardlogFields
+	// cardlogDescCreateTime is the schema descriptor for create_time field.
+	cardlogDescCreateTime := cardlogMixinFields0[0].Descriptor()
+	// cardlog.DefaultCreateTime holds the default value on creation for the create_time field.
+	cardlog.DefaultCreateTime = cardlogDescCreateTime.Default.(func() time.Time)
 	userMixin := schema.User{}.Mixin()
 	userMixinFields0 := userMixin[0].Fields()
 	userFields := schema.User{}.Fields()

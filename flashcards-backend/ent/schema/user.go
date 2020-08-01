@@ -29,6 +29,6 @@ func (User) Fields() []ent.Field {
 // Edges of the User.
 func (User) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("cardStatuses", CardStatus.Type),
+		edge.To("cardLogs", CardLog.Type),
 	}
 }

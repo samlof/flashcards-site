@@ -209,28 +209,28 @@ func DenyMutationOperationRule(op ent.Op) MutationRule {
 	return OnMutationOperation(rule, op)
 }
 
-// The CardStatusQueryRuleFunc type is an adapter to allow the use of ordinary
+// The CardLogQueryRuleFunc type is an adapter to allow the use of ordinary
 // functions as a query rule.
-type CardStatusQueryRuleFunc func(context.Context, *ent.CardStatusQuery) error
+type CardLogQueryRuleFunc func(context.Context, *ent.CardLogQuery) error
 
 // EvalQuery return f(ctx, q).
-func (f CardStatusQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
-	if q, ok := q.(*ent.CardStatusQuery); ok {
+func (f CardLogQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.CardLogQuery); ok {
 		return f(ctx, q)
 	}
-	return Denyf("ent/privacy: unexpected query type %T, expect *ent.CardStatusQuery", q)
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.CardLogQuery", q)
 }
 
-// The CardStatusMutationRuleFunc type is an adapter to allow the use of ordinary
+// The CardLogMutationRuleFunc type is an adapter to allow the use of ordinary
 // functions as a mutation rule.
-type CardStatusMutationRuleFunc func(context.Context, *ent.CardStatusMutation) error
+type CardLogMutationRuleFunc func(context.Context, *ent.CardLogMutation) error
 
 // EvalMutation calls f(ctx, m).
-func (f CardStatusMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
-	if m, ok := m.(*ent.CardStatusMutation); ok {
+func (f CardLogMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
+	if m, ok := m.(*ent.CardLogMutation); ok {
 		return f(ctx, m)
 	}
-	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.CardStatusMutation", m)
+	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.CardLogMutation", m)
 }
 
 // The UserQueryRuleFunc type is an adapter to allow the use of ordinary

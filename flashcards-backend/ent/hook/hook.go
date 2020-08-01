@@ -8,15 +8,15 @@ import (
 	"fmt"
 )
 
-// The CardStatusFunc type is an adapter to allow the use of ordinary
-// function as CardStatus mutator.
-type CardStatusFunc func(context.Context, *ent.CardStatusMutation) (ent.Value, error)
+// The CardLogFunc type is an adapter to allow the use of ordinary
+// function as CardLog mutator.
+type CardLogFunc func(context.Context, *ent.CardLogMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
-func (f CardStatusFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.CardStatusMutation)
+func (f CardLogFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.CardLogMutation)
 	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CardStatusMutation", m)
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CardLogMutation", m)
 	}
 	return f(ctx, mv)
 }

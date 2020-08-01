@@ -6,7 +6,7 @@ import (
 	"context"
 	"database/sql/driver"
 	"errors"
-	"flashcards-backend/ent/cardstatus"
+	"flashcards-backend/ent/cardlog"
 	"flashcards-backend/ent/predicate"
 	"flashcards-backend/ent/user"
 	"fmt"
@@ -26,7 +26,7 @@ type UserQuery struct {
 	unique     []string
 	predicates []predicate.User
 	// eager-loading edges.
-	withCardStatuses *CardStatusQuery
+	withCardLogs *CardLogQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -56,17 +56,17 @@ func (uq *UserQuery) Order(o ...OrderFunc) *UserQuery {
 	return uq
 }
 
-// QueryCardStatuses chains the current query on the cardStatuses edge.
-func (uq *UserQuery) QueryCardStatuses() *CardStatusQuery {
-	query := &CardStatusQuery{config: uq.config}
+// QueryCardLogs chains the current query on the cardLogs edge.
+func (uq *UserQuery) QueryCardLogs() *CardLogQuery {
+	query := &CardLogQuery{config: uq.config}
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := uq.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, uq.sqlQuery()),
-			sqlgraph.To(cardstatus.Table, cardstatus.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.CardStatusesTable, user.CardStatusesColumn),
+			sqlgraph.To(cardlog.Table, cardlog.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.CardLogsTable, user.CardLogsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -253,14 +253,14 @@ func (uq *UserQuery) Clone() *UserQuery {
 	}
 }
 
-//  WithCardStatuses tells the query-builder to eager-loads the nodes that are connected to
-// the "cardStatuses" edge. The optional arguments used to configure the query builder of the edge.
-func (uq *UserQuery) WithCardStatuses(opts ...func(*CardStatusQuery)) *UserQuery {
-	query := &CardStatusQuery{config: uq.config}
+//  WithCardLogs tells the query-builder to eager-loads the nodes that are connected to
+// the "cardLogs" edge. The optional arguments used to configure the query builder of the edge.
+func (uq *UserQuery) WithCardLogs(opts ...func(*CardLogQuery)) *UserQuery {
+	query := &CardLogQuery{config: uq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
-	uq.withCardStatuses = query
+	uq.withCardLogs = query
 	return uq
 }
 
@@ -331,7 +331,7 @@ func (uq *UserQuery) sqlAll(ctx context.Context) ([]*User, error) {
 		nodes       = []*User{}
 		_spec       = uq.querySpec()
 		loadedTypes = [1]bool{
-			uq.withCardStatuses != nil,
+			uq.withCardLogs != nil,
 		}
 	)
 	_spec.ScanValues = func() []interface{} {
@@ -355,7 +355,7 @@ func (uq *UserQuery) sqlAll(ctx context.Context) ([]*User, error) {
 		return nodes, nil
 	}
 
-	if query := uq.withCardStatuses; query != nil {
+	if query := uq.withCardLogs; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
 		nodeids := make(map[int]*User)
 		for i := range nodes {
@@ -363,23 +363,23 @@ func (uq *UserQuery) sqlAll(ctx context.Context) ([]*User, error) {
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
-		query.Where(predicate.CardStatus(func(s *sql.Selector) {
-			s.Where(sql.InValues(user.CardStatusesColumn, fks...))
+		query.Where(predicate.CardLog(func(s *sql.Selector) {
+			s.Where(sql.InValues(user.CardLogsColumn, fks...))
 		}))
 		neighbors, err := query.All(ctx)
 		if err != nil {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.user_card_statuses
+			fk := n.user_card_logs
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "user_card_statuses" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "user_card_logs" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "user_card_statuses" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "user_card_logs" returned %v for node %v`, *fk, n.ID)
 			}
-			node.Edges.CardStatuses = append(node.Edges.CardStatuses, n)
+			node.Edges.CardLogs = append(node.Edges.CardLogs, n)
 		}
 	}
 

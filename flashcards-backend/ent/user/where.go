@@ -377,25 +377,25 @@ func EmailContainsFold(v string) predicate.User {
 	})
 }
 
-// HasCardStatuses applies the HasEdge predicate on the "cardStatuses" edge.
-func HasCardStatuses() predicate.User {
+// HasCardLogs applies the HasEdge predicate on the "cardLogs" edge.
+func HasCardLogs() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(CardStatusesTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, CardStatusesTable, CardStatusesColumn),
+			sqlgraph.To(CardLogsTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CardLogsTable, CardLogsColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasCardStatusesWith applies the HasEdge predicate on the "cardStatuses" edge with a given conditions (other predicates).
-func HasCardStatusesWith(preds ...predicate.CardStatus) predicate.User {
+// HasCardLogsWith applies the HasEdge predicate on the "cardLogs" edge with a given conditions (other predicates).
+func HasCardLogsWith(preds ...predicate.CardLog) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(CardStatusesInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, CardStatusesTable, CardStatusesColumn),
+			sqlgraph.To(CardLogsInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CardLogsTable, CardLogsColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

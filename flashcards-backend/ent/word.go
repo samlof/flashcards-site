@@ -35,20 +35,20 @@ type Word struct {
 
 // WordEdges holds the relations/edges for other nodes in the graph.
 type WordEdges struct {
-	// CardStatuses holds the value of the cardStatuses edge.
-	CardStatuses []*CardStatus
+	// CardLogs holds the value of the cardLogs edge.
+	CardLogs []*CardLog
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [1]bool
 }
 
-// CardStatusesOrErr returns the CardStatuses value or an error if the edge
+// CardLogsOrErr returns the CardLogs value or an error if the edge
 // was not loaded in eager-loading.
-func (e WordEdges) CardStatusesOrErr() ([]*CardStatus, error) {
+func (e WordEdges) CardLogsOrErr() ([]*CardLog, error) {
 	if e.loadedTypes[0] {
-		return e.CardStatuses, nil
+		return e.CardLogs, nil
 	}
-	return nil, &NotLoadedError{edge: "cardStatuses"}
+	return nil, &NotLoadedError{edge: "cardLogs"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -109,9 +109,9 @@ func (w *Word) assignValues(values ...interface{}) error {
 	return nil
 }
 
-// QueryCardStatuses queries the cardStatuses edge of the Word.
-func (w *Word) QueryCardStatuses() *CardStatusQuery {
-	return (&WordClient{config: w.config}).QueryCardStatuses(w)
+// QueryCardLogs queries the cardLogs edge of the Word.
+func (w *Word) QueryCardLogs() *CardLogQuery {
+	return (&WordClient{config: w.config}).QueryCardLogs(w)
 }
 
 // Update returns a builder for updating this Word.

@@ -4,7 +4,7 @@ package ent
 
 import (
 	"context"
-	"flashcards-backend/ent/cardstatus"
+	"flashcards-backend/ent/cardlog"
 	"flashcards-backend/ent/user"
 	"flashcards-backend/ent/word"
 	"fmt"
@@ -23,39 +23,40 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeCardStatus = "CardStatus"
-	TypeUser       = "User"
-	TypeWord       = "Word"
+	TypeCardLog = "CardLog"
+	TypeUser    = "User"
+	TypeWord    = "Word"
 )
 
-// CardStatusMutation represents an operation that mutate the CardStatusSlice
+// CardLogMutation represents an operation that mutate the CardLogs
 // nodes in the graph.
-type CardStatusMutation struct {
+type CardLogMutation struct {
 	config
 	op            Op
 	typ           string
 	id            *int
-	done_last     *time.Time
+	create_time   *time.Time
+	result        *cardlog.Result
 	clearedFields map[string]struct{}
 	user          *int
 	cleareduser   bool
 	card          *int
 	clearedcard   bool
 	done          bool
-	oldValue      func(context.Context) (*CardStatus, error)
+	oldValue      func(context.Context) (*CardLog, error)
 }
 
-var _ ent.Mutation = (*CardStatusMutation)(nil)
+var _ ent.Mutation = (*CardLogMutation)(nil)
 
-// cardstatusOption allows to manage the mutation configuration using functional options.
-type cardstatusOption func(*CardStatusMutation)
+// cardlogOption allows to manage the mutation configuration using functional options.
+type cardlogOption func(*CardLogMutation)
 
-// newCardStatusMutation creates new mutation for $n.Name.
-func newCardStatusMutation(c config, op Op, opts ...cardstatusOption) *CardStatusMutation {
-	m := &CardStatusMutation{
+// newCardLogMutation creates new mutation for $n.Name.
+func newCardLogMutation(c config, op Op, opts ...cardlogOption) *CardLogMutation {
+	m := &CardLogMutation{
 		config:        c,
 		op:            op,
-		typ:           TypeCardStatus,
+		typ:           TypeCardLog,
 		clearedFields: make(map[string]struct{}),
 	}
 	for _, opt := range opts {
@@ -64,20 +65,20 @@ func newCardStatusMutation(c config, op Op, opts ...cardstatusOption) *CardStatu
 	return m
 }
 
-// withCardStatusID sets the id field of the mutation.
-func withCardStatusID(id int) cardstatusOption {
-	return func(m *CardStatusMutation) {
+// withCardLogID sets the id field of the mutation.
+func withCardLogID(id int) cardlogOption {
+	return func(m *CardLogMutation) {
 		var (
 			err   error
 			once  sync.Once
-			value *CardStatus
+			value *CardLog
 		)
-		m.oldValue = func(ctx context.Context) (*CardStatus, error) {
+		m.oldValue = func(ctx context.Context) (*CardLog, error) {
 			once.Do(func() {
 				if m.done {
 					err = fmt.Errorf("querying old values post mutation is not allowed")
 				} else {
-					value, err = m.Client().CardStatus.Get(ctx, id)
+					value, err = m.Client().CardLog.Get(ctx, id)
 				}
 			})
 			return value, err
@@ -86,10 +87,10 @@ func withCardStatusID(id int) cardstatusOption {
 	}
 }
 
-// withCardStatus sets the old CardStatus of the mutation.
-func withCardStatus(node *CardStatus) cardstatusOption {
-	return func(m *CardStatusMutation) {
-		m.oldValue = func(context.Context) (*CardStatus, error) {
+// withCardLog sets the old CardLog of the mutation.
+func withCardLog(node *CardLog) cardlogOption {
+	return func(m *CardLogMutation) {
+		m.oldValue = func(context.Context) (*CardLog, error) {
 			return node, nil
 		}
 		m.id = &node.ID
@@ -98,7 +99,7 @@ func withCardStatus(node *CardStatus) cardstatusOption {
 
 // Client returns a new `ent.Client` from the mutation. If the mutation was
 // executed in a transaction (ent.Tx), a transactional client is returned.
-func (m CardStatusMutation) Client() *Client {
+func (m CardLogMutation) Client() *Client {
 	client := &Client{config: m.config}
 	client.init()
 	return client
@@ -106,7 +107,7 @@ func (m CardStatusMutation) Client() *Client {
 
 // Tx returns an `ent.Tx` for mutations that were executed in transactions;
 // it returns an error otherwise.
-func (m CardStatusMutation) Tx() (*Tx, error) {
+func (m CardLogMutation) Tx() (*Tx, error) {
 	if _, ok := m.driver.(*txDriver); !ok {
 		return nil, fmt.Errorf("ent: mutation is not running in a transaction")
 	}
@@ -117,67 +118,104 @@ func (m CardStatusMutation) Tx() (*Tx, error) {
 
 // ID returns the id value in the mutation. Note that, the id
 // is available only if it was provided to the builder.
-func (m *CardStatusMutation) ID() (id int, exists bool) {
+func (m *CardLogMutation) ID() (id int, exists bool) {
 	if m.id == nil {
 		return
 	}
 	return *m.id, true
 }
 
-// SetDoneLast sets the done_last field.
-func (m *CardStatusMutation) SetDoneLast(t time.Time) {
-	m.done_last = &t
+// SetCreateTime sets the create_time field.
+func (m *CardLogMutation) SetCreateTime(t time.Time) {
+	m.create_time = &t
 }
 
-// DoneLast returns the done_last value in the mutation.
-func (m *CardStatusMutation) DoneLast() (r time.Time, exists bool) {
-	v := m.done_last
+// CreateTime returns the create_time value in the mutation.
+func (m *CardLogMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.create_time
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldDoneLast returns the old done_last value of the CardStatus.
-// If the CardStatus object wasn't provided to the builder, the object is fetched
+// OldCreateTime returns the old create_time value of the CardLog.
+// If the CardLog object wasn't provided to the builder, the object is fetched
 // from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
-func (m *CardStatusMutation) OldDoneLast(ctx context.Context) (v time.Time, err error) {
+func (m *CardLogMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldDoneLast is allowed only on UpdateOne operations")
+		return v, fmt.Errorf("OldCreateTime is allowed only on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldDoneLast requires an ID field in the mutation")
+		return v, fmt.Errorf("OldCreateTime requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldDoneLast: %w", err)
+		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
 	}
-	return oldValue.DoneLast, nil
+	return oldValue.CreateTime, nil
 }
 
-// ResetDoneLast reset all changes of the "done_last" field.
-func (m *CardStatusMutation) ResetDoneLast() {
-	m.done_last = nil
+// ResetCreateTime reset all changes of the "create_time" field.
+func (m *CardLogMutation) ResetCreateTime() {
+	m.create_time = nil
+}
+
+// SetResult sets the result field.
+func (m *CardLogMutation) SetResult(c cardlog.Result) {
+	m.result = &c
+}
+
+// Result returns the result value in the mutation.
+func (m *CardLogMutation) Result() (r cardlog.Result, exists bool) {
+	v := m.result
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResult returns the old result value of the CardLog.
+// If the CardLog object wasn't provided to the builder, the object is fetched
+// from the database.
+// An error is returned if the mutation operation is not UpdateOne, or database query fails.
+func (m *CardLogMutation) OldResult(ctx context.Context) (v cardlog.Result, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldResult is allowed only on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldResult requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResult: %w", err)
+	}
+	return oldValue.Result, nil
+}
+
+// ResetResult reset all changes of the "result" field.
+func (m *CardLogMutation) ResetResult() {
+	m.result = nil
 }
 
 // SetUserID sets the user edge to User by id.
-func (m *CardStatusMutation) SetUserID(id int) {
+func (m *CardLogMutation) SetUserID(id int) {
 	m.user = &id
 }
 
 // ClearUser clears the user edge to User.
-func (m *CardStatusMutation) ClearUser() {
+func (m *CardLogMutation) ClearUser() {
 	m.cleareduser = true
 }
 
 // UserCleared returns if the edge user was cleared.
-func (m *CardStatusMutation) UserCleared() bool {
+func (m *CardLogMutation) UserCleared() bool {
 	return m.cleareduser
 }
 
 // UserID returns the user id in the mutation.
-func (m *CardStatusMutation) UserID() (id int, exists bool) {
+func (m *CardLogMutation) UserID() (id int, exists bool) {
 	if m.user != nil {
 		return *m.user, true
 	}
@@ -187,7 +225,7 @@ func (m *CardStatusMutation) UserID() (id int, exists bool) {
 // UserIDs returns the user ids in the mutation.
 // Note that ids always returns len(ids) <= 1 for unique edges, and you should use
 // UserID instead. It exists only for internal usage by the builders.
-func (m *CardStatusMutation) UserIDs() (ids []int) {
+func (m *CardLogMutation) UserIDs() (ids []int) {
 	if id := m.user; id != nil {
 		ids = append(ids, *id)
 	}
@@ -195,28 +233,28 @@ func (m *CardStatusMutation) UserIDs() (ids []int) {
 }
 
 // ResetUser reset all changes of the "user" edge.
-func (m *CardStatusMutation) ResetUser() {
+func (m *CardLogMutation) ResetUser() {
 	m.user = nil
 	m.cleareduser = false
 }
 
 // SetCardID sets the card edge to Word by id.
-func (m *CardStatusMutation) SetCardID(id int) {
+func (m *CardLogMutation) SetCardID(id int) {
 	m.card = &id
 }
 
 // ClearCard clears the card edge to Word.
-func (m *CardStatusMutation) ClearCard() {
+func (m *CardLogMutation) ClearCard() {
 	m.clearedcard = true
 }
 
 // CardCleared returns if the edge card was cleared.
-func (m *CardStatusMutation) CardCleared() bool {
+func (m *CardLogMutation) CardCleared() bool {
 	return m.clearedcard
 }
 
 // CardID returns the card id in the mutation.
-func (m *CardStatusMutation) CardID() (id int, exists bool) {
+func (m *CardLogMutation) CardID() (id int, exists bool) {
 	if m.card != nil {
 		return *m.card, true
 	}
@@ -226,7 +264,7 @@ func (m *CardStatusMutation) CardID() (id int, exists bool) {
 // CardIDs returns the card ids in the mutation.
 // Note that ids always returns len(ids) <= 1 for unique edges, and you should use
 // CardID instead. It exists only for internal usage by the builders.
-func (m *CardStatusMutation) CardIDs() (ids []int) {
+func (m *CardLogMutation) CardIDs() (ids []int) {
 	if id := m.card; id != nil {
 		ids = append(ids, *id)
 	}
@@ -234,28 +272,31 @@ func (m *CardStatusMutation) CardIDs() (ids []int) {
 }
 
 // ResetCard reset all changes of the "card" edge.
-func (m *CardStatusMutation) ResetCard() {
+func (m *CardLogMutation) ResetCard() {
 	m.card = nil
 	m.clearedcard = false
 }
 
 // Op returns the operation name.
-func (m *CardStatusMutation) Op() Op {
+func (m *CardLogMutation) Op() Op {
 	return m.op
 }
 
-// Type returns the node type of this mutation (CardStatus).
-func (m *CardStatusMutation) Type() string {
+// Type returns the node type of this mutation (CardLog).
+func (m *CardLogMutation) Type() string {
 	return m.typ
 }
 
 // Fields returns all fields that were changed during
 // this mutation. Note that, in order to get all numeric
 // fields that were in/decremented, call AddedFields().
-func (m *CardStatusMutation) Fields() []string {
-	fields := make([]string, 0, 1)
-	if m.done_last != nil {
-		fields = append(fields, cardstatus.FieldDoneLast)
+func (m *CardLogMutation) Fields() []string {
+	fields := make([]string, 0, 2)
+	if m.create_time != nil {
+		fields = append(fields, cardlog.FieldCreateTime)
+	}
+	if m.result != nil {
+		fields = append(fields, cardlog.FieldResult)
 	}
 	return fields
 }
@@ -263,10 +304,12 @@ func (m *CardStatusMutation) Fields() []string {
 // Field returns the value of a field with the given name.
 // The second boolean value indicates that this field was
 // not set, or was not define in the schema.
-func (m *CardStatusMutation) Field(name string) (ent.Value, bool) {
+func (m *CardLogMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case cardstatus.FieldDoneLast:
-		return m.DoneLast()
+	case cardlog.FieldCreateTime:
+		return m.CreateTime()
+	case cardlog.FieldResult:
+		return m.Result()
 	}
 	return nil, false
 }
@@ -274,105 +317,117 @@ func (m *CardStatusMutation) Field(name string) (ent.Value, bool) {
 // OldField returns the old value of the field from the database.
 // An error is returned if the mutation operation is not UpdateOne,
 // or the query to the database was failed.
-func (m *CardStatusMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+func (m *CardLogMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case cardstatus.FieldDoneLast:
-		return m.OldDoneLast(ctx)
+	case cardlog.FieldCreateTime:
+		return m.OldCreateTime(ctx)
+	case cardlog.FieldResult:
+		return m.OldResult(ctx)
 	}
-	return nil, fmt.Errorf("unknown CardStatus field %s", name)
+	return nil, fmt.Errorf("unknown CardLog field %s", name)
 }
 
 // SetField sets the value for the given name. It returns an
 // error if the field is not defined in the schema, or if the
 // type mismatch the field type.
-func (m *CardStatusMutation) SetField(name string, value ent.Value) error {
+func (m *CardLogMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case cardstatus.FieldDoneLast:
+	case cardlog.FieldCreateTime:
 		v, ok := value.(time.Time)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetDoneLast(v)
+		m.SetCreateTime(v)
+		return nil
+	case cardlog.FieldResult:
+		v, ok := value.(cardlog.Result)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResult(v)
 		return nil
 	}
-	return fmt.Errorf("unknown CardStatus field %s", name)
+	return fmt.Errorf("unknown CardLog field %s", name)
 }
 
 // AddedFields returns all numeric fields that were incremented
 // or decremented during this mutation.
-func (m *CardStatusMutation) AddedFields() []string {
+func (m *CardLogMutation) AddedFields() []string {
 	return nil
 }
 
 // AddedField returns the numeric value that was in/decremented
 // from a field with the given name. The second value indicates
 // that this field was not set, or was not define in the schema.
-func (m *CardStatusMutation) AddedField(name string) (ent.Value, bool) {
+func (m *CardLogMutation) AddedField(name string) (ent.Value, bool) {
 	return nil, false
 }
 
 // AddField adds the value for the given name. It returns an
 // error if the field is not defined in the schema, or if the
 // type mismatch the field type.
-func (m *CardStatusMutation) AddField(name string, value ent.Value) error {
+func (m *CardLogMutation) AddField(name string, value ent.Value) error {
 	switch name {
 	}
-	return fmt.Errorf("unknown CardStatus numeric field %s", name)
+	return fmt.Errorf("unknown CardLog numeric field %s", name)
 }
 
 // ClearedFields returns all nullable fields that were cleared
 // during this mutation.
-func (m *CardStatusMutation) ClearedFields() []string {
+func (m *CardLogMutation) ClearedFields() []string {
 	return nil
 }
 
 // FieldCleared returns a boolean indicates if this field was
 // cleared in this mutation.
-func (m *CardStatusMutation) FieldCleared(name string) bool {
+func (m *CardLogMutation) FieldCleared(name string) bool {
 	_, ok := m.clearedFields[name]
 	return ok
 }
 
 // ClearField clears the value for the given name. It returns an
 // error if the field is not defined in the schema.
-func (m *CardStatusMutation) ClearField(name string) error {
-	return fmt.Errorf("unknown CardStatus nullable field %s", name)
+func (m *CardLogMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown CardLog nullable field %s", name)
 }
 
 // ResetField resets all changes in the mutation regarding the
 // given field name. It returns an error if the field is not
 // defined in the schema.
-func (m *CardStatusMutation) ResetField(name string) error {
+func (m *CardLogMutation) ResetField(name string) error {
 	switch name {
-	case cardstatus.FieldDoneLast:
-		m.ResetDoneLast()
+	case cardlog.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
+	case cardlog.FieldResult:
+		m.ResetResult()
 		return nil
 	}
-	return fmt.Errorf("unknown CardStatus field %s", name)
+	return fmt.Errorf("unknown CardLog field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this
 // mutation.
-func (m *CardStatusMutation) AddedEdges() []string {
+func (m *CardLogMutation) AddedEdges() []string {
 	edges := make([]string, 0, 2)
 	if m.user != nil {
-		edges = append(edges, cardstatus.EdgeUser)
+		edges = append(edges, cardlog.EdgeUser)
 	}
 	if m.card != nil {
-		edges = append(edges, cardstatus.EdgeCard)
+		edges = append(edges, cardlog.EdgeCard)
 	}
 	return edges
 }
 
 // AddedIDs returns all ids (to other nodes) that were added for
 // the given edge name.
-func (m *CardStatusMutation) AddedIDs(name string) []ent.Value {
+func (m *CardLogMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case cardstatus.EdgeUser:
+	case cardlog.EdgeUser:
 		if id := m.user; id != nil {
 			return []ent.Value{*id}
 		}
-	case cardstatus.EdgeCard:
+	case cardlog.EdgeCard:
 		if id := m.card; id != nil {
 			return []ent.Value{*id}
 		}
@@ -382,14 +437,14 @@ func (m *CardStatusMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this
 // mutation.
-func (m *CardStatusMutation) RemovedEdges() []string {
+func (m *CardLogMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 2)
 	return edges
 }
 
 // RemovedIDs returns all ids (to other nodes) that were removed for
 // the given edge name.
-func (m *CardStatusMutation) RemovedIDs(name string) []ent.Value {
+func (m *CardLogMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
 	}
 	return nil
@@ -397,24 +452,24 @@ func (m *CardStatusMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this
 // mutation.
-func (m *CardStatusMutation) ClearedEdges() []string {
+func (m *CardLogMutation) ClearedEdges() []string {
 	edges := make([]string, 0, 2)
 	if m.cleareduser {
-		edges = append(edges, cardstatus.EdgeUser)
+		edges = append(edges, cardlog.EdgeUser)
 	}
 	if m.clearedcard {
-		edges = append(edges, cardstatus.EdgeCard)
+		edges = append(edges, cardlog.EdgeCard)
 	}
 	return edges
 }
 
 // EdgeCleared returns a boolean indicates if this edge was
 // cleared in this mutation.
-func (m *CardStatusMutation) EdgeCleared(name string) bool {
+func (m *CardLogMutation) EdgeCleared(name string) bool {
 	switch name {
-	case cardstatus.EdgeUser:
+	case cardlog.EdgeUser:
 		return m.cleareduser
-	case cardstatus.EdgeCard:
+	case cardlog.EdgeCard:
 		return m.clearedcard
 	}
 	return false
@@ -422,48 +477,48 @@ func (m *CardStatusMutation) EdgeCleared(name string) bool {
 
 // ClearEdge clears the value for the given name. It returns an
 // error if the edge name is not defined in the schema.
-func (m *CardStatusMutation) ClearEdge(name string) error {
+func (m *CardLogMutation) ClearEdge(name string) error {
 	switch name {
-	case cardstatus.EdgeUser:
+	case cardlog.EdgeUser:
 		m.ClearUser()
 		return nil
-	case cardstatus.EdgeCard:
+	case cardlog.EdgeCard:
 		m.ClearCard()
 		return nil
 	}
-	return fmt.Errorf("unknown CardStatus unique edge %s", name)
+	return fmt.Errorf("unknown CardLog unique edge %s", name)
 }
 
 // ResetEdge resets all changes in the mutation regarding the
 // given edge name. It returns an error if the edge is not
 // defined in the schema.
-func (m *CardStatusMutation) ResetEdge(name string) error {
+func (m *CardLogMutation) ResetEdge(name string) error {
 	switch name {
-	case cardstatus.EdgeUser:
+	case cardlog.EdgeUser:
 		m.ResetUser()
 		return nil
-	case cardstatus.EdgeCard:
+	case cardlog.EdgeCard:
 		m.ResetCard()
 		return nil
 	}
-	return fmt.Errorf("unknown CardStatus edge %s", name)
+	return fmt.Errorf("unknown CardLog edge %s", name)
 }
 
 // UserMutation represents an operation that mutate the Users
 // nodes in the graph.
 type UserMutation struct {
 	config
-	op                  Op
-	typ                 string
-	id                  *int
-	create_time         *time.Time
-	update_time         *time.Time
-	email               *string
-	clearedFields       map[string]struct{}
-	cardStatuses        map[int]struct{}
-	removedcardStatuses map[int]struct{}
-	done                bool
-	oldValue            func(context.Context) (*User, error)
+	op              Op
+	typ             string
+	id              *int
+	create_time     *time.Time
+	update_time     *time.Time
+	email           *string
+	clearedFields   map[string]struct{}
+	cardLogs        map[int]struct{}
+	removedcardLogs map[int]struct{}
+	done            bool
+	oldValue        func(context.Context) (*User, error)
 }
 
 var _ ent.Mutation = (*UserMutation)(nil)
@@ -656,46 +711,46 @@ func (m *UserMutation) ResetEmail() {
 	m.email = nil
 }
 
-// AddCardStatuseIDs adds the cardStatuses edge to CardStatus by ids.
-func (m *UserMutation) AddCardStatuseIDs(ids ...int) {
-	if m.cardStatuses == nil {
-		m.cardStatuses = make(map[int]struct{})
+// AddCardLogIDs adds the cardLogs edge to CardLog by ids.
+func (m *UserMutation) AddCardLogIDs(ids ...int) {
+	if m.cardLogs == nil {
+		m.cardLogs = make(map[int]struct{})
 	}
 	for i := range ids {
-		m.cardStatuses[ids[i]] = struct{}{}
+		m.cardLogs[ids[i]] = struct{}{}
 	}
 }
 
-// RemoveCardStatuseIDs removes the cardStatuses edge to CardStatus by ids.
-func (m *UserMutation) RemoveCardStatuseIDs(ids ...int) {
-	if m.removedcardStatuses == nil {
-		m.removedcardStatuses = make(map[int]struct{})
+// RemoveCardLogIDs removes the cardLogs edge to CardLog by ids.
+func (m *UserMutation) RemoveCardLogIDs(ids ...int) {
+	if m.removedcardLogs == nil {
+		m.removedcardLogs = make(map[int]struct{})
 	}
 	for i := range ids {
-		m.removedcardStatuses[ids[i]] = struct{}{}
+		m.removedcardLogs[ids[i]] = struct{}{}
 	}
 }
 
-// RemovedCardStatuses returns the removed ids of cardStatuses.
-func (m *UserMutation) RemovedCardStatusesIDs() (ids []int) {
-	for id := range m.removedcardStatuses {
+// RemovedCardLogs returns the removed ids of cardLogs.
+func (m *UserMutation) RemovedCardLogsIDs() (ids []int) {
+	for id := range m.removedcardLogs {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// CardStatusesIDs returns the cardStatuses ids in the mutation.
-func (m *UserMutation) CardStatusesIDs() (ids []int) {
-	for id := range m.cardStatuses {
+// CardLogsIDs returns the cardLogs ids in the mutation.
+func (m *UserMutation) CardLogsIDs() (ids []int) {
+	for id := range m.cardLogs {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetCardStatuses reset all changes of the "cardStatuses" edge.
-func (m *UserMutation) ResetCardStatuses() {
-	m.cardStatuses = nil
-	m.removedcardStatuses = nil
+// ResetCardLogs reset all changes of the "cardLogs" edge.
+func (m *UserMutation) ResetCardLogs() {
+	m.cardLogs = nil
+	m.removedcardLogs = nil
 }
 
 // Op returns the operation name.
@@ -848,8 +903,8 @@ func (m *UserMutation) ResetField(name string) error {
 // mutation.
 func (m *UserMutation) AddedEdges() []string {
 	edges := make([]string, 0, 1)
-	if m.cardStatuses != nil {
-		edges = append(edges, user.EdgeCardStatuses)
+	if m.cardLogs != nil {
+		edges = append(edges, user.EdgeCardLogs)
 	}
 	return edges
 }
@@ -858,9 +913,9 @@ func (m *UserMutation) AddedEdges() []string {
 // the given edge name.
 func (m *UserMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case user.EdgeCardStatuses:
-		ids := make([]ent.Value, 0, len(m.cardStatuses))
-		for id := range m.cardStatuses {
+	case user.EdgeCardLogs:
+		ids := make([]ent.Value, 0, len(m.cardLogs))
+		for id := range m.cardLogs {
 			ids = append(ids, id)
 		}
 		return ids
@@ -872,8 +927,8 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 // mutation.
 func (m *UserMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 1)
-	if m.removedcardStatuses != nil {
-		edges = append(edges, user.EdgeCardStatuses)
+	if m.removedcardLogs != nil {
+		edges = append(edges, user.EdgeCardLogs)
 	}
 	return edges
 }
@@ -882,9 +937,9 @@ func (m *UserMutation) RemovedEdges() []string {
 // the given edge name.
 func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
-	case user.EdgeCardStatuses:
-		ids := make([]ent.Value, 0, len(m.removedcardStatuses))
-		for id := range m.removedcardStatuses {
+	case user.EdgeCardLogs:
+		ids := make([]ent.Value, 0, len(m.removedcardLogs))
+		for id := range m.removedcardLogs {
 			ids = append(ids, id)
 		}
 		return ids
@@ -920,8 +975,8 @@ func (m *UserMutation) ClearEdge(name string) error {
 // defined in the schema.
 func (m *UserMutation) ResetEdge(name string) error {
 	switch name {
-	case user.EdgeCardStatuses:
-		m.ResetCardStatuses()
+	case user.EdgeCardLogs:
+		m.ResetCardLogs()
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)
@@ -931,20 +986,20 @@ func (m *UserMutation) ResetEdge(name string) error {
 // nodes in the graph.
 type WordMutation struct {
 	config
-	op                  Op
-	typ                 string
-	id                  *int
-	create_time         *time.Time
-	update_time         *time.Time
-	lang1               *string
-	lang2               *string
-	word1               *string
-	word2               *string
-	clearedFields       map[string]struct{}
-	cardStatuses        map[int]struct{}
-	removedcardStatuses map[int]struct{}
-	done                bool
-	oldValue            func(context.Context) (*Word, error)
+	op              Op
+	typ             string
+	id              *int
+	create_time     *time.Time
+	update_time     *time.Time
+	lang1           *string
+	lang2           *string
+	word1           *string
+	word2           *string
+	clearedFields   map[string]struct{}
+	cardLogs        map[int]struct{}
+	removedcardLogs map[int]struct{}
+	done            bool
+	oldValue        func(context.Context) (*Word, error)
 }
 
 var _ ent.Mutation = (*WordMutation)(nil)
@@ -1248,46 +1303,46 @@ func (m *WordMutation) ResetWord2() {
 	m.word2 = nil
 }
 
-// AddCardStatuseIDs adds the cardStatuses edge to CardStatus by ids.
-func (m *WordMutation) AddCardStatuseIDs(ids ...int) {
-	if m.cardStatuses == nil {
-		m.cardStatuses = make(map[int]struct{})
+// AddCardLogIDs adds the cardLogs edge to CardLog by ids.
+func (m *WordMutation) AddCardLogIDs(ids ...int) {
+	if m.cardLogs == nil {
+		m.cardLogs = make(map[int]struct{})
 	}
 	for i := range ids {
-		m.cardStatuses[ids[i]] = struct{}{}
+		m.cardLogs[ids[i]] = struct{}{}
 	}
 }
 
-// RemoveCardStatuseIDs removes the cardStatuses edge to CardStatus by ids.
-func (m *WordMutation) RemoveCardStatuseIDs(ids ...int) {
-	if m.removedcardStatuses == nil {
-		m.removedcardStatuses = make(map[int]struct{})
+// RemoveCardLogIDs removes the cardLogs edge to CardLog by ids.
+func (m *WordMutation) RemoveCardLogIDs(ids ...int) {
+	if m.removedcardLogs == nil {
+		m.removedcardLogs = make(map[int]struct{})
 	}
 	for i := range ids {
-		m.removedcardStatuses[ids[i]] = struct{}{}
+		m.removedcardLogs[ids[i]] = struct{}{}
 	}
 }
 
-// RemovedCardStatuses returns the removed ids of cardStatuses.
-func (m *WordMutation) RemovedCardStatusesIDs() (ids []int) {
-	for id := range m.removedcardStatuses {
+// RemovedCardLogs returns the removed ids of cardLogs.
+func (m *WordMutation) RemovedCardLogsIDs() (ids []int) {
+	for id := range m.removedcardLogs {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// CardStatusesIDs returns the cardStatuses ids in the mutation.
-func (m *WordMutation) CardStatusesIDs() (ids []int) {
-	for id := range m.cardStatuses {
+// CardLogsIDs returns the cardLogs ids in the mutation.
+func (m *WordMutation) CardLogsIDs() (ids []int) {
+	for id := range m.cardLogs {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetCardStatuses reset all changes of the "cardStatuses" edge.
-func (m *WordMutation) ResetCardStatuses() {
-	m.cardStatuses = nil
-	m.removedcardStatuses = nil
+// ResetCardLogs reset all changes of the "cardLogs" edge.
+func (m *WordMutation) ResetCardLogs() {
+	m.cardLogs = nil
+	m.removedcardLogs = nil
 }
 
 // Op returns the operation name.
@@ -1491,8 +1546,8 @@ func (m *WordMutation) ResetField(name string) error {
 // mutation.
 func (m *WordMutation) AddedEdges() []string {
 	edges := make([]string, 0, 1)
-	if m.cardStatuses != nil {
-		edges = append(edges, word.EdgeCardStatuses)
+	if m.cardLogs != nil {
+		edges = append(edges, word.EdgeCardLogs)
 	}
 	return edges
 }
@@ -1501,9 +1556,9 @@ func (m *WordMutation) AddedEdges() []string {
 // the given edge name.
 func (m *WordMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case word.EdgeCardStatuses:
-		ids := make([]ent.Value, 0, len(m.cardStatuses))
-		for id := range m.cardStatuses {
+	case word.EdgeCardLogs:
+		ids := make([]ent.Value, 0, len(m.cardLogs))
+		for id := range m.cardLogs {
 			ids = append(ids, id)
 		}
 		return ids
@@ -1515,8 +1570,8 @@ func (m *WordMutation) AddedIDs(name string) []ent.Value {
 // mutation.
 func (m *WordMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 1)
-	if m.removedcardStatuses != nil {
-		edges = append(edges, word.EdgeCardStatuses)
+	if m.removedcardLogs != nil {
+		edges = append(edges, word.EdgeCardLogs)
 	}
 	return edges
 }
@@ -1525,9 +1580,9 @@ func (m *WordMutation) RemovedEdges() []string {
 // the given edge name.
 func (m *WordMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
-	case word.EdgeCardStatuses:
-		ids := make([]ent.Value, 0, len(m.removedcardStatuses))
-		for id := range m.removedcardStatuses {
+	case word.EdgeCardLogs:
+		ids := make([]ent.Value, 0, len(m.removedcardLogs))
+		for id := range m.removedcardLogs {
 			ids = append(ids, id)
 		}
 		return ids
@@ -1563,8 +1618,8 @@ func (m *WordMutation) ClearEdge(name string) error {
 // defined in the schema.
 func (m *WordMutation) ResetEdge(name string) error {
 	switch name {
-	case word.EdgeCardStatuses:
-		m.ResetCardStatuses()
+	case word.EdgeCardLogs:
+		m.ResetCardLogs()
 		return nil
 	}
 	return fmt.Errorf("unknown Word edge %s", name)

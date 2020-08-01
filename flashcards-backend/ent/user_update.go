@@ -4,7 +4,7 @@ package ent
 
 import (
 	"context"
-	"flashcards-backend/ent/cardstatus"
+	"flashcards-backend/ent/cardlog"
 	"flashcards-backend/ent/predicate"
 	"flashcards-backend/ent/user"
 	"fmt"
@@ -34,19 +34,19 @@ func (uu *UserUpdate) SetEmail(s string) *UserUpdate {
 	return uu
 }
 
-// AddCardStatuseIDs adds the cardStatuses edge to CardStatus by ids.
-func (uu *UserUpdate) AddCardStatuseIDs(ids ...int) *UserUpdate {
-	uu.mutation.AddCardStatuseIDs(ids...)
+// AddCardLogIDs adds the cardLogs edge to CardLog by ids.
+func (uu *UserUpdate) AddCardLogIDs(ids ...int) *UserUpdate {
+	uu.mutation.AddCardLogIDs(ids...)
 	return uu
 }
 
-// AddCardStatuses adds the cardStatuses edges to CardStatus.
-func (uu *UserUpdate) AddCardStatuses(c ...*CardStatus) *UserUpdate {
+// AddCardLogs adds the cardLogs edges to CardLog.
+func (uu *UserUpdate) AddCardLogs(c ...*CardLog) *UserUpdate {
 	ids := make([]int, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
-	return uu.AddCardStatuseIDs(ids...)
+	return uu.AddCardLogIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -54,19 +54,19 @@ func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
 }
 
-// RemoveCardStatuseIDs removes the cardStatuses edge to CardStatus by ids.
-func (uu *UserUpdate) RemoveCardStatuseIDs(ids ...int) *UserUpdate {
-	uu.mutation.RemoveCardStatuseIDs(ids...)
+// RemoveCardLogIDs removes the cardLogs edge to CardLog by ids.
+func (uu *UserUpdate) RemoveCardLogIDs(ids ...int) *UserUpdate {
+	uu.mutation.RemoveCardLogIDs(ids...)
 	return uu
 }
 
-// RemoveCardStatuses removes cardStatuses edges to CardStatus.
-func (uu *UserUpdate) RemoveCardStatuses(c ...*CardStatus) *UserUpdate {
+// RemoveCardLogs removes cardLogs edges to CardLog.
+func (uu *UserUpdate) RemoveCardLogs(c ...*CardLog) *UserUpdate {
 	ids := make([]int, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
-	return uu.RemoveCardStatuseIDs(ids...)
+	return uu.RemoveCardLogIDs(ids...)
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
@@ -162,17 +162,17 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: user.FieldEmail,
 		})
 	}
-	if nodes := uu.mutation.RemovedCardStatusesIDs(); len(nodes) > 0 {
+	if nodes := uu.mutation.RemovedCardLogsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.CardStatusesTable,
-			Columns: []string{user.CardStatusesColumn},
+			Table:   user.CardLogsTable,
+			Columns: []string{user.CardLogsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: cardstatus.FieldID,
+					Column: cardlog.FieldID,
 				},
 			},
 		}
@@ -181,17 +181,17 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.mutation.CardStatusesIDs(); len(nodes) > 0 {
+	if nodes := uu.mutation.CardLogsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.CardStatusesTable,
-			Columns: []string{user.CardStatusesColumn},
+			Table:   user.CardLogsTable,
+			Columns: []string{user.CardLogsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: cardstatus.FieldID,
+					Column: cardlog.FieldID,
 				},
 			},
 		}
@@ -224,19 +224,19 @@ func (uuo *UserUpdateOne) SetEmail(s string) *UserUpdateOne {
 	return uuo
 }
 
-// AddCardStatuseIDs adds the cardStatuses edge to CardStatus by ids.
-func (uuo *UserUpdateOne) AddCardStatuseIDs(ids ...int) *UserUpdateOne {
-	uuo.mutation.AddCardStatuseIDs(ids...)
+// AddCardLogIDs adds the cardLogs edge to CardLog by ids.
+func (uuo *UserUpdateOne) AddCardLogIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.AddCardLogIDs(ids...)
 	return uuo
 }
 
-// AddCardStatuses adds the cardStatuses edges to CardStatus.
-func (uuo *UserUpdateOne) AddCardStatuses(c ...*CardStatus) *UserUpdateOne {
+// AddCardLogs adds the cardLogs edges to CardLog.
+func (uuo *UserUpdateOne) AddCardLogs(c ...*CardLog) *UserUpdateOne {
 	ids := make([]int, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
-	return uuo.AddCardStatuseIDs(ids...)
+	return uuo.AddCardLogIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -244,19 +244,19 @@ func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
 }
 
-// RemoveCardStatuseIDs removes the cardStatuses edge to CardStatus by ids.
-func (uuo *UserUpdateOne) RemoveCardStatuseIDs(ids ...int) *UserUpdateOne {
-	uuo.mutation.RemoveCardStatuseIDs(ids...)
+// RemoveCardLogIDs removes the cardLogs edge to CardLog by ids.
+func (uuo *UserUpdateOne) RemoveCardLogIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.RemoveCardLogIDs(ids...)
 	return uuo
 }
 
-// RemoveCardStatuses removes cardStatuses edges to CardStatus.
-func (uuo *UserUpdateOne) RemoveCardStatuses(c ...*CardStatus) *UserUpdateOne {
+// RemoveCardLogs removes cardLogs edges to CardLog.
+func (uuo *UserUpdateOne) RemoveCardLogs(c ...*CardLog) *UserUpdateOne {
 	ids := make([]int, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
-	return uuo.RemoveCardStatuseIDs(ids...)
+	return uuo.RemoveCardLogIDs(ids...)
 }
 
 // Save executes the query and returns the updated entity.
@@ -350,17 +350,17 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (u *User, err error) {
 			Column: user.FieldEmail,
 		})
 	}
-	if nodes := uuo.mutation.RemovedCardStatusesIDs(); len(nodes) > 0 {
+	if nodes := uuo.mutation.RemovedCardLogsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.CardStatusesTable,
-			Columns: []string{user.CardStatusesColumn},
+			Table:   user.CardLogsTable,
+			Columns: []string{user.CardLogsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: cardstatus.FieldID,
+					Column: cardlog.FieldID,
 				},
 			},
 		}
@@ -369,17 +369,17 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (u *User, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.mutation.CardStatusesIDs(); len(nodes) > 0 {
+	if nodes := uuo.mutation.CardLogsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.CardStatusesTable,
-			Columns: []string{user.CardStatusesColumn},
+			Table:   user.CardLogsTable,
+			Columns: []string{user.CardLogsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: cardstatus.FieldID,
+					Column: cardlog.FieldID,
 				},
 			},
 		}
