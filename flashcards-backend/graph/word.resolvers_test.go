@@ -88,7 +88,7 @@ func TestDeleteWord(t *testing.T) {
 
 	_, err = resolver.Mutation().DeleteWord(ctx, word.ID)
 	if err != nil {
-		t.Errorf("getting words: %v", err)
+		t.Errorf("deleting words: %v", err)
 	}
 
 	// Get words again
@@ -182,3 +182,41 @@ func TestUpdateWord(t *testing.T) {
 		t.Error("Should not update to a reversed word")
 	}
 }
+
+/*  Helper for running query
+func runQuery(t *testing.T, query string) json.RawMessage {
+    source := &ast.Source{Input: query}
+    doc, gerr := parser.ParseQuery(source)
+    if gerr != nil {
+        t.Fatal("query failed to parse:", gerr)
+    }
+
+    errs := validator.Validate(exec.Schema(), doc)
+    if len(errs) > 0 {
+        t.Fatal("error validating query:", errs)
+    }
+
+    reqCtx := graphql.NewRequestContext(doc, query, map[string]interface{}{})
+    ctx := context.Background()
+    ctx = graphql.WithRequestContext(ctx, reqCtx)
+
+    if len(doc.Operations) == 0 {
+        t.Fatal("no graphql operations defined")
+    }
+    // assuming an anonymous operation
+    operation := doc.Operations.ForName("")
+
+    var resp *graphql.Response{}
+    switch operation.Operation {
+    case ast.Query:
+        resp = exec.Query(ctx, operation)
+    case ast.Mutation:
+        resp = exec.Mutation(ctx, operation)
+    }
+
+    if len(resp.Errors) > 0 {
+        t.Fatal("errors executing graphql operation:", resp.Errors)
+    }
+    return resp.Data
+}
+*/
