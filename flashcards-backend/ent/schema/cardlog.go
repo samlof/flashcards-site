@@ -24,7 +24,6 @@ func (CardLog) Fields() []ent.Field {
 	return []ent.Field{
 		field.Enum("result").
 			Values("good", "average", "bad").
-			Comment("What did user press when saw this last time").
 			Immutable(),
 	}
 }

@@ -1,5 +1,3 @@
-scalar Time
-
 type Word {
   id: ID!
   lang1: String!

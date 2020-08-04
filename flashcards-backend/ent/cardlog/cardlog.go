@@ -81,3 +81,12 @@ func ResultValidator(r Result) error {
 		return fmt.Errorf("cardlog: invalid enum value for result field: %q", r)
 	}
 }
+
+// ResultAll returns all values of Result enum
+func ResultAll() []Result {
+	return []Result{
+		ResultGood,
+		ResultAverage,
+		ResultBad,
+	}
+}

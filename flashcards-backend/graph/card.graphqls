@@ -1,0 +1,16 @@
+enum CardResult {
+  Good
+  Average
+  Bad
+}
+
+type CardLog {
+  id: ID!
+  word: Word!
+  scheduledFor: Time!
+  lastResult: CardResult!
+}
+
+extend type Query {
+  scheduledWords: [CardLog!]!
+}
