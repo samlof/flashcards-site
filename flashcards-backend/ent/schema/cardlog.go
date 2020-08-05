@@ -34,6 +34,6 @@ func (CardLog) Fields() []ent.Field {
 func (CardLog) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("user", User.Type).Ref("cardLogs").Unique(),
-		edge.To("card", Word.Type).Unique(),
+		edge.To("card", Word.Type).Unique().Required(),
 	}
 }

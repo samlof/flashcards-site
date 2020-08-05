@@ -73,14 +73,6 @@ func (clc *CardLogCreate) SetCardID(id int) *CardLogCreate {
 	return clc
 }
 
-// SetNillableCardID sets the card edge to Word by id if the given value is not nil.
-func (clc *CardLogCreate) SetNillableCardID(id *int) *CardLogCreate {
-	if id != nil {
-		clc = clc.SetCardID(*id)
-	}
-	return clc
-}
-
 // SetCard sets the card edge to Word.
 func (clc *CardLogCreate) SetCard(w *Word) *CardLogCreate {
 	return clc.SetCardID(w.ID)
@@ -147,6 +139,9 @@ func (clc *CardLogCreate) preSave() error {
 	}
 	if _, ok := clc.mutation.ScheduledFor(); !ok {
 		return &ValidationError{Name: "scheduled_for", err: errors.New("ent: missing required field \"scheduled_for\"")}
+	}
+	if _, ok := clc.mutation.CardID(); !ok {
+		return &ValidationError{Name: "card", err: errors.New("ent: missing required edge \"card\"")}
 	}
 	return nil
 }

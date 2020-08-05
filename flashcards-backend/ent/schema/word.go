@@ -23,8 +23,8 @@ func (Word) Mixin() []ent.Mixin {
 // Fields of the Word.
 func (Word) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("lang1").NotEmpty().Comment("For example fi").MaxLen(15),
-		field.String("lang2").NotEmpty().Comment("For example en").MaxLen(15),
+		field.String("lang1").NotEmpty().Comment("For example fi").MaxLen(15).Immutable(),
+		field.String("lang2").NotEmpty().Comment("For example en").MaxLen(15).Immutable(),
 		field.String("word1").MaxLen(255).NotEmpty(),
 		field.String("word2").MaxLen(255).NotEmpty(),
 	}

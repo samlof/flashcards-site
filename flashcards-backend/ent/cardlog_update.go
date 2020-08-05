@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"errors"
 	"flashcards-backend/ent/cardlog"
 	"flashcards-backend/ent/predicate"
 	"flashcards-backend/ent/user"
@@ -54,14 +55,6 @@ func (clu *CardLogUpdate) SetCardID(id int) *CardLogUpdate {
 	return clu
 }
 
-// SetNillableCardID sets the card edge to Word by id if the given value is not nil.
-func (clu *CardLogUpdate) SetNillableCardID(id *int) *CardLogUpdate {
-	if id != nil {
-		clu = clu.SetCardID(*id)
-	}
-	return clu
-}
-
 // SetCard sets the card edge to Word.
 func (clu *CardLogUpdate) SetCard(w *Word) *CardLogUpdate {
 	return clu.SetCardID(w.ID)
@@ -87,6 +80,9 @@ func (clu *CardLogUpdate) ClearCard() *CardLogUpdate {
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (clu *CardLogUpdate) Save(ctx context.Context) (int, error) {
 
+	if _, ok := clu.mutation.CardID(); clu.mutation.CardCleared() && !ok {
+		return 0, errors.New("ent: clearing a unique edge \"card\"")
+	}
 	var (
 		err      error
 		affected int
@@ -267,14 +263,6 @@ func (cluo *CardLogUpdateOne) SetCardID(id int) *CardLogUpdateOne {
 	return cluo
 }
 
-// SetNillableCardID sets the card edge to Word by id if the given value is not nil.
-func (cluo *CardLogUpdateOne) SetNillableCardID(id *int) *CardLogUpdateOne {
-	if id != nil {
-		cluo = cluo.SetCardID(*id)
-	}
-	return cluo
-}
-
 // SetCard sets the card edge to Word.
 func (cluo *CardLogUpdateOne) SetCard(w *Word) *CardLogUpdateOne {
 	return cluo.SetCardID(w.ID)
@@ -300,6 +288,9 @@ func (cluo *CardLogUpdateOne) ClearCard() *CardLogUpdateOne {
 // Save executes the query and returns the updated entity.
 func (cluo *CardLogUpdateOne) Save(ctx context.Context) (*CardLog, error) {
 
+	if _, ok := cluo.mutation.CardID(); cluo.mutation.CardCleared() && !ok {
+		return nil, errors.New("ent: clearing a unique edge \"card\"")
+	}
 	var (
 		err  error
 		node *CardLog
