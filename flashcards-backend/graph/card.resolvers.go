@@ -31,7 +31,7 @@ func (r *mutationResolver) CardStatus(ctx context.Context, input model.CardStatu
 	}
 	// Calculate when this will be scheduled next
 
-	mod := logModifiers[input.Result]
+	mod := model.LogModifiers[input.Result]
 	// Default hoursSince last seen to 24
 	hoursSince := 24 * time.Hour
 	if oldLog != nil {

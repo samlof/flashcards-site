@@ -1,13 +1,12 @@
-package graph
+package model
 
 import (
-	"flashcards-backend/graph/model"
 	"testing"
 )
 
 func TestModifiersAllEnumHandled(t *testing.T) {
-	for _, res := range model.AllCardResult {
-		_, ok := logModifiers[res]
+	for _, res := range AllCardResult {
+		_, ok := LogModifiers[res]
 		if !ok {
 			t.Errorf("logModifier for %v wasn't defined", res)
 		}
