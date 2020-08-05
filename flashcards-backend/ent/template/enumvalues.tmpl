@@ -5,7 +5,7 @@
     // All{{ $enum }} includes all values of {{ $enum }} enum
     var All{{ $enum }} = [...]{{ $enum }}{
                 {{- range $_, $e := $f.Enums}}
-                    {{ $f.EnumName $e }},
+                    {{ $e.Name }},
                 {{- end}}
             }
 {{ end }}                

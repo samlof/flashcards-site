@@ -66,19 +66,19 @@ type Result string
 
 // Result values.
 const (
-	ResultGood    Result = "good"
 	ResultAverage Result = "average"
 	ResultBad     Result = "bad"
+	ResultGood    Result = "good"
 )
 
 func (r Result) String() string {
 	return string(r)
 }
 
-// ResultValidator is a validator for the "r" field enum values. It is called by the builders before save.
+// ResultValidator is a validator for the "result" field enum values. It is called by the builders before save.
 func ResultValidator(r Result) error {
 	switch r {
-	case ResultGood, ResultAverage, ResultBad:
+	case ResultAverage, ResultBad, ResultGood:
 		return nil
 	default:
 		return fmt.Errorf("cardlog: invalid enum value for result field: %q", r)
@@ -87,7 +87,7 @@ func ResultValidator(r Result) error {
 
 // AllResult includes all values of Result enum
 var AllResult = [...]Result{
-	ResultGood,
 	ResultAverage,
 	ResultBad,
+	ResultGood,
 }

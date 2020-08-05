@@ -153,6 +153,11 @@ func (c *CardLogClient) Create() *CardLogCreate {
 	return &CardLogCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
+// BulkCreate returns a builder for creating a bulk of CardLog entities.
+func (c *CardLogClient) CreateBulk(builders ...*CardLogCreate) *CardLogCreateBulk {
+	return &CardLogCreateBulk{config: c.config, builders: builders}
+}
+
 // Update returns an update builder for CardLog.
 func (c *CardLogClient) Update() *CardLogUpdate {
 	mutation := newCardLogMutation(c.config, OpUpdate)
@@ -190,7 +195,7 @@ func (c *CardLogClient) DeleteOneID(id int) *CardLogDeleteOne {
 	return &CardLogDeleteOne{builder}
 }
 
-// Create returns a query builder for CardLog.
+// Query returns a query builder for CardLog.
 func (c *CardLogClient) Query() *CardLogQuery {
 	return &CardLogQuery{config: c.config}
 }
@@ -268,6 +273,11 @@ func (c *UserClient) Create() *UserCreate {
 	return &UserCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
+// BulkCreate returns a builder for creating a bulk of User entities.
+func (c *UserClient) CreateBulk(builders ...*UserCreate) *UserCreateBulk {
+	return &UserCreateBulk{config: c.config, builders: builders}
+}
+
 // Update returns an update builder for User.
 func (c *UserClient) Update() *UserUpdate {
 	mutation := newUserMutation(c.config, OpUpdate)
@@ -305,7 +315,7 @@ func (c *UserClient) DeleteOneID(id int) *UserDeleteOne {
 	return &UserDeleteOne{builder}
 }
 
-// Create returns a query builder for User.
+// Query returns a query builder for User.
 func (c *UserClient) Query() *UserQuery {
 	return &UserQuery{config: c.config}
 }
@@ -367,6 +377,11 @@ func (c *WordClient) Create() *WordCreate {
 	return &WordCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
+// BulkCreate returns a builder for creating a bulk of Word entities.
+func (c *WordClient) CreateBulk(builders ...*WordCreate) *WordCreateBulk {
+	return &WordCreateBulk{config: c.config, builders: builders}
+}
+
 // Update returns an update builder for Word.
 func (c *WordClient) Update() *WordUpdate {
 	mutation := newWordMutation(c.config, OpUpdate)
@@ -404,7 +419,7 @@ func (c *WordClient) DeleteOneID(id int) *WordDeleteOne {
 	return &WordDeleteOne{builder}
 }
 
-// Create returns a query builder for Word.
+// Query returns a query builder for Word.
 func (c *WordClient) Query() *WordQuery {
 	return &WordQuery{config: c.config}
 }

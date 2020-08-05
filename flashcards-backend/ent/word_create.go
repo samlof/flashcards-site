@@ -95,45 +95,8 @@ func (wc *WordCreate) Mutation() *WordMutation {
 
 // Save creates the Word in the database.
 func (wc *WordCreate) Save(ctx context.Context) (*Word, error) {
-	if _, ok := wc.mutation.CreateTime(); !ok {
-		v := word.DefaultCreateTime()
-		wc.mutation.SetCreateTime(v)
-	}
-	if _, ok := wc.mutation.UpdateTime(); !ok {
-		v := word.DefaultUpdateTime()
-		wc.mutation.SetUpdateTime(v)
-	}
-	if _, ok := wc.mutation.Lang1(); !ok {
-		return nil, &ValidationError{Name: "lang1", err: errors.New("ent: missing required field \"lang1\"")}
-	}
-	if v, ok := wc.mutation.Lang1(); ok {
-		if err := word.Lang1Validator(v); err != nil {
-			return nil, &ValidationError{Name: "lang1", err: fmt.Errorf("ent: validator failed for field \"lang1\": %w", err)}
-		}
-	}
-	if _, ok := wc.mutation.Lang2(); !ok {
-		return nil, &ValidationError{Name: "lang2", err: errors.New("ent: missing required field \"lang2\"")}
-	}
-	if v, ok := wc.mutation.Lang2(); ok {
-		if err := word.Lang2Validator(v); err != nil {
-			return nil, &ValidationError{Name: "lang2", err: fmt.Errorf("ent: validator failed for field \"lang2\": %w", err)}
-		}
-	}
-	if _, ok := wc.mutation.Word1(); !ok {
-		return nil, &ValidationError{Name: "word1", err: errors.New("ent: missing required field \"word1\"")}
-	}
-	if v, ok := wc.mutation.Word1(); ok {
-		if err := word.Word1Validator(v); err != nil {
-			return nil, &ValidationError{Name: "word1", err: fmt.Errorf("ent: validator failed for field \"word1\": %w", err)}
-		}
-	}
-	if _, ok := wc.mutation.Word2(); !ok {
-		return nil, &ValidationError{Name: "word2", err: errors.New("ent: missing required field \"word2\"")}
-	}
-	if v, ok := wc.mutation.Word2(); ok {
-		if err := word.Word2Validator(v); err != nil {
-			return nil, &ValidationError{Name: "word2", err: fmt.Errorf("ent: validator failed for field \"word2\": %w", err)}
-		}
+	if err := wc.preSave(); err != nil {
+		return nil, err
 	}
 	var (
 		err  error
@@ -169,6 +132,50 @@ func (wc *WordCreate) SaveX(ctx context.Context) *Word {
 		panic(err)
 	}
 	return v
+}
+
+func (wc *WordCreate) preSave() error {
+	if _, ok := wc.mutation.CreateTime(); !ok {
+		v := word.DefaultCreateTime()
+		wc.mutation.SetCreateTime(v)
+	}
+	if _, ok := wc.mutation.UpdateTime(); !ok {
+		v := word.DefaultUpdateTime()
+		wc.mutation.SetUpdateTime(v)
+	}
+	if _, ok := wc.mutation.Lang1(); !ok {
+		return &ValidationError{Name: "lang1", err: errors.New("ent: missing required field \"lang1\"")}
+	}
+	if v, ok := wc.mutation.Lang1(); ok {
+		if err := word.Lang1Validator(v); err != nil {
+			return &ValidationError{Name: "lang1", err: fmt.Errorf("ent: validator failed for field \"lang1\": %w", err)}
+		}
+	}
+	if _, ok := wc.mutation.Lang2(); !ok {
+		return &ValidationError{Name: "lang2", err: errors.New("ent: missing required field \"lang2\"")}
+	}
+	if v, ok := wc.mutation.Lang2(); ok {
+		if err := word.Lang2Validator(v); err != nil {
+			return &ValidationError{Name: "lang2", err: fmt.Errorf("ent: validator failed for field \"lang2\": %w", err)}
+		}
+	}
+	if _, ok := wc.mutation.Word1(); !ok {
+		return &ValidationError{Name: "word1", err: errors.New("ent: missing required field \"word1\"")}
+	}
+	if v, ok := wc.mutation.Word1(); ok {
+		if err := word.Word1Validator(v); err != nil {
+			return &ValidationError{Name: "word1", err: fmt.Errorf("ent: validator failed for field \"word1\": %w", err)}
+		}
+	}
+	if _, ok := wc.mutation.Word2(); !ok {
+		return &ValidationError{Name: "word2", err: errors.New("ent: missing required field \"word2\"")}
+	}
+	if v, ok := wc.mutation.Word2(); ok {
+		if err := word.Word2Validator(v); err != nil {
+			return &ValidationError{Name: "word2", err: fmt.Errorf("ent: validator failed for field \"word2\": %w", err)}
+		}
+	}
+	return nil
 }
 
 func (wc *WordCreate) sqlSave(ctx context.Context) (*Word, error) {
@@ -263,4 +270,70 @@ func (wc *WordCreate) createSpec() (*Word, *sqlgraph.CreateSpec) {
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return w, _spec
+}
+
+// WordCreateBulk is the builder for creating a bulk of Word entities.
+type WordCreateBulk struct {
+	config
+	builders []*WordCreate
+}
+
+// Save creates the Word entities in the database.
+func (wcb *WordCreateBulk) Save(ctx context.Context) ([]*Word, error) {
+	specs := make([]*sqlgraph.CreateSpec, len(wcb.builders))
+	nodes := make([]*Word, len(wcb.builders))
+	mutators := make([]Mutator, len(wcb.builders))
+	for i := range wcb.builders {
+		func(i int, root context.Context) {
+			builder := wcb.builders[i]
+			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+				if err := builder.preSave(); err != nil {
+					return nil, err
+				}
+				mutation, ok := m.(*WordMutation)
+				if !ok {
+					return nil, fmt.Errorf("unexpected mutation type %T", m)
+				}
+				builder.mutation = mutation
+				nodes[i], specs[i] = builder.createSpec()
+				var err error
+				if i < len(mutators)-1 {
+					_, err = mutators[i+1].Mutate(root, wcb.builders[i+1].mutation)
+				} else {
+					// Invoke the actual operation on the latest mutation in the chain.
+					if err = sqlgraph.BatchCreate(ctx, wcb.driver, &sqlgraph.BatchCreateSpec{Nodes: specs}); err != nil {
+						if cerr, ok := isSQLConstraintError(err); ok {
+							err = cerr
+						}
+					}
+				}
+				mutation.done = true
+				if err != nil {
+					return nil, err
+				}
+				id := specs[i].ID.Value.(int64)
+				nodes[i].ID = int(id)
+				return nodes[i], nil
+			})
+			for i := len(builder.hooks) - 1; i >= 0; i-- {
+				mut = builder.hooks[i](mut)
+			}
+			mutators[i] = mut
+		}(i, ctx)
+	}
+	if len(mutators) > 0 {
+		if _, err := mutators[0].Mutate(ctx, wcb.builders[0].mutation); err != nil {
+			return nil, err
+		}
+	}
+	return nodes, nil
+}
+
+// SaveX calls Save and panics if Save returns an error.
+func (wcb *WordCreateBulk) SaveX(ctx context.Context) []*Word {
+	v, err := wcb.Save(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
 }

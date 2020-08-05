@@ -93,20 +93,8 @@ func (clc *CardLogCreate) Mutation() *CardLogMutation {
 
 // Save creates the CardLog in the database.
 func (clc *CardLogCreate) Save(ctx context.Context) (*CardLog, error) {
-	if _, ok := clc.mutation.CreateTime(); !ok {
-		v := cardlog.DefaultCreateTime()
-		clc.mutation.SetCreateTime(v)
-	}
-	if _, ok := clc.mutation.Result(); !ok {
-		return nil, &ValidationError{Name: "result", err: errors.New("ent: missing required field \"result\"")}
-	}
-	if v, ok := clc.mutation.Result(); ok {
-		if err := cardlog.ResultValidator(v); err != nil {
-			return nil, &ValidationError{Name: "result", err: fmt.Errorf("ent: validator failed for field \"result\": %w", err)}
-		}
-	}
-	if _, ok := clc.mutation.ScheduledFor(); !ok {
-		return nil, &ValidationError{Name: "scheduled_for", err: errors.New("ent: missing required field \"scheduled_for\"")}
+	if err := clc.preSave(); err != nil {
+		return nil, err
 	}
 	var (
 		err  error
@@ -142,6 +130,25 @@ func (clc *CardLogCreate) SaveX(ctx context.Context) *CardLog {
 		panic(err)
 	}
 	return v
+}
+
+func (clc *CardLogCreate) preSave() error {
+	if _, ok := clc.mutation.CreateTime(); !ok {
+		v := cardlog.DefaultCreateTime()
+		clc.mutation.SetCreateTime(v)
+	}
+	if _, ok := clc.mutation.Result(); !ok {
+		return &ValidationError{Name: "result", err: errors.New("ent: missing required field \"result\"")}
+	}
+	if v, ok := clc.mutation.Result(); ok {
+		if err := cardlog.ResultValidator(v); err != nil {
+			return &ValidationError{Name: "result", err: fmt.Errorf("ent: validator failed for field \"result\": %w", err)}
+		}
+	}
+	if _, ok := clc.mutation.ScheduledFor(); !ok {
+		return &ValidationError{Name: "scheduled_for", err: errors.New("ent: missing required field \"scheduled_for\"")}
+	}
+	return nil
 }
 
 func (clc *CardLogCreate) sqlSave(ctx context.Context) (*CardLog, error) {
@@ -231,4 +238,70 @@ func (clc *CardLogCreate) createSpec() (*CardLog, *sqlgraph.CreateSpec) {
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return cl, _spec
+}
+
+// CardLogCreateBulk is the builder for creating a bulk of CardLog entities.
+type CardLogCreateBulk struct {
+	config
+	builders []*CardLogCreate
+}
+
+// Save creates the CardLog entities in the database.
+func (clcb *CardLogCreateBulk) Save(ctx context.Context) ([]*CardLog, error) {
+	specs := make([]*sqlgraph.CreateSpec, len(clcb.builders))
+	nodes := make([]*CardLog, len(clcb.builders))
+	mutators := make([]Mutator, len(clcb.builders))
+	for i := range clcb.builders {
+		func(i int, root context.Context) {
+			builder := clcb.builders[i]
+			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+				if err := builder.preSave(); err != nil {
+					return nil, err
+				}
+				mutation, ok := m.(*CardLogMutation)
+				if !ok {
+					return nil, fmt.Errorf("unexpected mutation type %T", m)
+				}
+				builder.mutation = mutation
+				nodes[i], specs[i] = builder.createSpec()
+				var err error
+				if i < len(mutators)-1 {
+					_, err = mutators[i+1].Mutate(root, clcb.builders[i+1].mutation)
+				} else {
+					// Invoke the actual operation on the latest mutation in the chain.
+					if err = sqlgraph.BatchCreate(ctx, clcb.driver, &sqlgraph.BatchCreateSpec{Nodes: specs}); err != nil {
+						if cerr, ok := isSQLConstraintError(err); ok {
+							err = cerr
+						}
+					}
+				}
+				mutation.done = true
+				if err != nil {
+					return nil, err
+				}
+				id := specs[i].ID.Value.(int64)
+				nodes[i].ID = int(id)
+				return nodes[i], nil
+			})
+			for i := len(builder.hooks) - 1; i >= 0; i-- {
+				mut = builder.hooks[i](mut)
+			}
+			mutators[i] = mut
+		}(i, ctx)
+	}
+	if len(mutators) > 0 {
+		if _, err := mutators[0].Mutate(ctx, clcb.builders[0].mutation); err != nil {
+			return nil, err
+		}
+	}
+	return nodes, nil
+}
+
+// SaveX calls Save and panics if Save returns an error.
+func (clcb *CardLogCreateBulk) SaveX(ctx context.Context) []*CardLog {
+	v, err := clcb.Save(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
 }
