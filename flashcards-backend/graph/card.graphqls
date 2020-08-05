@@ -5,6 +5,7 @@ enum CardResult {
 }
 
 type CardLog {
+  createTime: Time!
   id: ID!
   word: Word!
   scheduledFor: Time!

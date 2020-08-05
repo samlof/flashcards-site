@@ -41,9 +41,11 @@ func CardLog(log *ent.CardLog) *model.CardLog {
 		return nil
 	}
 	return &model.CardLog{
-		ID:         strconv.Itoa(log.ID),
-		LastResult: cardResult(log.Result),
-		Word:       Word(log.Edges.Card),
+		ID:           strconv.Itoa(log.ID),
+		LastResult:   cardResult(log.Result),
+		Word:         Word(log.Edges.Card),
+		CreateTime:   log.CreateTime,
+		ScheduledFor: log.ScheduledFor,
 	}
 }
 

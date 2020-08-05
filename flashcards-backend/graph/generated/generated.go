@@ -45,6 +45,7 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	CardLog struct {
+		CreateTime   func(childComplexity int) int
 		ID           func(childComplexity int) int
 		LastResult   func(childComplexity int) int
 		ScheduledFor func(childComplexity int) int
@@ -104,6 +105,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "CardLog.createTime":
+		if e.complexity.CardLog.CreateTime == nil {
+			break
+		}
+
+		return e.complexity.CardLog.CreateTime(childComplexity), true
 
 	case "CardLog.id":
 		if e.complexity.CardLog.ID == nil {
@@ -334,6 +342,7 @@ var sources = []*ast.Source{
 }
 
 type CardLog {
+  createTime: Time!
   id: ID!
   word: Word!
   scheduledFor: Time!
@@ -520,6 +529,40 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 // endregion ************************** directives.gotpl **************************
 
 // region    **************************** field.gotpl *****************************
+
+func (ec *executionContext) _CardLog_createTime(ctx context.Context, field graphql.CollectedField, obj *model.CardLog) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "CardLog",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreateTime, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
 
 func (ec *executionContext) _CardLog_id(ctx context.Context, field graphql.CollectedField, obj *model.CardLog) (ret graphql.Marshaler) {
 	defer func() {
@@ -2447,6 +2490,11 @@ func (ec *executionContext) _CardLog(ctx context.Context, sel ast.SelectionSet, 
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("CardLog")
+		case "createTime":
+			out.Values[i] = ec._CardLog_createTime(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "id":
 			out.Values[i] = ec._CardLog_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {

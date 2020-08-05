@@ -10,6 +10,7 @@ import (
 )
 
 type CardLog struct {
+	CreateTime   time.Time  `json:"createTime"`
 	ID           string     `json:"id"`
 	Word         *Word      `json:"word"`
 	ScheduledFor time.Time  `json:"scheduledFor"`
