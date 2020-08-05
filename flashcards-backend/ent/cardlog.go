@@ -22,6 +22,8 @@ type CardLog struct {
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// Result holds the value of the "result" field.
 	Result cardlog.Result `json:"result,omitempty"`
+	// ScheduledFor holds the value of the "scheduled_for" field.
+	ScheduledFor time.Time `json:"scheduled_for,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CardLogQuery when eager-loading is set.
 	Edges          CardLogEdges `json:"edges"`
@@ -74,6 +76,7 @@ func (*CardLog) scanValues() []interface{} {
 		&sql.NullInt64{},  // id
 		&sql.NullTime{},   // create_time
 		&sql.NullString{}, // result
+		&sql.NullTime{},   // scheduled_for
 	}
 }
 
@@ -107,7 +110,12 @@ func (cl *CardLog) assignValues(values ...interface{}) error {
 	} else if value.Valid {
 		cl.Result = cardlog.Result(value.String)
 	}
-	values = values[2:]
+	if value, ok := values[2].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field scheduled_for", values[2])
+	} else if value.Valid {
+		cl.ScheduledFor = value.Time
+	}
+	values = values[3:]
 	if len(values) == len(cardlog.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field card_log_card", value)
@@ -162,6 +170,8 @@ func (cl *CardLog) String() string {
 	builder.WriteString(cl.CreateTime.Format(time.ANSIC))
 	builder.WriteString(", result=")
 	builder.WriteString(fmt.Sprintf("%v", cl.Result))
+	builder.WriteString(", scheduled_for=")
+	builder.WriteString(cl.ScheduledFor.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

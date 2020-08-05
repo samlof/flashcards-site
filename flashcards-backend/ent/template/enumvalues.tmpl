@@ -2,13 +2,11 @@
 {{ range $f := $.EnumFields }}
     {{ $enum := trimPackage $f.Type.String $.Package }}
 
-    // {{ $enum }}All returns all values of {{ $enum }} enum
-    func {{ $enum }}All() []{{ $enum }} {
-            return []{{ $enum }}{
+    // All{{ $enum }} includes all values of {{ $enum }} enum
+    var All{{ $enum }} = [...]{{ $enum }}{
                 {{- range $_, $e := $f.Enums}}
                     {{ $f.EnumName $e }},
                 {{- end}}
             }
-    }
 {{ end }}                
 {{ end }}

@@ -16,6 +16,8 @@ const (
 	FieldCreateTime = "create_time"
 	// FieldResult holds the string denoting the result field in the database.
 	FieldResult = "result"
+	// FieldScheduledFor holds the string denoting the scheduled_for field in the database.
+	FieldScheduledFor = "scheduled_for"
 
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
@@ -45,6 +47,7 @@ var Columns = []string{
 	FieldID,
 	FieldCreateTime,
 	FieldResult,
+	FieldScheduledFor,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the CardLog type.
@@ -82,11 +85,9 @@ func ResultValidator(r Result) error {
 	}
 }
 
-// ResultAll returns all values of Result enum
-func ResultAll() []Result {
-	return []Result{
-		ResultGood,
-		ResultAverage,
-		ResultBad,
-	}
+// AllResult includes all values of Result enum
+var AllResult = [...]Result{
+	ResultGood,
+	ResultAverage,
+	ResultBad,
 }

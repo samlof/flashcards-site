@@ -42,6 +42,12 @@ func (clc *CardLogCreate) SetResult(c cardlog.Result) *CardLogCreate {
 	return clc
 }
 
+// SetScheduledFor sets the scheduled_for field.
+func (clc *CardLogCreate) SetScheduledFor(t time.Time) *CardLogCreate {
+	clc.mutation.SetScheduledFor(t)
+	return clc
+}
+
 // SetUserID sets the user edge to User by id.
 func (clc *CardLogCreate) SetUserID(id int) *CardLogCreate {
 	clc.mutation.SetUserID(id)
@@ -98,6 +104,9 @@ func (clc *CardLogCreate) Save(ctx context.Context) (*CardLog, error) {
 		if err := cardlog.ResultValidator(v); err != nil {
 			return nil, &ValidationError{Name: "result", err: fmt.Errorf("ent: validator failed for field \"result\": %w", err)}
 		}
+	}
+	if _, ok := clc.mutation.ScheduledFor(); !ok {
+		return nil, &ValidationError{Name: "scheduled_for", err: errors.New("ent: missing required field \"scheduled_for\"")}
 	}
 	var (
 		err  error
@@ -174,6 +183,14 @@ func (clc *CardLogCreate) createSpec() (*CardLog, *sqlgraph.CreateSpec) {
 			Column: cardlog.FieldResult,
 		})
 		cl.Result = value
+	}
+	if value, ok := clc.mutation.ScheduledFor(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: cardlog.FieldScheduledFor,
+		})
+		cl.ScheduledFor = value
 	}
 	if nodes := clc.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

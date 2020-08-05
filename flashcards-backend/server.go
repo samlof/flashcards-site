@@ -50,8 +50,8 @@ func main() {
 
 	// Run migrations
 	ctx := context.Background()
-	//err = client.Schema.Create(ctx, migrate.WithGlobalUniqueID(true),
-	err = client.Schema.WriteTo(ctx, os.Stdout, migrate.WithGlobalUniqueID(true),
+	err = client.Schema.Create(ctx, migrate.WithGlobalUniqueID(true),
+		//err = client.Schema.WriteTo(ctx, os.Stdout, migrate.WithGlobalUniqueID(true),
 		migrate.WithDropIndex(true),
 		migrate.WithDropColumn(true))
 	if err != nil {

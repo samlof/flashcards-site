@@ -25,6 +25,8 @@ func (CardLog) Fields() []ent.Field {
 		field.Enum("result").
 			Values("good", "average", "bad").
 			Immutable(),
+		field.Time("scheduled_for").
+			Immutable(),
 	}
 }
 

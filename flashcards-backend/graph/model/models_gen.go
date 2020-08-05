@@ -16,11 +16,21 @@ type CardLog struct {
 	LastResult   CardResult `json:"lastResult"`
 }
 
+type CardStatus struct {
+	CardID string     `json:"cardId"`
+	Result CardResult `json:"result"`
+}
+
 type NewWord struct {
 	Lang1 string `json:"lang1"`
 	Lang2 string `json:"lang2"`
 	Word1 string `json:"word1"`
 	Word2 string `json:"word2"`
+}
+
+type ScheduledWordsResponse struct {
+	Reviews  []*CardLog `json:"reviews"`
+	NewWords []*Word    `json:"newWords"`
 }
 
 type UpdateWord struct {

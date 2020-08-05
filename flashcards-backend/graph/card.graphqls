@@ -11,6 +11,19 @@ type CardLog {
   lastResult: CardResult!
 }
 
+type ScheduledWordsResponse {
+  reviews: [CardLog!]!
+  newWords: [Word!]!
+}
 extend type Query {
-  scheduledWords: [CardLog!]!
+  scheduledWords(newWordCount: Int): ScheduledWordsResponse!
+}
+
+input CardStatus {
+  cardId: ID!
+  result: CardResult!
+}
+
+extend type Mutation {
+  cardStatus(input: CardStatus!): CardLog!
 }

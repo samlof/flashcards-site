@@ -13,6 +13,7 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "result", Type: field.TypeEnum, Enums: []string{"good", "average", "bad"}},
+		{Name: "scheduled_for", Type: field.TypeTime},
 		{Name: "card_log_card", Type: field.TypeInt, Nullable: true},
 		{Name: "user_card_logs", Type: field.TypeInt, Nullable: true},
 	}
@@ -24,14 +25,14 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:  "card_logs_words_card",
-				Columns: []*schema.Column{CardLogsColumns[3]},
+				Columns: []*schema.Column{CardLogsColumns[4]},
 
 				RefColumns: []*schema.Column{WordsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "card_logs_users_cardLogs",
-				Columns: []*schema.Column{CardLogsColumns[4]},
+				Columns: []*schema.Column{CardLogsColumns[5]},
 
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,

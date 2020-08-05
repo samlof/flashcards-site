@@ -22,11 +22,36 @@ func cardResult(res cardlog.Result) model.CardResult {
 	panic(fmt.Sprintf("Not supported cardlogResult: %v", res))
 }
 
+// ModelCardResult converts model.CardResult to cardlog.Result
+func ModelCardResult(res model.CardResult) cardlog.Result {
+	switch res {
+	case model.CardResultAverage:
+		return cardlog.ResultAverage
+	case model.CardResultBad:
+		return cardlog.ResultBad
+	case model.CardResultGood:
+		return cardlog.ResultGood
+	}
+	panic(fmt.Sprintf("Not supported cardlogResult: %v", res))
+}
+
 // CardLog converts ent.CardLog to model.CardLog
 func CardLog(log *ent.CardLog) *model.CardLog {
+	if log == nil {
+		return nil
+	}
 	return &model.CardLog{
 		ID:         strconv.Itoa(log.ID),
 		LastResult: cardResult(log.Result),
 		Word:       Word(log.Edges.Card),
 	}
+}
+
+// CardLogS converts a slice of ent.CardLog to model.CardLog
+func CardLogS(logs []*ent.CardLog) []*model.CardLog {
+	models := make([]*model.CardLog, 0, len(logs))
+	for _, card := range logs {
+		models = append(models, CardLog(card))
+	}
+	return models
 }

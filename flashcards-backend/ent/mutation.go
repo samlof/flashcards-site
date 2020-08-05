@@ -37,6 +37,7 @@ type CardLogMutation struct {
 	id            *int
 	create_time   *time.Time
 	result        *cardlog.Result
+	scheduled_for *time.Time
 	clearedFields map[string]struct{}
 	user          *int
 	cleareduser   bool
@@ -199,6 +200,43 @@ func (m *CardLogMutation) ResetResult() {
 	m.result = nil
 }
 
+// SetScheduledFor sets the scheduled_for field.
+func (m *CardLogMutation) SetScheduledFor(t time.Time) {
+	m.scheduled_for = &t
+}
+
+// ScheduledFor returns the scheduled_for value in the mutation.
+func (m *CardLogMutation) ScheduledFor() (r time.Time, exists bool) {
+	v := m.scheduled_for
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldScheduledFor returns the old scheduled_for value of the CardLog.
+// If the CardLog object wasn't provided to the builder, the object is fetched
+// from the database.
+// An error is returned if the mutation operation is not UpdateOne, or database query fails.
+func (m *CardLogMutation) OldScheduledFor(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldScheduledFor is allowed only on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldScheduledFor requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldScheduledFor: %w", err)
+	}
+	return oldValue.ScheduledFor, nil
+}
+
+// ResetScheduledFor reset all changes of the "scheduled_for" field.
+func (m *CardLogMutation) ResetScheduledFor() {
+	m.scheduled_for = nil
+}
+
 // SetUserID sets the user edge to User by id.
 func (m *CardLogMutation) SetUserID(id int) {
 	m.user = &id
@@ -291,12 +329,15 @@ func (m *CardLogMutation) Type() string {
 // this mutation. Note that, in order to get all numeric
 // fields that were in/decremented, call AddedFields().
 func (m *CardLogMutation) Fields() []string {
-	fields := make([]string, 0, 2)
+	fields := make([]string, 0, 3)
 	if m.create_time != nil {
 		fields = append(fields, cardlog.FieldCreateTime)
 	}
 	if m.result != nil {
 		fields = append(fields, cardlog.FieldResult)
+	}
+	if m.scheduled_for != nil {
+		fields = append(fields, cardlog.FieldScheduledFor)
 	}
 	return fields
 }
@@ -310,6 +351,8 @@ func (m *CardLogMutation) Field(name string) (ent.Value, bool) {
 		return m.CreateTime()
 	case cardlog.FieldResult:
 		return m.Result()
+	case cardlog.FieldScheduledFor:
+		return m.ScheduledFor()
 	}
 	return nil, false
 }
@@ -323,6 +366,8 @@ func (m *CardLogMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldCreateTime(ctx)
 	case cardlog.FieldResult:
 		return m.OldResult(ctx)
+	case cardlog.FieldScheduledFor:
+		return m.OldScheduledFor(ctx)
 	}
 	return nil, fmt.Errorf("unknown CardLog field %s", name)
 }
@@ -345,6 +390,13 @@ func (m *CardLogMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetResult(v)
+		return nil
+	case cardlog.FieldScheduledFor:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetScheduledFor(v)
 		return nil
 	}
 	return fmt.Errorf("unknown CardLog field %s", name)
@@ -401,6 +453,9 @@ func (m *CardLogMutation) ResetField(name string) error {
 		return nil
 	case cardlog.FieldResult:
 		m.ResetResult()
+		return nil
+	case cardlog.FieldScheduledFor:
+		m.ResetScheduledFor()
 		return nil
 	}
 	return fmt.Errorf("unknown CardLog field %s", name)
