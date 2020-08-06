@@ -69,7 +69,10 @@ func main() {
 	mux.Handle("/query", srv)
 
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("ok"))
+		_, err := w.Write([]byte("ok"))
+		if err != nil {
+			log.Printf("Error with healthcheck: %v", err)
+		}
 	})
 
 	// Enable introspection and playground for development
@@ -133,16 +136,26 @@ func configureGqlServer(srv *handler.Server) {
 }
 
 func applyDotEnv() string {
+	var err error
 	env := os.Getenv("FC_ENV")
 	if env == "" {
 		env = "development"
 	}
-	godotenv.Load(".env." + env + ".local")
-	if env != "test" {
-		godotenv.Load(".env.local")
+	err = godotenv.Load(".env." + env + ".local")
+	if err != nil {
+		log.Fatal("Error loading .env." + env + ".local file")
 	}
-	godotenv.Load(".env." + env)
-	err := godotenv.Load()
+	if env != "test" {
+		err = godotenv.Load(".env.local")
+		if err != nil {
+			log.Fatal("Error loading .env.local file")
+		}
+	}
+	err = godotenv.Load(".env." + env)
+	if err != nil {
+		log.Fatal("Error loading .env." + env + " file")
+	}
+	err = godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
