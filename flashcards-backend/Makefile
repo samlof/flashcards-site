@@ -1,5 +1,6 @@
 all: bin/app
-test: lint unit-test
+test: unit-test
+lint: lint
 
 PLATFORM=local
 
