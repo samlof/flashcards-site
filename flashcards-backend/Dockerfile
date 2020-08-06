@@ -1,4 +1,4 @@
-# syntax = docker/dockerfile:1-experimental
+# syntax=docker/dockerfile:1.0.0-experimental
 
 FROM golang:1.14.6-alpine AS base
 WORKDIR /src
