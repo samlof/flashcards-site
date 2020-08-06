@@ -1,6 +1,13 @@
-name: Continuous Integration
-
-on: [push]
+name: Backend CI
+on:
+  push:
+    paths:
+    - 'flashcards-backend/**.go'
+    branches:
+    - 'master'
+  pull_request:
+    paths:
+    - 'flashcards-backend/**.go'
 
 jobs:
   ci:
@@ -8,6 +15,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
        DOCKER_BUILDKIT: "1"
+    defaults:
+      run:
+        working-directory: flashcards-backend
     steps:
      - name: Checkout code
        uses: actions/checkout@v2
@@ -16,4 +26,4 @@ jobs:
      - name: Run unit tests
        run: make test
      - name: Build Linux binary
-       run: make
+       run: make 
