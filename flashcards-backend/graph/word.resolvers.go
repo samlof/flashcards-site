@@ -8,7 +8,6 @@ import (
 	"errors"
 	"flashcards-backend/ent"
 	"flashcards-backend/ent/word"
-	"flashcards-backend/graph/generated"
 	"flashcards-backend/graph/model"
 	"flashcards-backend/modelconv"
 	"fmt"
@@ -112,18 +111,5 @@ func (r *queryResolver) GetWords(ctx context.Context) ([]*model.Word, error) {
 	if err != nil {
 		return nil, fmt.Errorf("getting words: %v", err)
 	}
-	ret := make([]*model.Word, 0, len(words))
-	for _, word := range words {
-		ret = append(ret, modelconv.Word(word))
-	}
-	return ret, nil
+	return modelconv.WordS(words), nil
 }
-
-// Mutation returns generated.MutationResolver implementation.
-func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
-
-// Query returns generated.QueryResolver implementation.
-func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
-
-type mutationResolver struct{ *Resolver }
-type queryResolver struct{ *Resolver }

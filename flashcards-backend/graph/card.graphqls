@@ -1,0 +1,30 @@
+enum CardResult {
+  Good
+  Average
+  Bad
+}
+
+type CardLog {
+  createTime: Time!
+  id: ID!
+  word: Word!
+  scheduledFor: Time!
+  lastResult: CardResult!
+}
+
+type ScheduledWordsResponse {
+  reviews: [CardLog!]!
+  newWords: [Word!]!
+}
+extend type Query {
+  scheduledWords(newWordCount: Int): ScheduledWordsResponse!
+}
+
+input CardStatus {
+  cardId: ID!
+  result: CardResult!
+}
+
+extend type Mutation {
+  cardStatus(input: CardStatus!): CardLog!
+}

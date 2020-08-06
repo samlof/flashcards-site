@@ -209,6 +209,54 @@ func DenyMutationOperationRule(op ent.Op) MutationRule {
 	return OnMutationOperation(rule, op)
 }
 
+// The CardLogQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type CardLogQueryRuleFunc func(context.Context, *ent.CardLogQuery) error
+
+// EvalQuery return f(ctx, q).
+func (f CardLogQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.CardLogQuery); ok {
+		return f(ctx, q)
+	}
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.CardLogQuery", q)
+}
+
+// The CardLogMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type CardLogMutationRuleFunc func(context.Context, *ent.CardLogMutation) error
+
+// EvalMutation calls f(ctx, m).
+func (f CardLogMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
+	if m, ok := m.(*ent.CardLogMutation); ok {
+		return f(ctx, m)
+	}
+	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.CardLogMutation", m)
+}
+
+// The UserQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type UserQueryRuleFunc func(context.Context, *ent.UserQuery) error
+
+// EvalQuery return f(ctx, q).
+func (f UserQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.UserQuery); ok {
+		return f(ctx, q)
+	}
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.UserQuery", q)
+}
+
+// The UserMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type UserMutationRuleFunc func(context.Context, *ent.UserMutation) error
+
+// EvalMutation calls f(ctx, m).
+func (f UserMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
+	if m, ok := m.(*ent.UserMutation); ok {
+		return f(ctx, m)
+	}
+	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.UserMutation", m)
+}
+
 // The WordQueryRuleFunc type is an adapter to allow the use of ordinary
 // functions as a query rule.
 type WordQueryRuleFunc func(context.Context, *ent.WordQuery) error

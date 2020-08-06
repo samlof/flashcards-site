@@ -6,5 +6,11 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 )
 
+// CardLog is the predicate function for cardlog builders.
+type CardLog func(*sql.Selector)
+
+// User is the predicate function for user builders.
+type User func(*sql.Selector)
+
 // Word is the predicate function for word builders.
 type Word func(*sql.Selector)

@@ -1,0 +1,12 @@
+{{ define "meta/additional/enumAll" }}
+{{ range $f := $.EnumFields }}
+    {{ $enum := trimPackage $f.Type.String $.Package }}
+
+    // All{{ $enum }} includes all values of {{ $enum }} enum
+    var All{{ $enum }} = [...]{{ $enum }}{
+                {{- range $_, $e := $f.Enums}}
+                    {{ $e.Name }},
+                {{- end}}
+            }
+{{ end }}                
+{{ end }}

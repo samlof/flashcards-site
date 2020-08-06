@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"flashcards-backend/ent/cardlog"
 	"flashcards-backend/ent/predicate"
 	"flashcards-backend/ent/word"
 	"fmt"
@@ -27,18 +28,6 @@ func (wu *WordUpdate) Where(ps ...predicate.Word) *WordUpdate {
 	return wu
 }
 
-// SetLang1 sets the lang1 field.
-func (wu *WordUpdate) SetLang1(s string) *WordUpdate {
-	wu.mutation.SetLang1(s)
-	return wu
-}
-
-// SetLang2 sets the lang2 field.
-func (wu *WordUpdate) SetLang2(s string) *WordUpdate {
-	wu.mutation.SetLang2(s)
-	return wu
-}
-
 // SetWord1 sets the word1 field.
 func (wu *WordUpdate) SetWord1(s string) *WordUpdate {
 	wu.mutation.SetWord1(s)
@@ -51,9 +40,39 @@ func (wu *WordUpdate) SetWord2(s string) *WordUpdate {
 	return wu
 }
 
+// AddCardLogIDs adds the cardLogs edge to CardLog by ids.
+func (wu *WordUpdate) AddCardLogIDs(ids ...int) *WordUpdate {
+	wu.mutation.AddCardLogIDs(ids...)
+	return wu
+}
+
+// AddCardLogs adds the cardLogs edges to CardLog.
+func (wu *WordUpdate) AddCardLogs(c ...*CardLog) *WordUpdate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return wu.AddCardLogIDs(ids...)
+}
+
 // Mutation returns the WordMutation object of the builder.
 func (wu *WordUpdate) Mutation() *WordMutation {
 	return wu.mutation
+}
+
+// RemoveCardLogIDs removes the cardLogs edge to CardLog by ids.
+func (wu *WordUpdate) RemoveCardLogIDs(ids ...int) *WordUpdate {
+	wu.mutation.RemoveCardLogIDs(ids...)
+	return wu
+}
+
+// RemoveCardLogs removes cardLogs edges to CardLog.
+func (wu *WordUpdate) RemoveCardLogs(c ...*CardLog) *WordUpdate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return wu.RemoveCardLogIDs(ids...)
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
@@ -61,16 +80,6 @@ func (wu *WordUpdate) Save(ctx context.Context) (int, error) {
 	if _, ok := wu.mutation.UpdateTime(); !ok {
 		v := word.UpdateDefaultUpdateTime()
 		wu.mutation.SetUpdateTime(v)
-	}
-	if v, ok := wu.mutation.Lang1(); ok {
-		if err := word.Lang1Validator(v); err != nil {
-			return 0, &ValidationError{Name: "lang1", err: fmt.Errorf("ent: validator failed for field \"lang1\": %w", err)}
-		}
-	}
-	if v, ok := wu.mutation.Lang2(); ok {
-		if err := word.Lang2Validator(v); err != nil {
-			return 0, &ValidationError{Name: "lang2", err: fmt.Errorf("ent: validator failed for field \"lang2\": %w", err)}
-		}
 	}
 	if v, ok := wu.mutation.Word1(); ok {
 		if err := word.Word1Validator(v); err != nil {
@@ -82,6 +91,7 @@ func (wu *WordUpdate) Save(ctx context.Context) (int, error) {
 			return 0, &ValidationError{Name: "word2", err: fmt.Errorf("ent: validator failed for field \"word2\": %w", err)}
 		}
 	}
+
 	var (
 		err      error
 		affected int
@@ -156,20 +166,6 @@ func (wu *WordUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: word.FieldUpdateTime,
 		})
 	}
-	if value, ok := wu.mutation.Lang1(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: word.FieldLang1,
-		})
-	}
-	if value, ok := wu.mutation.Lang2(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: word.FieldLang2,
-		})
-	}
 	if value, ok := wu.mutation.Word1(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
@@ -183,6 +179,44 @@ func (wu *WordUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Value:  value,
 			Column: word.FieldWord2,
 		})
+	}
+	if nodes := wu.mutation.RemovedCardLogsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   word.CardLogsTable,
+			Columns: []string{word.CardLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: cardlog.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wu.mutation.CardLogsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   word.CardLogsTable,
+			Columns: []string{word.CardLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: cardlog.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, wu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -202,18 +236,6 @@ type WordUpdateOne struct {
 	mutation *WordMutation
 }
 
-// SetLang1 sets the lang1 field.
-func (wuo *WordUpdateOne) SetLang1(s string) *WordUpdateOne {
-	wuo.mutation.SetLang1(s)
-	return wuo
-}
-
-// SetLang2 sets the lang2 field.
-func (wuo *WordUpdateOne) SetLang2(s string) *WordUpdateOne {
-	wuo.mutation.SetLang2(s)
-	return wuo
-}
-
 // SetWord1 sets the word1 field.
 func (wuo *WordUpdateOne) SetWord1(s string) *WordUpdateOne {
 	wuo.mutation.SetWord1(s)
@@ -226,9 +248,39 @@ func (wuo *WordUpdateOne) SetWord2(s string) *WordUpdateOne {
 	return wuo
 }
 
+// AddCardLogIDs adds the cardLogs edge to CardLog by ids.
+func (wuo *WordUpdateOne) AddCardLogIDs(ids ...int) *WordUpdateOne {
+	wuo.mutation.AddCardLogIDs(ids...)
+	return wuo
+}
+
+// AddCardLogs adds the cardLogs edges to CardLog.
+func (wuo *WordUpdateOne) AddCardLogs(c ...*CardLog) *WordUpdateOne {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return wuo.AddCardLogIDs(ids...)
+}
+
 // Mutation returns the WordMutation object of the builder.
 func (wuo *WordUpdateOne) Mutation() *WordMutation {
 	return wuo.mutation
+}
+
+// RemoveCardLogIDs removes the cardLogs edge to CardLog by ids.
+func (wuo *WordUpdateOne) RemoveCardLogIDs(ids ...int) *WordUpdateOne {
+	wuo.mutation.RemoveCardLogIDs(ids...)
+	return wuo
+}
+
+// RemoveCardLogs removes cardLogs edges to CardLog.
+func (wuo *WordUpdateOne) RemoveCardLogs(c ...*CardLog) *WordUpdateOne {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return wuo.RemoveCardLogIDs(ids...)
 }
 
 // Save executes the query and returns the updated entity.
@@ -236,16 +288,6 @@ func (wuo *WordUpdateOne) Save(ctx context.Context) (*Word, error) {
 	if _, ok := wuo.mutation.UpdateTime(); !ok {
 		v := word.UpdateDefaultUpdateTime()
 		wuo.mutation.SetUpdateTime(v)
-	}
-	if v, ok := wuo.mutation.Lang1(); ok {
-		if err := word.Lang1Validator(v); err != nil {
-			return nil, &ValidationError{Name: "lang1", err: fmt.Errorf("ent: validator failed for field \"lang1\": %w", err)}
-		}
-	}
-	if v, ok := wuo.mutation.Lang2(); ok {
-		if err := word.Lang2Validator(v); err != nil {
-			return nil, &ValidationError{Name: "lang2", err: fmt.Errorf("ent: validator failed for field \"lang2\": %w", err)}
-		}
 	}
 	if v, ok := wuo.mutation.Word1(); ok {
 		if err := word.Word1Validator(v); err != nil {
@@ -257,6 +299,7 @@ func (wuo *WordUpdateOne) Save(ctx context.Context) (*Word, error) {
 			return nil, &ValidationError{Name: "word2", err: fmt.Errorf("ent: validator failed for field \"word2\": %w", err)}
 		}
 	}
+
 	var (
 		err  error
 		node *Word
@@ -329,20 +372,6 @@ func (wuo *WordUpdateOne) sqlSave(ctx context.Context) (w *Word, err error) {
 			Column: word.FieldUpdateTime,
 		})
 	}
-	if value, ok := wuo.mutation.Lang1(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: word.FieldLang1,
-		})
-	}
-	if value, ok := wuo.mutation.Lang2(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: word.FieldLang2,
-		})
-	}
 	if value, ok := wuo.mutation.Word1(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
@@ -356,6 +385,44 @@ func (wuo *WordUpdateOne) sqlSave(ctx context.Context) (w *Word, err error) {
 			Value:  value,
 			Column: word.FieldWord2,
 		})
+	}
+	if nodes := wuo.mutation.RemovedCardLogsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   word.CardLogsTable,
+			Columns: []string{word.CardLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: cardlog.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wuo.mutation.CardLogsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   word.CardLogsTable,
+			Columns: []string{word.CardLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: cardlog.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	w = &Word{config: wuo.config}
 	_spec.Assign = w.assignValues
