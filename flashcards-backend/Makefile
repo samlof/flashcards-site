@@ -5,7 +5,7 @@ PLATFORM=local
 
 .PHONY: bin/app
 bin/app:
-	@docker build . --target bin --output bin/
+	@docker build . --target bin
 
 .PHONY: unit-test
 unit-test:

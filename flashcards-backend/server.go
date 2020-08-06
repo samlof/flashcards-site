@@ -136,28 +136,15 @@ func configureGqlServer(srv *handler.Server) {
 }
 
 func applyDotEnv() string {
-	var err error
 	env := os.Getenv("FC_ENV")
 	if env == "" {
 		env = "development"
 	}
-	err = godotenv.Load(".env." + env + ".local")
-	if err != nil {
-		log.Fatal("Error loading .env." + env + ".local file")
-	}
+	_ = godotenv.Load(".env." + env + ".local")
 	if env != "test" {
-		err = godotenv.Load(".env.local")
-		if err != nil {
-			log.Fatal("Error loading .env.local file")
-		}
+		_ = godotenv.Load(".env.local")
 	}
-	err = godotenv.Load(".env." + env)
-	if err != nil {
-		log.Fatal("Error loading .env." + env + " file")
-	}
-	err = godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
+	_ = godotenv.Load(".env." + env)
+	_ = godotenv.Load()
 	return env
 }
