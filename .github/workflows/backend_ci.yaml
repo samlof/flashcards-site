@@ -19,11 +19,20 @@ jobs:
       run:
         working-directory: flashcards-backend
     steps:
-     - name: Checkout code
-       uses: actions/checkout@v2
-     - name: Run linter
-       run: make lint
+     - uses: actions/checkout@v2
      - name: Run unit tests
        run: make test
      - name: Build Linux binary
        run: make 
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: flashcards-backend
+    steps:
+      - uses: actions/checkout@v2
+      - name: lint
+        uses: golangci/golangci-lint-action@v1.2.1
+        with:
+          version: latest
