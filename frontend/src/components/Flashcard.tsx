@@ -81,13 +81,12 @@ const Flashcard = ({}: Props) => {
     } else {
       setCardState({
         variables: { cardId: word.id, result: result },
-      }).then((res) => {
-        setWords((prev) => {
-          prev.splice(index, 1);
-          return prev;
-        });
       });
       await delayMs(animationSpeed);
+      setWords((prev) => {
+        prev.splice(index, 1);
+        return prev;
+      });
     }
 
     setVisible(true);
