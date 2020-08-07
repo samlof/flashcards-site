@@ -22,6 +22,10 @@ func init() {
 	cardlogDescCreateTime := cardlogMixinFields0[0].Descriptor()
 	// cardlog.DefaultCreateTime holds the default value on creation for the create_time field.
 	cardlog.DefaultCreateTime = cardlogDescCreateTime.Default.(func() time.Time)
+	// cardlogDescReviewed is the schema descriptor for reviewed field.
+	cardlogDescReviewed := cardlogFields[2].Descriptor()
+	// cardlog.DefaultReviewed holds the default value on creation for the reviewed field.
+	cardlog.DefaultReviewed = cardlogDescReviewed.Default.(bool)
 	userMixin := schema.User{}.Mixin()
 	userMixinFields0 := userMixin[0].Fields()
 	userFields := schema.User{}.Fields()

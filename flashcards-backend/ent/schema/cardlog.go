@@ -27,6 +27,8 @@ func (CardLog) Fields() []ent.Field {
 			Immutable(),
 		field.Time("scheduled_for").
 			Immutable(),
+		field.Bool("reviewed").
+			Default(false),
 	}
 }
 

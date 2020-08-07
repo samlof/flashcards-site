@@ -66,10 +66,10 @@ const Flashcard = ({}: Props) => {
   const index = 0;
   const word = words[index];
 
-  const handleClick = async (result: CardResult) => {
+  const handleClick = async (result?: CardResult) => {
     setAnimationName("card-in-out");
     setVisible(false);
-    if (result === CardResult.Bad) {
+    if (result == null) {
       await delayMs(animationSpeed);
       setWords((prev) => {
         const word = prev.splice(index, 1)[0];
@@ -82,7 +82,6 @@ const Flashcard = ({}: Props) => {
       setCardState({
         variables: { cardId: word.id, result: result },
       }).then((res) => {
-        console.log(res);
         setWords((prev) => {
           prev.splice(index, 1);
           return prev;
@@ -119,6 +118,9 @@ const Flashcard = ({}: Props) => {
           Average
         </DirButton>
         <DirButton type="button" onClick={(e) => handleClick(CardResult.Bad)}>
+          Bad
+        </DirButton>
+        <DirButton type="button" onClick={(e) => handleClick(undefined)}>
           Retry
         </DirButton>
       </ButtonDiv>

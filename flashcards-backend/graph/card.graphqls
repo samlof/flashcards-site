@@ -22,7 +22,6 @@ extend type Query {
 
 input CardStatus {
   cardId: ID!
-  logId: ID
   result: CardResult!
 }
 

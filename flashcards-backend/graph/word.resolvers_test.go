@@ -2,38 +2,9 @@ package graph
 
 import (
 	"context"
-	"flashcards-backend/ent"
-	"flashcards-backend/ent/enttest"
-	"flashcards-backend/ent/migrate"
 	"flashcards-backend/graph/model"
 	"testing"
-
-	_ "github.com/mattn/go-sqlite3"
 )
-
-// This file will be automatically regenerated based on the schema, any resolver implementations
-// will be copied through when generating and any unknown code will be moved to the end.
-
-func makeResolver(t *testing.T) *Resolver {
-	t.Helper()
-	opts := []enttest.Option{
-		enttest.WithOptions(ent.Log(t.Log)),
-		enttest.WithMigrateOptions(migrate.WithGlobalUniqueID(true)),
-	}
-
-	client := enttest.Open(t, "sqlite3", "file:ent?mode=memory&cache=shared&_fk=1", opts...)
-
-	t.Cleanup(func() {
-		err := client.Close()
-		if err != nil {
-			t.Errorf("error closing ent client: %v", err)
-		}
-	})
-
-	return &Resolver{
-		DB: client,
-	}
-}
 
 func TestAddNewWord(t *testing.T) {
 	resolver := makeResolver(t)

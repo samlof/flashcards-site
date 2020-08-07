@@ -30,6 +30,20 @@ func (clu *CardLogUpdate) Where(ps ...predicate.CardLog) *CardLogUpdate {
 	return clu
 }
 
+// SetReviewed sets the reviewed field.
+func (clu *CardLogUpdate) SetReviewed(b bool) *CardLogUpdate {
+	clu.mutation.SetReviewed(b)
+	return clu
+}
+
+// SetNillableReviewed sets the reviewed field if the given value is not nil.
+func (clu *CardLogUpdate) SetNillableReviewed(b *bool) *CardLogUpdate {
+	if b != nil {
+		clu.SetReviewed(*b)
+	}
+	return clu
+}
+
 // SetUserID sets the user edge to User by id.
 func (clu *CardLogUpdate) SetUserID(id int) *CardLogUpdate {
 	clu.mutation.SetUserID(id)
@@ -150,6 +164,13 @@ func (clu *CardLogUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
+	if value, ok := clu.mutation.Reviewed(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Value:  value,
+			Column: cardlog.FieldReviewed,
+		})
+	}
 	if clu.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -236,6 +257,20 @@ type CardLogUpdateOne struct {
 	config
 	hooks    []Hook
 	mutation *CardLogMutation
+}
+
+// SetReviewed sets the reviewed field.
+func (cluo *CardLogUpdateOne) SetReviewed(b bool) *CardLogUpdateOne {
+	cluo.mutation.SetReviewed(b)
+	return cluo
+}
+
+// SetNillableReviewed sets the reviewed field if the given value is not nil.
+func (cluo *CardLogUpdateOne) SetNillableReviewed(b *bool) *CardLogUpdateOne {
+	if b != nil {
+		cluo.SetReviewed(*b)
+	}
+	return cluo
 }
 
 // SetUserID sets the user edge to User by id.
@@ -356,6 +391,13 @@ func (cluo *CardLogUpdateOne) sqlSave(ctx context.Context) (cl *CardLog, err err
 		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing CardLog.ID for update")}
 	}
 	_spec.Node.ID.Value = id
+	if value, ok := cluo.mutation.Reviewed(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Value:  value,
+			Column: cardlog.FieldReviewed,
+		})
+	}
 	if cluo.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
