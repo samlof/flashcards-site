@@ -18,6 +18,8 @@ const (
 	FieldResult = "result"
 	// FieldScheduledFor holds the string denoting the scheduled_for field in the database.
 	FieldScheduledFor = "scheduled_for"
+	// FieldReviewed holds the string denoting the reviewed field in the database.
+	FieldReviewed = "reviewed"
 
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
@@ -48,6 +50,7 @@ var Columns = []string{
 	FieldCreateTime,
 	FieldResult,
 	FieldScheduledFor,
+	FieldReviewed,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the CardLog type.
@@ -59,6 +62,8 @@ var ForeignKeys = []string{
 var (
 	// DefaultCreateTime holds the default value on creation for the create_time field.
 	DefaultCreateTime func() time.Time
+	// DefaultReviewed holds the default value on creation for the reviewed field.
+	DefaultReviewed bool
 )
 
 // Result defines the type for the result enum field.

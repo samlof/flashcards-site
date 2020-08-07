@@ -1,0 +1,30 @@
+query FlashcardPage($newWordCount: Int!) {
+  scheduledWords(newWordCount: $newWordCount) {
+    newWords {
+      id
+      lang1
+      lang2
+      word1
+      word2
+    }
+    reviews {
+      id
+      word {
+        id
+        lang1
+        lang2
+        word1
+        word2
+      }
+    }
+  }
+}
+
+mutation SetCardStatus($cardId: ID!, $result: CardResult!) {
+  cardStatus(input: { cardId: $cardId, result: $result }) {
+    id
+    word {
+      id
+    }
+  }
+}

@@ -48,6 +48,20 @@ func (clc *CardLogCreate) SetScheduledFor(t time.Time) *CardLogCreate {
 	return clc
 }
 
+// SetReviewed sets the reviewed field.
+func (clc *CardLogCreate) SetReviewed(b bool) *CardLogCreate {
+	clc.mutation.SetReviewed(b)
+	return clc
+}
+
+// SetNillableReviewed sets the reviewed field if the given value is not nil.
+func (clc *CardLogCreate) SetNillableReviewed(b *bool) *CardLogCreate {
+	if b != nil {
+		clc.SetReviewed(*b)
+	}
+	return clc
+}
+
 // SetUserID sets the user edge to User by id.
 func (clc *CardLogCreate) SetUserID(id int) *CardLogCreate {
 	clc.mutation.SetUserID(id)
@@ -140,6 +154,10 @@ func (clc *CardLogCreate) preSave() error {
 	if _, ok := clc.mutation.ScheduledFor(); !ok {
 		return &ValidationError{Name: "scheduled_for", err: errors.New("ent: missing required field \"scheduled_for\"")}
 	}
+	if _, ok := clc.mutation.Reviewed(); !ok {
+		v := cardlog.DefaultReviewed
+		clc.mutation.SetReviewed(v)
+	}
 	if _, ok := clc.mutation.CardID(); !ok {
 		return &ValidationError{Name: "card", err: errors.New("ent: missing required edge \"card\"")}
 	}
@@ -193,6 +211,14 @@ func (clc *CardLogCreate) createSpec() (*CardLog, *sqlgraph.CreateSpec) {
 			Column: cardlog.FieldScheduledFor,
 		})
 		cl.ScheduledFor = value
+	}
+	if value, ok := clc.mutation.Reviewed(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Value:  value,
+			Column: cardlog.FieldReviewed,
+		})
+		cl.Reviewed = value
 	}
 	if nodes := clc.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

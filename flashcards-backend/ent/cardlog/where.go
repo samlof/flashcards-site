@@ -107,6 +107,13 @@ func ScheduledFor(v time.Time) predicate.CardLog {
 	})
 }
 
+// Reviewed applies equality check predicate on the "reviewed" field. It's identical to ReviewedEQ.
+func Reviewed(v bool) predicate.CardLog {
+	return predicate.CardLog(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldReviewed), v))
+	})
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.CardLog {
 	return predicate.CardLog(func(s *sql.Selector) {
@@ -304,6 +311,20 @@ func ScheduledForLT(v time.Time) predicate.CardLog {
 func ScheduledForLTE(v time.Time) predicate.CardLog {
 	return predicate.CardLog(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldScheduledFor), v))
+	})
+}
+
+// ReviewedEQ applies the EQ predicate on the "reviewed" field.
+func ReviewedEQ(v bool) predicate.CardLog {
+	return predicate.CardLog(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldReviewed), v))
+	})
+}
+
+// ReviewedNEQ applies the NEQ predicate on the "reviewed" field.
+func ReviewedNEQ(v bool) predicate.CardLog {
+	return predicate.CardLog(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldReviewed), v))
 	})
 }
 

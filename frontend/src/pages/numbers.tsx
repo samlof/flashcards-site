@@ -3,7 +3,7 @@ import React from "react";
 import styled from "styled-components";
 import App from "../components/App";
 import { numberToString } from "../helpers/numberToString";
-import { shuffle } from "../helpers/shuffle";
+import { shuffle } from "../helpers/randomUtils";
 import { QuestionLine, Question } from "../components/QuestionLine";
 import { CSSTransition } from "react-transition-group";
 import { Button } from "../components/Button";
