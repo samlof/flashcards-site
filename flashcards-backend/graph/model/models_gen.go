@@ -19,7 +19,6 @@ type CardLog struct {
 
 type CardStatus struct {
 	CardID string     `json:"cardId"`
-	LogID  *string    `json:"logId"`
 	Result CardResult `json:"result"`
 }
 

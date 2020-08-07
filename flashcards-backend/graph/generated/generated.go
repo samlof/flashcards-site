@@ -359,7 +359,6 @@ extend type Query {
 
 input CardStatus {
   cardId: ID!
-  logId: ID
   result: CardResult!
 }
 
@@ -2382,12 +2381,6 @@ func (ec *executionContext) unmarshalInputCardStatus(ctx context.Context, obj in
 			if err != nil {
 				return it, err
 			}
-		case "logId":
-			var err error
-			it.LogID, err = ec.unmarshalOID2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		case "result":
 			var err error
 			it.Result, err = ec.unmarshalNCardResult2flashcardsᚑbackendᚋgraphᚋmodelᚐCardResult(ctx, v)
@@ -3411,29 +3404,6 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 		return graphql.Null
 	}
 	return ec.marshalOBoolean2bool(ctx, sel, *v)
-}
-
-func (ec *executionContext) unmarshalOID2string(ctx context.Context, v interface{}) (string, error) {
-	return graphql.UnmarshalID(v)
-}
-
-func (ec *executionContext) marshalOID2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
-	return graphql.MarshalID(v)
-}
-
-func (ec *executionContext) unmarshalOID2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalOID2string(ctx, v)
-	return &res, err
-}
-
-func (ec *executionContext) marshalOID2ᚖstring(ctx context.Context, sel ast.SelectionSet, v *string) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec.marshalOID2string(ctx, sel, *v)
 }
 
 func (ec *executionContext) unmarshalOInt2int(ctx context.Context, v interface{}) (int, error) {

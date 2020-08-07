@@ -24,26 +24,6 @@ export type QueryScheduledWordsArgs = {
   newWordCount?: Maybe<Scalars['Int']>;
 };
 
-export type UpdateWord = {
-  id: Scalars['ID'];
-  lang1: Scalars['String'];
-  lang2: Scalars['String'];
-  word1: Scalars['String'];
-  word2: Scalars['String'];
-};
-
-export type CardStatus = {
-  cardId: Scalars['ID'];
-  result: CardResult;
-};
-
-export type NewWord = {
-  lang1: Scalars['String'];
-  lang2: Scalars['String'];
-  word1: Scalars['String'];
-  word2: Scalars['String'];
-};
-
 export type CardLog = {
   __typename?: 'CardLog';
   createTime: Scalars['Time'];
@@ -51,18 +31,6 @@ export type CardLog = {
   word: Word;
   scheduledFor: Scalars['Time'];
   lastResult: CardResult;
-};
-
-export enum CardResult {
-  Good = 'Good',
-  Average = 'Average',
-  Bad = 'Bad'
-}
-
-export type ScheduledWordsResponse = {
-  __typename?: 'ScheduledWordsResponse';
-  reviews: Array<CardLog>;
-  newWords: Array<Word>;
 };
 
 
@@ -75,6 +43,21 @@ export type Word = {
   word2: Scalars['String'];
   createTime: Scalars['Time'];
   updateTime: Scalars['Time'];
+};
+
+export type NewWord = {
+  lang1: Scalars['String'];
+  lang2: Scalars['String'];
+  word1: Scalars['String'];
+  word2: Scalars['String'];
+};
+
+export type UpdateWord = {
+  id: Scalars['ID'];
+  lang1: Scalars['String'];
+  lang2: Scalars['String'];
+  word1: Scalars['String'];
+  word2: Scalars['String'];
 };
 
 export type Mutation = {
@@ -103,6 +86,23 @@ export type MutationDeleteWordArgs = {
 
 export type MutationUpdateWordArgs = {
   input: UpdateWord;
+};
+
+export enum CardResult {
+  Good = 'Good',
+  Average = 'Average',
+  Bad = 'Bad'
+}
+
+export type ScheduledWordsResponse = {
+  __typename?: 'ScheduledWordsResponse';
+  reviews: Array<CardLog>;
+  newWords: Array<Word>;
+};
+
+export type CardStatus = {
+  cardId: Scalars['ID'];
+  result: CardResult;
 };
 
 export type AddWordMutationVariables = Exact<{
