@@ -11,17 +11,15 @@ on:
 
 jobs:
   lint:
-    name: Run golangci-lint
+    name: Run lint
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: flashcards-backend
     steps:
       - uses: actions/checkout@v2
-      - name: lint
-        uses: golangci/golangci-lint-action@v2.2.0
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v2
         with:
           version: latest
+          working-directory: flashcards-backend
 
   tests:
     name: Run tests
