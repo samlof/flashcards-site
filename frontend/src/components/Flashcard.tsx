@@ -7,8 +7,13 @@ import { delayMs } from "../helpers/delay";
 import { modulus } from "../helpers/modulus";
 import Loading from "./Loading";
 import GqlError from "./GqlError";
-import { shuffle } from "../helpers/shuffle";
-import { useFlashcardPageQuery, Word } from "../gql.generated";
+import { shuffle, randInt } from "../helpers/randomUtils";
+import {
+  useFlashcardPageQuery,
+  Word,
+  useSetCardStatusMutation,
+  CardResult,
+} from "../gql.generated";
 
 const ButtonDiv = styled.div`
   display: flex;
@@ -19,10 +24,12 @@ const ButtonDiv = styled.div`
 const DirButton = styled(Button)`
   &&& {
     font-size: 1.5rem;
+    margin: 0 0.3rem;
   }
 `;
 
 interface FlashWord {
+  id: string;
   word1: string;
   word2: string;
   lang1: string;
@@ -32,35 +39,61 @@ const animationSpeed = 175;
 interface Props {}
 
 const Flashcard = ({}: Props) => {
-  const [index, setIndex] = React.useState(0);
   const [cardVisible, setVisible] = React.useState(true);
   const [animationName, setAnimationName] = React.useState("card-in-out");
 
-  const { loading, error, data } = useFlashcardPageQuery();
+  const { loading, error, data } = useFlashcardPageQuery({
+    variables: { newWordCount: 10 },
+  });
+  const [
+    setCardState,
+    { loading: loadingCardState },
+  ] = useSetCardStatusMutation();
+
   const [words, setWords] = React.useState<FlashWord[]>([]);
   React.useEffect(() => {
     if (!data) return;
-    const copiedWords = [...data.getWords];
+    const copiedWords = [
+      ...data.scheduledWords.newWords,
+      ...data.scheduledWords.reviews.map((x) => x.word),
+    ];
     shuffle(copiedWords);
     setWords(copiedWords);
   }, [data]);
   if (loading) return <Loading />;
   if (error) return <GqlError msg="Error getting words" err={error} />;
-  if (!data || !data.getWords?.length || !words.length)
-    return <span>No words</span>;
+  if (words.length === 0) return <span>No words</span>;
+  const index = 0;
+  const word = words[index];
 
-  const nextCard = async (next: boolean) => {
-    if (next) setAnimationName("card-in-out");
-    else setAnimationName("card-out-in");
-
+  const handleClick = async (result: CardResult) => {
+    setAnimationName("card-in-out");
     setVisible(false);
-    await delayMs(animationSpeed);
-    if (next) setIndex((i) => modulus(i + 1, words.length));
-    else setIndex((i) => modulus(i - 1, words.length));
+    if (result === CardResult.Bad) {
+      await delayMs(animationSpeed);
+      setWords((prev) => {
+        const word = prev.splice(index, 1)[0];
+
+        const nextIndex = randInt(0, prev.length);
+        prev.splice(nextIndex, 0, word);
+        return prev;
+      });
+    } else {
+      setCardState({
+        variables: { cardId: word.id, result: result },
+      }).then((res) => {
+        console.log(res);
+        setWords((prev) => {
+          prev.splice(index, 1);
+          return prev;
+        });
+      });
+      await delayMs(animationSpeed);
+    }
+
     setVisible(true);
   };
 
-  const word = words[index];
   return (
     <>
       <CSSTransition
@@ -69,21 +102,24 @@ const Flashcard = ({}: Props) => {
         classNames={animationName}
       >
         <FlipCard
-          key={index}
           front={{ lang: word.lang1, text: word.word1 }}
           back={{ lang: word.lang2, text: word.word2 }}
         ></FlipCard>
       </CSSTransition>
       <div style={{ height: "2rem" }}></div>
+      <span style={{ minWidth: "5rem" }}>Left: {words.length}</span>
       <ButtonDiv>
-        <DirButton type="button" onClick={(e) => nextCard(false)}>
-          Back
+        <DirButton type="button" onClick={(e) => handleClick(CardResult.Good)}>
+          Good
         </DirButton>
-        <span style={{ minWidth: "5rem" }}>
-          {index + 1}/{words.length}
-        </span>
-        <DirButton type="button" onClick={(e) => nextCard(true)}>
-          Next
+        <DirButton
+          type="button"
+          onClick={(e) => handleClick(CardResult.Average)}
+        >
+          Average
+        </DirButton>
+        <DirButton type="button" onClick={(e) => handleClick(CardResult.Bad)}>
+          Retry
         </DirButton>
       </ButtonDiv>
 

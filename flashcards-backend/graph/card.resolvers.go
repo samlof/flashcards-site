@@ -17,17 +17,29 @@ import (
 )
 
 func (r *mutationResolver) CardStatus(ctx context.Context, input model.CardStatus) (*model.CardLog, error) {
-	idInt, err := strconv.Atoi(input.CardID)
+	cardId, err := strconv.Atoi(input.CardID)
 	if err != nil {
-		return nil, fmt.Errorf("parsing id %s to int: %v", input.CardID, err)
+		return nil, fmt.Errorf("parsing cardid %s to int: %v", input.CardID, err)
 	}
-	// Get old log item to calculate when this should be scheduled for
-	oldLog, err := r.DB.CardLog.Query().
-		Where(cardlog.ID(idInt)).
-		Order(ent.Desc(cardlog.FieldCreateTime)).
-		First(ctx)
+	card, err := r.DB.Word.Query().Where(word.ID(cardId)).Only(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("getting old log item: %v", err)
+		return nil, fmt.Errorf("getting card with id %d: %v", input.CardID, err)
+	}
+	// Get old log item related to this
+	var oldLog *ent.CardLog = nil
+	if input.LogID != nil {
+		logId, err := strconv.Atoi(*input.LogID)
+		if err != nil {
+			return nil, fmt.Errorf("parsing id %s to int: %v", input.CardID, err)
+		}
+		// Get old log item to calculate when this should be scheduled for
+		oldLog, err = r.DB.CardLog.Query().
+			Where(cardlog.ID(logId)).
+			Order(ent.Desc(cardlog.FieldCreateTime)).
+			First(ctx)
+		if err != nil && !ent.IsNotFound(err) {
+			return nil, fmt.Errorf("getting old log item: %v", err)
+		}
 	}
 	// Calculate when this will be scheduled next
 
@@ -43,10 +55,12 @@ func (r *mutationResolver) CardStatus(ctx context.Context, input model.CardStatu
 	log, err := r.DB.CardLog.Create().
 		SetResult(modelconv.ModelCardResult(input.Result)).
 		SetScheduledFor(scheduleFor).
+		SetCard(card).
 		Save(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("creating log item: %v", err)
 	}
+	log.Edges.Card = card
 	return modelconv.CardLog(log), nil
 }
 

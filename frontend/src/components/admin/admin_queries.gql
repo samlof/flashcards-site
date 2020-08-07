@@ -13,7 +13,9 @@ mutation DeleteWord($id: ID!) {
 }
 
 mutation EditWord($id: ID!, $word1: String!, $word2: String!) {
-  updateWord(input: { id: $id, word1: $word1, word2: $word2 }) {
+  updateWord(
+    input: { id: $id, word1: $word1, word2: $word2, lang1: "fi", lang2: "en" }
+  ) {
     id
   }
 }

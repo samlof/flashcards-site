@@ -4,17 +4,6 @@ import React from "react";
 import App from "../components/App";
 import Flashcard from "../components/Flashcard";
 
-gql`
-  query FlashcardPage {
-    getWords {
-      lang1
-      lang2
-      word1
-      word2
-    }
-  }
-`;
-
 interface Props {}
 const IndexPage = ({}: Props) => {
   return (
