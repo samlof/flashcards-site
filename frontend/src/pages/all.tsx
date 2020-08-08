@@ -1,7 +1,7 @@
 import Head from "next/head";
 import React from "react";
 import App from "../components/App";
-import Flashcard from "../components/Flashcard";
+import AllFlashcards from "../components/AllFlashcards";
 
 interface Props {}
 const IndexPage = ({}: Props) => {
@@ -11,7 +11,7 @@ const IndexPage = ({}: Props) => {
         <title>Flashcards | kieli.club</title>
       </Head>
       <h1>Flashcards</h1>
-      <Flashcard />
+      <AllFlashcards />
     </App>
   );
 };

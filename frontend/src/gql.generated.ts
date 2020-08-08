@@ -13,38 +13,6 @@ export type Scalars = {
   Time: String;
 };
 
-export type Query = {
-  __typename?: 'Query';
-  scheduledWords: ScheduledWordsResponse;
-  getWords: Array<Word>;
-};
-
-
-export type QueryScheduledWordsArgs = {
-  newWordCount?: Maybe<Scalars['Int']>;
-};
-
-export type CardLog = {
-  __typename?: 'CardLog';
-  createTime: Scalars['Time'];
-  id: Scalars['ID'];
-  word: Word;
-  scheduledFor: Scalars['Time'];
-  lastResult: CardResult;
-};
-
-
-export type Word = {
-  __typename?: 'Word';
-  id: Scalars['ID'];
-  lang1: Scalars['String'];
-  lang2: Scalars['String'];
-  word1: Scalars['String'];
-  word2: Scalars['String'];
-  createTime: Scalars['Time'];
-  updateTime: Scalars['Time'];
-};
-
 export type NewWord = {
   lang1: Scalars['String'];
   lang2: Scalars['String'];
@@ -58,6 +26,23 @@ export type UpdateWord = {
   lang2: Scalars['String'];
   word1: Scalars['String'];
   word2: Scalars['String'];
+};
+
+export enum CardResult {
+  Good = 'Good',
+  Average = 'Average',
+  Bad = 'Bad'
+}
+
+export type ScheduledWordsResponse = {
+  __typename?: 'ScheduledWordsResponse';
+  reviews: Array<CardLog>;
+  newWords: Array<Word>;
+};
+
+export type CardStatus = {
+  cardId: Scalars['ID'];
+  result: CardResult;
 };
 
 export type Mutation = {
@@ -88,22 +73,48 @@ export type MutationUpdateWordArgs = {
   input: UpdateWord;
 };
 
-export enum CardResult {
-  Good = 'Good',
-  Average = 'Average',
-  Bad = 'Bad'
-}
-
-export type ScheduledWordsResponse = {
-  __typename?: 'ScheduledWordsResponse';
-  reviews: Array<CardLog>;
-  newWords: Array<Word>;
+export type CardLog = {
+  __typename?: 'CardLog';
+  createTime: Scalars['Time'];
+  id: Scalars['ID'];
+  word: Word;
+  scheduledFor: Scalars['Time'];
+  lastResult: CardResult;
 };
 
-export type CardStatus = {
-  cardId: Scalars['ID'];
-  result: CardResult;
+
+export type Word = {
+  __typename?: 'Word';
+  id: Scalars['ID'];
+  lang1: Scalars['String'];
+  lang2: Scalars['String'];
+  word1: Scalars['String'];
+  word2: Scalars['String'];
+  createTime: Scalars['Time'];
+  updateTime: Scalars['Time'];
 };
+
+export type Query = {
+  __typename?: 'Query';
+  scheduledWords: ScheduledWordsResponse;
+  getWords: Array<Word>;
+};
+
+
+export type QueryScheduledWordsArgs = {
+  newWordCount?: Maybe<Scalars['Int']>;
+};
+
+export type AllFlashcardsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type AllFlashcardsQuery = (
+  { __typename?: 'Query' }
+  & { getWords: Array<(
+    { __typename?: 'Word' }
+    & Pick<Word, 'lang1' | 'lang2' | 'word1' | 'word2'>
+  )> }
+);
 
 export type AddWordMutationVariables = Exact<{
   word1: Scalars['String'];
@@ -197,6 +208,41 @@ export type AllWordsQuery = (
 );
 
 
+export const AllFlashcardsDocument = gql`
+    query AllFlashcards {
+  getWords {
+    lang1
+    lang2
+    word1
+    word2
+  }
+}
+    `;
+
+/**
+ * __useAllFlashcardsQuery__
+ *
+ * To run a query within a React component, call `useAllFlashcardsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useAllFlashcardsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useAllFlashcardsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useAllFlashcardsQuery(baseOptions?: ApolloReactHooks.QueryHookOptions<AllFlashcardsQuery, AllFlashcardsQueryVariables>) {
+        return ApolloReactHooks.useQuery<AllFlashcardsQuery, AllFlashcardsQueryVariables>(AllFlashcardsDocument, baseOptions);
+      }
+export function useAllFlashcardsLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<AllFlashcardsQuery, AllFlashcardsQueryVariables>) {
+          return ApolloReactHooks.useLazyQuery<AllFlashcardsQuery, AllFlashcardsQueryVariables>(AllFlashcardsDocument, baseOptions);
+        }
+export type AllFlashcardsQueryHookResult = ReturnType<typeof useAllFlashcardsQuery>;
+export type AllFlashcardsLazyQueryHookResult = ReturnType<typeof useAllFlashcardsLazyQuery>;
+export type AllFlashcardsQueryResult = ApolloReactCommon.QueryResult<AllFlashcardsQuery, AllFlashcardsQueryVariables>;
 export const AddWordDocument = gql`
     mutation AddWord($word1: String!, $word2: String!) {
   createWord(input: {lang1: "fi", lang2: "en", word1: $word1, word2: $word2}) {
