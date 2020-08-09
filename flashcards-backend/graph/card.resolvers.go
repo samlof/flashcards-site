@@ -90,7 +90,7 @@ func (r *queryResolver) ScheduledWords(ctx context.Context, newWordCount *int) (
 	if err != nil {
 		return nil, fmt.Errorf("getting logs: %v", err)
 	}
-	//reviews := modelconv.CardLogS(cards)
+
 	cards := make([]*model.Word, len(scheduledCards))
 	for i := range scheduledCards {
 		cards[i] = modelconv.Word(scheduledCards[i].Edges.Card)
@@ -112,13 +112,18 @@ func (r *queryResolver) ScheduledWords(ctx context.Context, newWordCount *int) (
 		return nil, fmt.Errorf("getting already done ids: %v", err)
 	}
 	if len(alreadyDoneIds) > 0 {
-		allIds, err := r.DB.CardLog.Query().Where(cardlog.IDIn(alreadyDoneIds...)).Select(cardlog.ForeignKeys[0]).Ints(ctx)
+		doneCardIds, err := r.DB.CardLog.Query().Where(cardlog.IDIn(alreadyDoneIds...)).Select(cardlog.ForeignKeys[0]).Ints(ctx)
 		if err != nil {
-			return nil, fmt.Errorf("getting already done allIds: %v", err)
+			return nil, fmt.Errorf("getting already done doneCardIds: %v", err)
 		}
 		idCounts := make(map[int]int, len(alreadyDoneIds))
-		for _, id := range allIds {
+		for _, id := range doneCardIds {
 			idCounts[id]++
+		}
+		for _, count := range idCounts {
+			if count == 1 {
+				*newWordCount--
+			}
 		}
 		*newWordCount -= len(idCounts)
 	}

@@ -36,6 +36,20 @@ func (csc *CardScheduleCreate) SetNillableCreateTime(t *time.Time) *CardSchedule
 	return csc
 }
 
+// SetUpdateTime sets the update_time field.
+func (csc *CardScheduleCreate) SetUpdateTime(t time.Time) *CardScheduleCreate {
+	csc.mutation.SetUpdateTime(t)
+	return csc
+}
+
+// SetNillableUpdateTime sets the update_time field if the given value is not nil.
+func (csc *CardScheduleCreate) SetNillableUpdateTime(t *time.Time) *CardScheduleCreate {
+	if t != nil {
+		csc.SetUpdateTime(*t)
+	}
+	return csc
+}
+
 // SetScheduledFor sets the scheduled_for field.
 func (csc *CardScheduleCreate) SetScheduledFor(t time.Time) *CardScheduleCreate {
 	csc.mutation.SetScheduledFor(t)
@@ -137,6 +151,10 @@ func (csc *CardScheduleCreate) preSave() error {
 		v := cardschedule.DefaultCreateTime()
 		csc.mutation.SetCreateTime(v)
 	}
+	if _, ok := csc.mutation.UpdateTime(); !ok {
+		v := cardschedule.DefaultUpdateTime()
+		csc.mutation.SetUpdateTime(v)
+	}
 	if _, ok := csc.mutation.ScheduledFor(); !ok {
 		return &ValidationError{Name: "scheduled_for", err: errors.New("ent: missing required field \"scheduled_for\"")}
 	}
@@ -181,6 +199,14 @@ func (csc *CardScheduleCreate) createSpec() (*CardSchedule, *sqlgraph.CreateSpec
 			Column: cardschedule.FieldCreateTime,
 		})
 		cs.CreateTime = value
+	}
+	if value, ok := csc.mutation.UpdateTime(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: cardschedule.FieldUpdateTime,
+		})
+		cs.UpdateTime = value
 	}
 	if value, ok := csc.mutation.ScheduledFor(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

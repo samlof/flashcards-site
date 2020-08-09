@@ -42,6 +42,7 @@ var (
 	CardSchedulesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
 		{Name: "scheduled_for", Type: field.TypeTime},
 		{Name: "reviewed", Type: field.TypeBool},
 		{Name: "card_schedule_card", Type: field.TypeInt, Nullable: true},
@@ -55,14 +56,14 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:  "card_schedules_words_card",
-				Columns: []*schema.Column{CardSchedulesColumns[4]},
+				Columns: []*schema.Column{CardSchedulesColumns[5]},
 
 				RefColumns: []*schema.Column{WordsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "card_schedules_users_CardSchedules",
-				Columns: []*schema.Column{CardSchedulesColumns[5]},
+				Columns: []*schema.Column{CardSchedulesColumns[6]},
 
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,

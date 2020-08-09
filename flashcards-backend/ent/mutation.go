@@ -514,6 +514,7 @@ type CardScheduleMutation struct {
 	typ           string
 	id            *int
 	create_time   *time.Time
+	update_time   *time.Time
 	scheduled_for *time.Time
 	reviewed      *bool
 	clearedFields map[string]struct{}
@@ -639,6 +640,43 @@ func (m *CardScheduleMutation) OldCreateTime(ctx context.Context) (v time.Time, 
 // ResetCreateTime reset all changes of the "create_time" field.
 func (m *CardScheduleMutation) ResetCreateTime() {
 	m.create_time = nil
+}
+
+// SetUpdateTime sets the update_time field.
+func (m *CardScheduleMutation) SetUpdateTime(t time.Time) {
+	m.update_time = &t
+}
+
+// UpdateTime returns the update_time value in the mutation.
+func (m *CardScheduleMutation) UpdateTime() (r time.Time, exists bool) {
+	v := m.update_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdateTime returns the old update_time value of the CardSchedule.
+// If the CardSchedule object wasn't provided to the builder, the object is fetched
+// from the database.
+// An error is returned if the mutation operation is not UpdateOne, or database query fails.
+func (m *CardScheduleMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldUpdateTime is allowed only on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldUpdateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
+	}
+	return oldValue.UpdateTime, nil
+}
+
+// ResetUpdateTime reset all changes of the "update_time" field.
+func (m *CardScheduleMutation) ResetUpdateTime() {
+	m.update_time = nil
 }
 
 // SetScheduledFor sets the scheduled_for field.
@@ -807,9 +845,12 @@ func (m *CardScheduleMutation) Type() string {
 // this mutation. Note that, in order to get all numeric
 // fields that were in/decremented, call AddedFields().
 func (m *CardScheduleMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 4)
 	if m.create_time != nil {
 		fields = append(fields, cardschedule.FieldCreateTime)
+	}
+	if m.update_time != nil {
+		fields = append(fields, cardschedule.FieldUpdateTime)
 	}
 	if m.scheduled_for != nil {
 		fields = append(fields, cardschedule.FieldScheduledFor)
@@ -827,6 +868,8 @@ func (m *CardScheduleMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case cardschedule.FieldCreateTime:
 		return m.CreateTime()
+	case cardschedule.FieldUpdateTime:
+		return m.UpdateTime()
 	case cardschedule.FieldScheduledFor:
 		return m.ScheduledFor()
 	case cardschedule.FieldReviewed:
@@ -842,6 +885,8 @@ func (m *CardScheduleMutation) OldField(ctx context.Context, name string) (ent.V
 	switch name {
 	case cardschedule.FieldCreateTime:
 		return m.OldCreateTime(ctx)
+	case cardschedule.FieldUpdateTime:
+		return m.OldUpdateTime(ctx)
 	case cardschedule.FieldScheduledFor:
 		return m.OldScheduledFor(ctx)
 	case cardschedule.FieldReviewed:
@@ -861,6 +906,13 @@ func (m *CardScheduleMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCreateTime(v)
+		return nil
+	case cardschedule.FieldUpdateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdateTime(v)
 		return nil
 	case cardschedule.FieldScheduledFor:
 		v, ok := value.(time.Time)
@@ -928,6 +980,9 @@ func (m *CardScheduleMutation) ResetField(name string) error {
 	switch name {
 	case cardschedule.FieldCreateTime:
 		m.ResetCreateTime()
+		return nil
+	case cardschedule.FieldUpdateTime:
+		m.ResetUpdateTime()
 		return nil
 	case cardschedule.FieldScheduledFor:
 		m.ResetScheduledFor()

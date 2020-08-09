@@ -15,7 +15,7 @@ type CardSchedule struct {
 // Mixin of the CardSchedule.
 func (CardSchedule) Mixin() []ent.Mixin {
 	return []ent.Mixin{
-		mixin.CreateTime{},
+		mixin.Time{},
 	}
 }
 

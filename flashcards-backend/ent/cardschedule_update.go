@@ -93,6 +93,10 @@ func (csu *CardScheduleUpdate) ClearCard() *CardScheduleUpdate {
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (csu *CardScheduleUpdate) Save(ctx context.Context) (int, error) {
+	if _, ok := csu.mutation.UpdateTime(); !ok {
+		v := cardschedule.UpdateDefaultUpdateTime()
+		csu.mutation.SetUpdateTime(v)
+	}
 
 	if _, ok := csu.mutation.CardID(); csu.mutation.CardCleared() && !ok {
 		return 0, errors.New("ent: clearing a unique edge \"card\"")
@@ -163,6 +167,13 @@ func (csu *CardScheduleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := csu.mutation.UpdateTime(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: cardschedule.FieldUpdateTime,
+		})
 	}
 	if value, ok := csu.mutation.Reviewed(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
@@ -322,6 +333,10 @@ func (csuo *CardScheduleUpdateOne) ClearCard() *CardScheduleUpdateOne {
 
 // Save executes the query and returns the updated entity.
 func (csuo *CardScheduleUpdateOne) Save(ctx context.Context) (*CardSchedule, error) {
+	if _, ok := csuo.mutation.UpdateTime(); !ok {
+		v := cardschedule.UpdateDefaultUpdateTime()
+		csuo.mutation.SetUpdateTime(v)
+	}
 
 	if _, ok := csuo.mutation.CardID(); csuo.mutation.CardCleared() && !ok {
 		return nil, errors.New("ent: clearing a unique edge \"card\"")
@@ -391,6 +406,13 @@ func (csuo *CardScheduleUpdateOne) sqlSave(ctx context.Context) (cs *CardSchedul
 		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing CardSchedule.ID for update")}
 	}
 	_spec.Node.ID.Value = id
+	if value, ok := csuo.mutation.UpdateTime(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: cardschedule.FieldUpdateTime,
+		})
+	}
 	if value, ok := csuo.mutation.Reviewed(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,

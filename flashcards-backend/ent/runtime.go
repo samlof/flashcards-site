@@ -31,6 +31,12 @@ func init() {
 	cardscheduleDescCreateTime := cardscheduleMixinFields0[0].Descriptor()
 	// cardschedule.DefaultCreateTime holds the default value on creation for the create_time field.
 	cardschedule.DefaultCreateTime = cardscheduleDescCreateTime.Default.(func() time.Time)
+	// cardscheduleDescUpdateTime is the schema descriptor for update_time field.
+	cardscheduleDescUpdateTime := cardscheduleMixinFields0[1].Descriptor()
+	// cardschedule.DefaultUpdateTime holds the default value on creation for the update_time field.
+	cardschedule.DefaultUpdateTime = cardscheduleDescUpdateTime.Default.(func() time.Time)
+	// cardschedule.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	cardschedule.UpdateDefaultUpdateTime = cardscheduleDescUpdateTime.UpdateDefault.(func() time.Time)
 	// cardscheduleDescReviewed is the schema descriptor for reviewed field.
 	cardscheduleDescReviewed := cardscheduleFields[1].Descriptor()
 	// cardschedule.DefaultReviewed holds the default value on creation for the reviewed field.

@@ -13,6 +13,8 @@ const (
 	FieldID = "id"
 	// FieldCreateTime holds the string denoting the create_time field in the database.
 	FieldCreateTime = "create_time"
+	// FieldUpdateTime holds the string denoting the update_time field in the database.
+	FieldUpdateTime = "update_time"
 	// FieldScheduledFor holds the string denoting the scheduled_for field in the database.
 	FieldScheduledFor = "scheduled_for"
 	// FieldReviewed holds the string denoting the reviewed field in the database.
@@ -45,6 +47,7 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,
+	FieldUpdateTime,
 	FieldScheduledFor,
 	FieldReviewed,
 }
@@ -58,6 +61,10 @@ var ForeignKeys = []string{
 var (
 	// DefaultCreateTime holds the default value on creation for the create_time field.
 	DefaultCreateTime func() time.Time
+	// DefaultUpdateTime holds the default value on creation for the update_time field.
+	DefaultUpdateTime func() time.Time
+	// UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	UpdateDefaultUpdateTime func() time.Time
 	// DefaultReviewed holds the default value on creation for the reviewed field.
 	DefaultReviewed bool
 )

@@ -20,6 +20,8 @@ type CardSchedule struct {
 	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
+	// UpdateTime holds the value of the "update_time" field.
+	UpdateTime time.Time `json:"update_time,omitempty"`
 	// ScheduledFor holds the value of the "scheduled_for" field.
 	ScheduledFor time.Time `json:"scheduled_for,omitempty"`
 	// Reviewed holds the value of the "reviewed" field.
@@ -75,6 +77,7 @@ func (*CardSchedule) scanValues() []interface{} {
 	return []interface{}{
 		&sql.NullInt64{}, // id
 		&sql.NullTime{},  // create_time
+		&sql.NullTime{},  // update_time
 		&sql.NullTime{},  // scheduled_for
 		&sql.NullBool{},  // reviewed
 	}
@@ -106,16 +109,21 @@ func (cs *CardSchedule) assignValues(values ...interface{}) error {
 		cs.CreateTime = value.Time
 	}
 	if value, ok := values[1].(*sql.NullTime); !ok {
-		return fmt.Errorf("unexpected type %T for field scheduled_for", values[1])
+		return fmt.Errorf("unexpected type %T for field update_time", values[1])
+	} else if value.Valid {
+		cs.UpdateTime = value.Time
+	}
+	if value, ok := values[2].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field scheduled_for", values[2])
 	} else if value.Valid {
 		cs.ScheduledFor = value.Time
 	}
-	if value, ok := values[2].(*sql.NullBool); !ok {
-		return fmt.Errorf("unexpected type %T for field reviewed", values[2])
+	if value, ok := values[3].(*sql.NullBool); !ok {
+		return fmt.Errorf("unexpected type %T for field reviewed", values[3])
 	} else if value.Valid {
 		cs.Reviewed = value.Bool
 	}
-	values = values[3:]
+	values = values[4:]
 	if len(values) == len(cardschedule.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field card_schedule_card", value)
@@ -168,6 +176,8 @@ func (cs *CardSchedule) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v", cs.ID))
 	builder.WriteString(", create_time=")
 	builder.WriteString(cs.CreateTime.Format(time.ANSIC))
+	builder.WriteString(", update_time=")
+	builder.WriteString(cs.UpdateTime.Format(time.ANSIC))
 	builder.WriteString(", scheduled_for=")
 	builder.WriteString(cs.ScheduledFor.Format(time.ANSIC))
 	builder.WriteString(", reviewed=")
