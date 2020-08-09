@@ -104,9 +104,12 @@ func (r *queryResolver) ScheduledWords(ctx context.Context, newWordCount *int) (
 		return ret, nil
 	}
 
-	// Get how many new cards have been done during last 24h
+	// Get which cards have been done in last 24h
 	alreadyDoneCardIds, err := r.DB.CardLog.Query().
-		Where(cardlog.CreateTimeGT(time.Now().Add(time.Hour * 24 * -1))).
+		Where(
+			cardlog.And(
+				cardlog.CreateTimeGT(time.Now().Add(time.Hour*24*-1)),
+				cardlog.ResultNEQ(cardlog.ResultRetry))).
 		Select(cardlog.ForeignKeys[0]).
 		Ints(ctx)
 
@@ -114,8 +117,12 @@ func (r *queryResolver) ScheduledWords(ctx context.Context, newWordCount *int) (
 		return nil, fmt.Errorf("getting already done ids: %v", err)
 	}
 	if len(alreadyDoneCardIds) > 0 {
+		// Get how many times each card has been done in the past
 		doneCardIds, err := r.DB.CardLog.Query().
-			Where(cardlog.HasCardWith(word.IDIn(alreadyDoneCardIds...))).
+			Where(
+				cardlog.And(
+					cardlog.HasCardWith(word.IDIn(alreadyDoneCardIds...)),
+					cardlog.ResultNEQ(cardlog.ResultRetry))).
 			Select(cardlog.ForeignKeys[0]).Ints(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("getting already done doneCardIds: %v", err)
@@ -125,6 +132,7 @@ func (r *queryResolver) ScheduledWords(ctx context.Context, newWordCount *int) (
 			idCounts[id]++
 		}
 		for _, count := range idCounts {
+			// If card has been done only once, it was a new card
 			if count == 1 {
 				*newWordCount--
 			}
