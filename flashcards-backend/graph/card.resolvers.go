@@ -58,7 +58,12 @@ func (r *mutationResolver) CardStatus(ctx context.Context, input model.CardStatu
 		if oldLog != nil {
 			hoursSince = time.Since(oldLog.CreateTime).Hours()
 		}
-		scheduleFor := time.Now().Add(time.Duration(float64(time.Hour) * hoursSince * mod))
+		hoursSince = hoursSince * mod
+		// Should never be below 1 day
+		if hoursSince < 24 {
+			hoursSince = 24
+		}
+		scheduleFor := time.Now().Add(time.Duration(float64(time.Hour) * hoursSince))
 
 		// Insert to db
 		_, err = r.DB.CardSchedule.Create().
