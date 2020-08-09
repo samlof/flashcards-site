@@ -105,18 +105,22 @@ func (r *queryResolver) ScheduledWords(ctx context.Context, newWordCount *int) (
 	}
 
 	// Get how many new cards have been done during last 24h
-	alreadyDoneIds, err := r.DB.CardLog.Query().
+	alreadyDoneCardIds, err := r.DB.CardLog.Query().
 		Where(cardlog.CreateTimeGT(time.Now().Add(time.Hour * 24 * -1))).
-		IDs(ctx)
+		Select(cardlog.ForeignKeys[0]).
+		Ints(ctx)
+
 	if err != nil {
 		return nil, fmt.Errorf("getting already done ids: %v", err)
 	}
-	if len(alreadyDoneIds) > 0 {
-		doneCardIds, err := r.DB.CardLog.Query().Where(cardlog.IDIn(alreadyDoneIds...)).Select(cardlog.ForeignKeys[0]).Ints(ctx)
+	if len(alreadyDoneCardIds) > 0 {
+		doneCardIds, err := r.DB.CardLog.Query().
+			Where(cardlog.HasCardWith(word.IDIn(alreadyDoneCardIds...))).
+			Select(cardlog.ForeignKeys[0]).Ints(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("getting already done doneCardIds: %v", err)
 		}
-		idCounts := make(map[int]int, len(alreadyDoneIds))
+		idCounts := make(map[int]int, len(alreadyDoneCardIds))
 		for _, id := range doneCardIds {
 			idCounts[id]++
 		}
@@ -125,7 +129,6 @@ func (r *queryResolver) ScheduledWords(ctx context.Context, newWordCount *int) (
 				*newWordCount--
 			}
 		}
-		*newWordCount -= len(idCounts)
 	}
 	log.Printf("Getting %v new words", *newWordCount)
 	if *newWordCount > 0 {
