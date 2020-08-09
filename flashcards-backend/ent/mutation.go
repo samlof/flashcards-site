@@ -5,6 +5,7 @@ package ent
 import (
 	"context"
 	"flashcards-backend/ent/cardlog"
+	"flashcards-backend/ent/cardschedule"
 	"flashcards-backend/ent/user"
 	"flashcards-backend/ent/word"
 	"fmt"
@@ -23,9 +24,10 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeCardLog = "CardLog"
-	TypeUser    = "User"
-	TypeWord    = "Word"
+	TypeCardLog      = "CardLog"
+	TypeCardSchedule = "CardSchedule"
+	TypeUser         = "User"
+	TypeWord         = "Word"
 )
 
 // CardLogMutation represents an operation that mutate the CardLogs
@@ -37,8 +39,6 @@ type CardLogMutation struct {
 	id            *int
 	create_time   *time.Time
 	result        *cardlog.Result
-	scheduled_for *time.Time
-	reviewed      *bool
 	clearedFields map[string]struct{}
 	user          *int
 	cleareduser   bool
@@ -201,80 +201,6 @@ func (m *CardLogMutation) ResetResult() {
 	m.result = nil
 }
 
-// SetScheduledFor sets the scheduled_for field.
-func (m *CardLogMutation) SetScheduledFor(t time.Time) {
-	m.scheduled_for = &t
-}
-
-// ScheduledFor returns the scheduled_for value in the mutation.
-func (m *CardLogMutation) ScheduledFor() (r time.Time, exists bool) {
-	v := m.scheduled_for
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldScheduledFor returns the old scheduled_for value of the CardLog.
-// If the CardLog object wasn't provided to the builder, the object is fetched
-// from the database.
-// An error is returned if the mutation operation is not UpdateOne, or database query fails.
-func (m *CardLogMutation) OldScheduledFor(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldScheduledFor is allowed only on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldScheduledFor requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldScheduledFor: %w", err)
-	}
-	return oldValue.ScheduledFor, nil
-}
-
-// ResetScheduledFor reset all changes of the "scheduled_for" field.
-func (m *CardLogMutation) ResetScheduledFor() {
-	m.scheduled_for = nil
-}
-
-// SetReviewed sets the reviewed field.
-func (m *CardLogMutation) SetReviewed(b bool) {
-	m.reviewed = &b
-}
-
-// Reviewed returns the reviewed value in the mutation.
-func (m *CardLogMutation) Reviewed() (r bool, exists bool) {
-	v := m.reviewed
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldReviewed returns the old reviewed value of the CardLog.
-// If the CardLog object wasn't provided to the builder, the object is fetched
-// from the database.
-// An error is returned if the mutation operation is not UpdateOne, or database query fails.
-func (m *CardLogMutation) OldReviewed(ctx context.Context) (v bool, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldReviewed is allowed only on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldReviewed requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldReviewed: %w", err)
-	}
-	return oldValue.Reviewed, nil
-}
-
-// ResetReviewed reset all changes of the "reviewed" field.
-func (m *CardLogMutation) ResetReviewed() {
-	m.reviewed = nil
-}
-
 // SetUserID sets the user edge to User by id.
 func (m *CardLogMutation) SetUserID(id int) {
 	m.user = &id
@@ -367,18 +293,12 @@ func (m *CardLogMutation) Type() string {
 // this mutation. Note that, in order to get all numeric
 // fields that were in/decremented, call AddedFields().
 func (m *CardLogMutation) Fields() []string {
-	fields := make([]string, 0, 4)
+	fields := make([]string, 0, 2)
 	if m.create_time != nil {
 		fields = append(fields, cardlog.FieldCreateTime)
 	}
 	if m.result != nil {
 		fields = append(fields, cardlog.FieldResult)
-	}
-	if m.scheduled_for != nil {
-		fields = append(fields, cardlog.FieldScheduledFor)
-	}
-	if m.reviewed != nil {
-		fields = append(fields, cardlog.FieldReviewed)
 	}
 	return fields
 }
@@ -392,10 +312,6 @@ func (m *CardLogMutation) Field(name string) (ent.Value, bool) {
 		return m.CreateTime()
 	case cardlog.FieldResult:
 		return m.Result()
-	case cardlog.FieldScheduledFor:
-		return m.ScheduledFor()
-	case cardlog.FieldReviewed:
-		return m.Reviewed()
 	}
 	return nil, false
 }
@@ -409,10 +325,6 @@ func (m *CardLogMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldCreateTime(ctx)
 	case cardlog.FieldResult:
 		return m.OldResult(ctx)
-	case cardlog.FieldScheduledFor:
-		return m.OldScheduledFor(ctx)
-	case cardlog.FieldReviewed:
-		return m.OldReviewed(ctx)
 	}
 	return nil, fmt.Errorf("unknown CardLog field %s", name)
 }
@@ -435,20 +347,6 @@ func (m *CardLogMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetResult(v)
-		return nil
-	case cardlog.FieldScheduledFor:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetScheduledFor(v)
-		return nil
-	case cardlog.FieldReviewed:
-		v, ok := value.(bool)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetReviewed(v)
 		return nil
 	}
 	return fmt.Errorf("unknown CardLog field %s", name)
@@ -505,12 +403,6 @@ func (m *CardLogMutation) ResetField(name string) error {
 		return nil
 	case cardlog.FieldResult:
 		m.ResetResult()
-		return nil
-	case cardlog.FieldScheduledFor:
-		m.ResetScheduledFor()
-		return nil
-	case cardlog.FieldReviewed:
-		m.ResetReviewed()
 		return nil
 	}
 	return fmt.Errorf("unknown CardLog field %s", name)
@@ -614,21 +506,554 @@ func (m *CardLogMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown CardLog edge %s", name)
 }
 
+// CardScheduleMutation represents an operation that mutate the CardSchedules
+// nodes in the graph.
+type CardScheduleMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	create_time   *time.Time
+	scheduled_for *time.Time
+	reviewed      *bool
+	clearedFields map[string]struct{}
+	user          *int
+	cleareduser   bool
+	card          *int
+	clearedcard   bool
+	done          bool
+	oldValue      func(context.Context) (*CardSchedule, error)
+}
+
+var _ ent.Mutation = (*CardScheduleMutation)(nil)
+
+// cardscheduleOption allows to manage the mutation configuration using functional options.
+type cardscheduleOption func(*CardScheduleMutation)
+
+// newCardScheduleMutation creates new mutation for $n.Name.
+func newCardScheduleMutation(c config, op Op, opts ...cardscheduleOption) *CardScheduleMutation {
+	m := &CardScheduleMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeCardSchedule,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withCardScheduleID sets the id field of the mutation.
+func withCardScheduleID(id int) cardscheduleOption {
+	return func(m *CardScheduleMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *CardSchedule
+		)
+		m.oldValue = func(ctx context.Context) (*CardSchedule, error) {
+			once.Do(func() {
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().CardSchedule.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withCardSchedule sets the old CardSchedule of the mutation.
+func withCardSchedule(node *CardSchedule) cardscheduleOption {
+	return func(m *CardScheduleMutation) {
+		m.oldValue = func(context.Context) (*CardSchedule, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m CardScheduleMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m CardScheduleMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, fmt.Errorf("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the id value in the mutation. Note that, the id
+// is available only if it was provided to the builder.
+func (m *CardScheduleMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// SetCreateTime sets the create_time field.
+func (m *CardScheduleMutation) SetCreateTime(t time.Time) {
+	m.create_time = &t
+}
+
+// CreateTime returns the create_time value in the mutation.
+func (m *CardScheduleMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.create_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreateTime returns the old create_time value of the CardSchedule.
+// If the CardSchedule object wasn't provided to the builder, the object is fetched
+// from the database.
+// An error is returned if the mutation operation is not UpdateOne, or database query fails.
+func (m *CardScheduleMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldCreateTime is allowed only on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldCreateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
+	}
+	return oldValue.CreateTime, nil
+}
+
+// ResetCreateTime reset all changes of the "create_time" field.
+func (m *CardScheduleMutation) ResetCreateTime() {
+	m.create_time = nil
+}
+
+// SetScheduledFor sets the scheduled_for field.
+func (m *CardScheduleMutation) SetScheduledFor(t time.Time) {
+	m.scheduled_for = &t
+}
+
+// ScheduledFor returns the scheduled_for value in the mutation.
+func (m *CardScheduleMutation) ScheduledFor() (r time.Time, exists bool) {
+	v := m.scheduled_for
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldScheduledFor returns the old scheduled_for value of the CardSchedule.
+// If the CardSchedule object wasn't provided to the builder, the object is fetched
+// from the database.
+// An error is returned if the mutation operation is not UpdateOne, or database query fails.
+func (m *CardScheduleMutation) OldScheduledFor(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldScheduledFor is allowed only on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldScheduledFor requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldScheduledFor: %w", err)
+	}
+	return oldValue.ScheduledFor, nil
+}
+
+// ResetScheduledFor reset all changes of the "scheduled_for" field.
+func (m *CardScheduleMutation) ResetScheduledFor() {
+	m.scheduled_for = nil
+}
+
+// SetReviewed sets the reviewed field.
+func (m *CardScheduleMutation) SetReviewed(b bool) {
+	m.reviewed = &b
+}
+
+// Reviewed returns the reviewed value in the mutation.
+func (m *CardScheduleMutation) Reviewed() (r bool, exists bool) {
+	v := m.reviewed
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReviewed returns the old reviewed value of the CardSchedule.
+// If the CardSchedule object wasn't provided to the builder, the object is fetched
+// from the database.
+// An error is returned if the mutation operation is not UpdateOne, or database query fails.
+func (m *CardScheduleMutation) OldReviewed(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldReviewed is allowed only on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldReviewed requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReviewed: %w", err)
+	}
+	return oldValue.Reviewed, nil
+}
+
+// ResetReviewed reset all changes of the "reviewed" field.
+func (m *CardScheduleMutation) ResetReviewed() {
+	m.reviewed = nil
+}
+
+// SetUserID sets the user edge to User by id.
+func (m *CardScheduleMutation) SetUserID(id int) {
+	m.user = &id
+}
+
+// ClearUser clears the user edge to User.
+func (m *CardScheduleMutation) ClearUser() {
+	m.cleareduser = true
+}
+
+// UserCleared returns if the edge user was cleared.
+func (m *CardScheduleMutation) UserCleared() bool {
+	return m.cleareduser
+}
+
+// UserID returns the user id in the mutation.
+func (m *CardScheduleMutation) UserID() (id int, exists bool) {
+	if m.user != nil {
+		return *m.user, true
+	}
+	return
+}
+
+// UserIDs returns the user ids in the mutation.
+// Note that ids always returns len(ids) <= 1 for unique edges, and you should use
+// UserID instead. It exists only for internal usage by the builders.
+func (m *CardScheduleMutation) UserIDs() (ids []int) {
+	if id := m.user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUser reset all changes of the "user" edge.
+func (m *CardScheduleMutation) ResetUser() {
+	m.user = nil
+	m.cleareduser = false
+}
+
+// SetCardID sets the card edge to Word by id.
+func (m *CardScheduleMutation) SetCardID(id int) {
+	m.card = &id
+}
+
+// ClearCard clears the card edge to Word.
+func (m *CardScheduleMutation) ClearCard() {
+	m.clearedcard = true
+}
+
+// CardCleared returns if the edge card was cleared.
+func (m *CardScheduleMutation) CardCleared() bool {
+	return m.clearedcard
+}
+
+// CardID returns the card id in the mutation.
+func (m *CardScheduleMutation) CardID() (id int, exists bool) {
+	if m.card != nil {
+		return *m.card, true
+	}
+	return
+}
+
+// CardIDs returns the card ids in the mutation.
+// Note that ids always returns len(ids) <= 1 for unique edges, and you should use
+// CardID instead. It exists only for internal usage by the builders.
+func (m *CardScheduleMutation) CardIDs() (ids []int) {
+	if id := m.card; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCard reset all changes of the "card" edge.
+func (m *CardScheduleMutation) ResetCard() {
+	m.card = nil
+	m.clearedcard = false
+}
+
+// Op returns the operation name.
+func (m *CardScheduleMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (CardSchedule).
+func (m *CardScheduleMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during
+// this mutation. Note that, in order to get all numeric
+// fields that were in/decremented, call AddedFields().
+func (m *CardScheduleMutation) Fields() []string {
+	fields := make([]string, 0, 3)
+	if m.create_time != nil {
+		fields = append(fields, cardschedule.FieldCreateTime)
+	}
+	if m.scheduled_for != nil {
+		fields = append(fields, cardschedule.FieldScheduledFor)
+	}
+	if m.reviewed != nil {
+		fields = append(fields, cardschedule.FieldReviewed)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name.
+// The second boolean value indicates that this field was
+// not set, or was not define in the schema.
+func (m *CardScheduleMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case cardschedule.FieldCreateTime:
+		return m.CreateTime()
+	case cardschedule.FieldScheduledFor:
+		return m.ScheduledFor()
+	case cardschedule.FieldReviewed:
+		return m.Reviewed()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database.
+// An error is returned if the mutation operation is not UpdateOne,
+// or the query to the database was failed.
+func (m *CardScheduleMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case cardschedule.FieldCreateTime:
+		return m.OldCreateTime(ctx)
+	case cardschedule.FieldScheduledFor:
+		return m.OldScheduledFor(ctx)
+	case cardschedule.FieldReviewed:
+		return m.OldReviewed(ctx)
+	}
+	return nil, fmt.Errorf("unknown CardSchedule field %s", name)
+}
+
+// SetField sets the value for the given name. It returns an
+// error if the field is not defined in the schema, or if the
+// type mismatch the field type.
+func (m *CardScheduleMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case cardschedule.FieldCreateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreateTime(v)
+		return nil
+	case cardschedule.FieldScheduledFor:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetScheduledFor(v)
+		return nil
+	case cardschedule.FieldReviewed:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReviewed(v)
+		return nil
+	}
+	return fmt.Errorf("unknown CardSchedule field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented
+// or decremented during this mutation.
+func (m *CardScheduleMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was in/decremented
+// from a field with the given name. The second value indicates
+// that this field was not set, or was not define in the schema.
+func (m *CardScheduleMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value for the given name. It returns an
+// error if the field is not defined in the schema, or if the
+// type mismatch the field type.
+func (m *CardScheduleMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown CardSchedule numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared
+// during this mutation.
+func (m *CardScheduleMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicates if this field was
+// cleared in this mutation.
+func (m *CardScheduleMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value for the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *CardScheduleMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown CardSchedule nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation regarding the
+// given field name. It returns an error if the field is not
+// defined in the schema.
+func (m *CardScheduleMutation) ResetField(name string) error {
+	switch name {
+	case cardschedule.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
+	case cardschedule.FieldScheduledFor:
+		m.ResetScheduledFor()
+		return nil
+	case cardschedule.FieldReviewed:
+		m.ResetReviewed()
+		return nil
+	}
+	return fmt.Errorf("unknown CardSchedule field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this
+// mutation.
+func (m *CardScheduleMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.user != nil {
+		edges = append(edges, cardschedule.EdgeUser)
+	}
+	if m.card != nil {
+		edges = append(edges, cardschedule.EdgeCard)
+	}
+	return edges
+}
+
+// AddedIDs returns all ids (to other nodes) that were added for
+// the given edge name.
+func (m *CardScheduleMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case cardschedule.EdgeUser:
+		if id := m.user; id != nil {
+			return []ent.Value{*id}
+		}
+	case cardschedule.EdgeCard:
+		if id := m.card; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this
+// mutation.
+func (m *CardScheduleMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all ids (to other nodes) that were removed for
+// the given edge name.
+func (m *CardScheduleMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this
+// mutation.
+func (m *CardScheduleMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.cleareduser {
+		edges = append(edges, cardschedule.EdgeUser)
+	}
+	if m.clearedcard {
+		edges = append(edges, cardschedule.EdgeCard)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean indicates if this edge was
+// cleared in this mutation.
+func (m *CardScheduleMutation) EdgeCleared(name string) bool {
+	switch name {
+	case cardschedule.EdgeUser:
+		return m.cleareduser
+	case cardschedule.EdgeCard:
+		return m.clearedcard
+	}
+	return false
+}
+
+// ClearEdge clears the value for the given name. It returns an
+// error if the edge name is not defined in the schema.
+func (m *CardScheduleMutation) ClearEdge(name string) error {
+	switch name {
+	case cardschedule.EdgeUser:
+		m.ClearUser()
+		return nil
+	case cardschedule.EdgeCard:
+		m.ClearCard()
+		return nil
+	}
+	return fmt.Errorf("unknown CardSchedule unique edge %s", name)
+}
+
+// ResetEdge resets all changes in the mutation regarding the
+// given edge name. It returns an error if the edge is not
+// defined in the schema.
+func (m *CardScheduleMutation) ResetEdge(name string) error {
+	switch name {
+	case cardschedule.EdgeUser:
+		m.ResetUser()
+		return nil
+	case cardschedule.EdgeCard:
+		m.ResetCard()
+		return nil
+	}
+	return fmt.Errorf("unknown CardSchedule edge %s", name)
+}
+
 // UserMutation represents an operation that mutate the Users
 // nodes in the graph.
 type UserMutation struct {
 	config
-	op              Op
-	typ             string
-	id              *int
-	create_time     *time.Time
-	update_time     *time.Time
-	email           *string
-	clearedFields   map[string]struct{}
-	cardLogs        map[int]struct{}
-	removedcardLogs map[int]struct{}
-	done            bool
-	oldValue        func(context.Context) (*User, error)
+	op                    Op
+	typ                   string
+	id                    *int
+	create_time           *time.Time
+	update_time           *time.Time
+	email                 *string
+	clearedFields         map[string]struct{}
+	cardLogs              map[int]struct{}
+	removedcardLogs       map[int]struct{}
+	_CardSchedules        map[int]struct{}
+	removed_CardSchedules map[int]struct{}
+	done                  bool
+	oldValue              func(context.Context) (*User, error)
 }
 
 var _ ent.Mutation = (*UserMutation)(nil)
@@ -863,6 +1288,48 @@ func (m *UserMutation) ResetCardLogs() {
 	m.removedcardLogs = nil
 }
 
+// AddCardScheduleIDs adds the CardSchedules edge to CardSchedule by ids.
+func (m *UserMutation) AddCardScheduleIDs(ids ...int) {
+	if m._CardSchedules == nil {
+		m._CardSchedules = make(map[int]struct{})
+	}
+	for i := range ids {
+		m._CardSchedules[ids[i]] = struct{}{}
+	}
+}
+
+// RemoveCardScheduleIDs removes the CardSchedules edge to CardSchedule by ids.
+func (m *UserMutation) RemoveCardScheduleIDs(ids ...int) {
+	if m.removed_CardSchedules == nil {
+		m.removed_CardSchedules = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removed_CardSchedules[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCardSchedules returns the removed ids of CardSchedules.
+func (m *UserMutation) RemovedCardSchedulesIDs() (ids []int) {
+	for id := range m.removed_CardSchedules {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CardSchedulesIDs returns the CardSchedules ids in the mutation.
+func (m *UserMutation) CardSchedulesIDs() (ids []int) {
+	for id := range m._CardSchedules {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCardSchedules reset all changes of the "CardSchedules" edge.
+func (m *UserMutation) ResetCardSchedules() {
+	m._CardSchedules = nil
+	m.removed_CardSchedules = nil
+}
+
 // Op returns the operation name.
 func (m *UserMutation) Op() Op {
 	return m.op
@@ -1012,9 +1479,12 @@ func (m *UserMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this
 // mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.cardLogs != nil {
 		edges = append(edges, user.EdgeCardLogs)
+	}
+	if m._CardSchedules != nil {
+		edges = append(edges, user.EdgeCardSchedules)
 	}
 	return edges
 }
@@ -1029,6 +1499,12 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeCardSchedules:
+		ids := make([]ent.Value, 0, len(m._CardSchedules))
+		for id := range m._CardSchedules {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
@@ -1036,9 +1512,12 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this
 // mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.removedcardLogs != nil {
 		edges = append(edges, user.EdgeCardLogs)
+	}
+	if m.removed_CardSchedules != nil {
+		edges = append(edges, user.EdgeCardSchedules)
 	}
 	return edges
 }
@@ -1053,6 +1532,12 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeCardSchedules:
+		ids := make([]ent.Value, 0, len(m.removed_CardSchedules))
+		for id := range m.removed_CardSchedules {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
@@ -1060,7 +1545,7 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this
 // mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	return edges
 }
 
@@ -1088,6 +1573,9 @@ func (m *UserMutation) ResetEdge(name string) error {
 	case user.EdgeCardLogs:
 		m.ResetCardLogs()
 		return nil
+	case user.EdgeCardSchedules:
+		m.ResetCardSchedules()
+		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)
 }
@@ -1096,20 +1584,22 @@ func (m *UserMutation) ResetEdge(name string) error {
 // nodes in the graph.
 type WordMutation struct {
 	config
-	op              Op
-	typ             string
-	id              *int
-	create_time     *time.Time
-	update_time     *time.Time
-	lang1           *string
-	lang2           *string
-	word1           *string
-	word2           *string
-	clearedFields   map[string]struct{}
-	cardLogs        map[int]struct{}
-	removedcardLogs map[int]struct{}
-	done            bool
-	oldValue        func(context.Context) (*Word, error)
+	op                   Op
+	typ                  string
+	id                   *int
+	create_time          *time.Time
+	update_time          *time.Time
+	lang1                *string
+	lang2                *string
+	word1                *string
+	word2                *string
+	clearedFields        map[string]struct{}
+	cardLogs             map[int]struct{}
+	removedcardLogs      map[int]struct{}
+	cardSchedules        map[int]struct{}
+	removedcardSchedules map[int]struct{}
+	done                 bool
+	oldValue             func(context.Context) (*Word, error)
 }
 
 var _ ent.Mutation = (*WordMutation)(nil)
@@ -1455,6 +1945,48 @@ func (m *WordMutation) ResetCardLogs() {
 	m.removedcardLogs = nil
 }
 
+// AddCardScheduleIDs adds the cardSchedules edge to CardSchedule by ids.
+func (m *WordMutation) AddCardScheduleIDs(ids ...int) {
+	if m.cardSchedules == nil {
+		m.cardSchedules = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.cardSchedules[ids[i]] = struct{}{}
+	}
+}
+
+// RemoveCardScheduleIDs removes the cardSchedules edge to CardSchedule by ids.
+func (m *WordMutation) RemoveCardScheduleIDs(ids ...int) {
+	if m.removedcardSchedules == nil {
+		m.removedcardSchedules = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removedcardSchedules[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCardSchedules returns the removed ids of cardSchedules.
+func (m *WordMutation) RemovedCardSchedulesIDs() (ids []int) {
+	for id := range m.removedcardSchedules {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CardSchedulesIDs returns the cardSchedules ids in the mutation.
+func (m *WordMutation) CardSchedulesIDs() (ids []int) {
+	for id := range m.cardSchedules {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCardSchedules reset all changes of the "cardSchedules" edge.
+func (m *WordMutation) ResetCardSchedules() {
+	m.cardSchedules = nil
+	m.removedcardSchedules = nil
+}
+
 // Op returns the operation name.
 func (m *WordMutation) Op() Op {
 	return m.op
@@ -1655,9 +2187,12 @@ func (m *WordMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this
 // mutation.
 func (m *WordMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.cardLogs != nil {
 		edges = append(edges, word.EdgeCardLogs)
+	}
+	if m.cardSchedules != nil {
+		edges = append(edges, word.EdgeCardSchedules)
 	}
 	return edges
 }
@@ -1672,6 +2207,12 @@ func (m *WordMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case word.EdgeCardSchedules:
+		ids := make([]ent.Value, 0, len(m.cardSchedules))
+		for id := range m.cardSchedules {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
@@ -1679,9 +2220,12 @@ func (m *WordMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this
 // mutation.
 func (m *WordMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.removedcardLogs != nil {
 		edges = append(edges, word.EdgeCardLogs)
+	}
+	if m.removedcardSchedules != nil {
+		edges = append(edges, word.EdgeCardSchedules)
 	}
 	return edges
 }
@@ -1696,6 +2240,12 @@ func (m *WordMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case word.EdgeCardSchedules:
+		ids := make([]ent.Value, 0, len(m.removedcardSchedules))
+		for id := range m.removedcardSchedules {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
@@ -1703,7 +2253,7 @@ func (m *WordMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this
 // mutation.
 func (m *WordMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	return edges
 }
 
@@ -1730,6 +2280,9 @@ func (m *WordMutation) ResetEdge(name string) error {
 	switch name {
 	case word.EdgeCardLogs:
 		m.ResetCardLogs()
+		return nil
+	case word.EdgeCardSchedules:
+		m.ResetCardSchedules()
 		return nil
 	}
 	return fmt.Errorf("unknown Word edge %s", name)

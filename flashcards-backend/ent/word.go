@@ -37,9 +37,11 @@ type Word struct {
 type WordEdges struct {
 	// CardLogs holds the value of the cardLogs edge.
 	CardLogs []*CardLog
+	// CardSchedules holds the value of the cardSchedules edge.
+	CardSchedules []*CardSchedule
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // CardLogsOrErr returns the CardLogs value or an error if the edge
@@ -49,6 +51,15 @@ func (e WordEdges) CardLogsOrErr() ([]*CardLog, error) {
 		return e.CardLogs, nil
 	}
 	return nil, &NotLoadedError{edge: "cardLogs"}
+}
+
+// CardSchedulesOrErr returns the CardSchedules value or an error if the edge
+// was not loaded in eager-loading.
+func (e WordEdges) CardSchedulesOrErr() ([]*CardSchedule, error) {
+	if e.loadedTypes[1] {
+		return e.CardSchedules, nil
+	}
+	return nil, &NotLoadedError{edge: "cardSchedules"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -112,6 +123,11 @@ func (w *Word) assignValues(values ...interface{}) error {
 // QueryCardLogs queries the cardLogs edge of the Word.
 func (w *Word) QueryCardLogs() *CardLogQuery {
 	return (&WordClient{config: w.config}).QueryCardLogs(w)
+}
+
+// QueryCardSchedules queries the cardSchedules edge of the Word.
+func (w *Word) QueryCardSchedules() *CardScheduleQuery {
+	return (&WordClient{config: w.config}).QueryCardSchedules(w)
 }
 
 // Update returns a builder for updating this Word.

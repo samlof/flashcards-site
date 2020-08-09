@@ -759,6 +759,34 @@ func HasCardLogsWith(preds ...predicate.CardLog) predicate.Word {
 	})
 }
 
+// HasCardSchedules applies the HasEdge predicate on the "cardSchedules" edge.
+func HasCardSchedules() predicate.Word {
+	return predicate.Word(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CardSchedulesTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, CardSchedulesTable, CardSchedulesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCardSchedulesWith applies the HasEdge predicate on the "cardSchedules" edge with a given conditions (other predicates).
+func HasCardSchedulesWith(preds ...predicate.CardSchedule) predicate.Word {
+	return predicate.Word(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CardSchedulesInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, CardSchedulesTable, CardSchedulesColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups list of predicates with the AND operator between them.
 func And(predicates ...predicate.Word) predicate.Word {
 	return predicate.Word(func(s *sql.Selector) {

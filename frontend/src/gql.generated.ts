@@ -13,15 +13,32 @@ export type Scalars = {
   Time: String;
 };
 
-export type NewWord = {
+export type Word = {
+  __typename?: 'Word';
+  id: Scalars['ID'];
   lang1: Scalars['String'];
   lang2: Scalars['String'];
   word1: Scalars['String'];
   word2: Scalars['String'];
+  createTime: Scalars['Time'];
+  updateTime: Scalars['Time'];
 };
 
-export type UpdateWord = {
+export type CardLog = {
+  __typename?: 'CardLog';
+  createTime: Scalars['Time'];
   id: Scalars['ID'];
+  word: Word;
+  lastResult: CardResult;
+};
+
+export type CardStatus = {
+  cardId: Scalars['ID'];
+  result: CardResult;
+};
+
+
+export type NewWord = {
   lang1: Scalars['String'];
   lang2: Scalars['String'];
   word1: Scalars['String'];
@@ -31,18 +48,40 @@ export type UpdateWord = {
 export enum CardResult {
   Good = 'Good',
   Average = 'Average',
-  Bad = 'Bad'
+  Bad = 'Bad',
+  Retry = 'Retry'
 }
+
+export type UpdateWord = {
+  id: Scalars['ID'];
+  lang1: Scalars['String'];
+  lang2: Scalars['String'];
+  word1: Scalars['String'];
+  word2: Scalars['String'];
+};
+
+export type CardSchedule = {
+  __typename?: 'CardSchedule';
+  createTime: Scalars['Time'];
+  id: Scalars['ID'];
+  word: Word;
+  scheduledFor: Scalars['Time'];
+};
 
 export type ScheduledWordsResponse = {
   __typename?: 'ScheduledWordsResponse';
-  reviews: Array<CardLog>;
-  newWords: Array<Word>;
+  cards: Array<Word>;
 };
 
-export type CardStatus = {
-  cardId: Scalars['ID'];
-  result: CardResult;
+export type Query = {
+  __typename?: 'Query';
+  scheduledWords: ScheduledWordsResponse;
+  getWords: Array<Word>;
+};
+
+
+export type QueryScheduledWordsArgs = {
+  newWordCount?: Maybe<Scalars['Int']>;
 };
 
 export type Mutation = {
@@ -71,38 +110,6 @@ export type MutationDeleteWordArgs = {
 
 export type MutationUpdateWordArgs = {
   input: UpdateWord;
-};
-
-export type CardLog = {
-  __typename?: 'CardLog';
-  createTime: Scalars['Time'];
-  id: Scalars['ID'];
-  word: Word;
-  scheduledFor: Scalars['Time'];
-  lastResult: CardResult;
-};
-
-
-export type Word = {
-  __typename?: 'Word';
-  id: Scalars['ID'];
-  lang1: Scalars['String'];
-  lang2: Scalars['String'];
-  word1: Scalars['String'];
-  word2: Scalars['String'];
-  createTime: Scalars['Time'];
-  updateTime: Scalars['Time'];
-};
-
-export type Query = {
-  __typename?: 'Query';
-  scheduledWords: ScheduledWordsResponse;
-  getWords: Array<Word>;
-};
-
-
-export type QueryScheduledWordsArgs = {
-  newWordCount?: Maybe<Scalars['Int']>;
 };
 
 export type AllFlashcardsQueryVariables = Exact<{ [key: string]: never; }>;
@@ -164,16 +171,9 @@ export type FlashcardPageQuery = (
   { __typename?: 'Query' }
   & { scheduledWords: (
     { __typename?: 'ScheduledWordsResponse' }
-    & { newWords: Array<(
+    & { cards: Array<(
       { __typename?: 'Word' }
       & Pick<Word, 'id' | 'lang1' | 'lang2' | 'word1' | 'word2'>
-    )>, reviews: Array<(
-      { __typename?: 'CardLog' }
-      & Pick<CardLog, 'id'>
-      & { word: (
-        { __typename?: 'Word' }
-        & Pick<Word, 'id' | 'lang1' | 'lang2' | 'word1' | 'word2'>
-      ) }
     )> }
   ) }
 );
@@ -345,22 +345,12 @@ export type EditWordMutationOptions = ApolloReactCommon.BaseMutationOptions<Edit
 export const FlashcardPageDocument = gql`
     query FlashcardPage($newWordCount: Int!) {
   scheduledWords(newWordCount: $newWordCount) {
-    newWords {
+    cards {
       id
       lang1
       lang2
       word1
       word2
-    }
-    reviews {
-      id
-      word {
-        id
-        lang1
-        lang2
-        word1
-        word2
-      }
     }
   }
 }

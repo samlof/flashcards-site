@@ -16,10 +16,6 @@ const (
 	FieldCreateTime = "create_time"
 	// FieldResult holds the string denoting the result field in the database.
 	FieldResult = "result"
-	// FieldScheduledFor holds the string denoting the scheduled_for field in the database.
-	FieldScheduledFor = "scheduled_for"
-	// FieldReviewed holds the string denoting the reviewed field in the database.
-	FieldReviewed = "reviewed"
 
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
@@ -49,8 +45,6 @@ var Columns = []string{
 	FieldID,
 	FieldCreateTime,
 	FieldResult,
-	FieldScheduledFor,
-	FieldReviewed,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the CardLog type.
@@ -62,8 +56,6 @@ var ForeignKeys = []string{
 var (
 	// DefaultCreateTime holds the default value on creation for the create_time field.
 	DefaultCreateTime func() time.Time
-	// DefaultReviewed holds the default value on creation for the reviewed field.
-	DefaultReviewed bool
 )
 
 // Result defines the type for the result enum field.
@@ -74,6 +66,7 @@ const (
 	ResultAverage Result = "average"
 	ResultBad     Result = "bad"
 	ResultGood    Result = "good"
+	ResultRetry   Result = "retry"
 )
 
 func (r Result) String() string {
@@ -83,7 +76,7 @@ func (r Result) String() string {
 // ResultValidator is a validator for the "result" field enum values. It is called by the builders before save.
 func ResultValidator(r Result) error {
 	switch r {
-	case ResultAverage, ResultBad, ResultGood:
+	case ResultAverage, ResultBad, ResultGood, ResultRetry:
 		return nil
 	default:
 		return fmt.Errorf("cardlog: invalid enum value for result field: %q", r)
@@ -95,4 +88,5 @@ var AllResult = [...]Result{
 	ResultAverage,
 	ResultBad,
 	ResultGood,
+	ResultRetry,
 }

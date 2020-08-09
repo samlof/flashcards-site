@@ -10,6 +10,7 @@ import (
 	"flashcards-backend/ent/migrate"
 
 	"flashcards-backend/ent/cardlog"
+	"flashcards-backend/ent/cardschedule"
 	"flashcards-backend/ent/user"
 	"flashcards-backend/ent/word"
 
@@ -25,6 +26,8 @@ type Client struct {
 	Schema *migrate.Schema
 	// CardLog is the client for interacting with the CardLog builders.
 	CardLog *CardLogClient
+	// CardSchedule is the client for interacting with the CardSchedule builders.
+	CardSchedule *CardScheduleClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 	// Word is the client for interacting with the Word builders.
@@ -43,6 +46,7 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.CardLog = NewCardLogClient(c.config)
+	c.CardSchedule = NewCardScheduleClient(c.config)
 	c.User = NewUserClient(c.config)
 	c.Word = NewWordClient(c.config)
 }
@@ -75,11 +79,12 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	}
 	cfg := config{driver: tx, log: c.log, debug: c.debug, hooks: c.hooks}
 	return &Tx{
-		ctx:     ctx,
-		config:  cfg,
-		CardLog: NewCardLogClient(cfg),
-		User:    NewUserClient(cfg),
-		Word:    NewWordClient(cfg),
+		ctx:          ctx,
+		config:       cfg,
+		CardLog:      NewCardLogClient(cfg),
+		CardSchedule: NewCardScheduleClient(cfg),
+		User:         NewUserClient(cfg),
+		Word:         NewWordClient(cfg),
 	}, nil
 }
 
@@ -94,10 +99,11 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	}
 	cfg := config{driver: &txDriver{tx: tx, drv: c.driver}, log: c.log, debug: c.debug, hooks: c.hooks}
 	return &Tx{
-		config:  cfg,
-		CardLog: NewCardLogClient(cfg),
-		User:    NewUserClient(cfg),
-		Word:    NewWordClient(cfg),
+		config:       cfg,
+		CardLog:      NewCardLogClient(cfg),
+		CardSchedule: NewCardScheduleClient(cfg),
+		User:         NewUserClient(cfg),
+		Word:         NewWordClient(cfg),
 	}, nil
 }
 
@@ -127,6 +133,7 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	c.CardLog.Use(hooks...)
+	c.CardSchedule.Use(hooks...)
 	c.User.Use(hooks...)
 	c.Word.Use(hooks...)
 }
@@ -251,6 +258,126 @@ func (c *CardLogClient) Hooks() []Hook {
 	return c.hooks.CardLog
 }
 
+// CardScheduleClient is a client for the CardSchedule schema.
+type CardScheduleClient struct {
+	config
+}
+
+// NewCardScheduleClient returns a client for the CardSchedule from the given config.
+func NewCardScheduleClient(c config) *CardScheduleClient {
+	return &CardScheduleClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `cardschedule.Hooks(f(g(h())))`.
+func (c *CardScheduleClient) Use(hooks ...Hook) {
+	c.hooks.CardSchedule = append(c.hooks.CardSchedule, hooks...)
+}
+
+// Create returns a create builder for CardSchedule.
+func (c *CardScheduleClient) Create() *CardScheduleCreate {
+	mutation := newCardScheduleMutation(c.config, OpCreate)
+	return &CardScheduleCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// BulkCreate returns a builder for creating a bulk of CardSchedule entities.
+func (c *CardScheduleClient) CreateBulk(builders ...*CardScheduleCreate) *CardScheduleCreateBulk {
+	return &CardScheduleCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for CardSchedule.
+func (c *CardScheduleClient) Update() *CardScheduleUpdate {
+	mutation := newCardScheduleMutation(c.config, OpUpdate)
+	return &CardScheduleUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CardScheduleClient) UpdateOne(cs *CardSchedule) *CardScheduleUpdateOne {
+	mutation := newCardScheduleMutation(c.config, OpUpdateOne, withCardSchedule(cs))
+	return &CardScheduleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CardScheduleClient) UpdateOneID(id int) *CardScheduleUpdateOne {
+	mutation := newCardScheduleMutation(c.config, OpUpdateOne, withCardScheduleID(id))
+	return &CardScheduleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for CardSchedule.
+func (c *CardScheduleClient) Delete() *CardScheduleDelete {
+	mutation := newCardScheduleMutation(c.config, OpDelete)
+	return &CardScheduleDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *CardScheduleClient) DeleteOne(cs *CardSchedule) *CardScheduleDeleteOne {
+	return c.DeleteOneID(cs.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *CardScheduleClient) DeleteOneID(id int) *CardScheduleDeleteOne {
+	builder := c.Delete().Where(cardschedule.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CardScheduleDeleteOne{builder}
+}
+
+// Query returns a query builder for CardSchedule.
+func (c *CardScheduleClient) Query() *CardScheduleQuery {
+	return &CardScheduleQuery{config: c.config}
+}
+
+// Get returns a CardSchedule entity by its id.
+func (c *CardScheduleClient) Get(ctx context.Context, id int) (*CardSchedule, error) {
+	return c.Query().Where(cardschedule.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CardScheduleClient) GetX(ctx context.Context, id int) *CardSchedule {
+	cs, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return cs
+}
+
+// QueryUser queries the user edge of a CardSchedule.
+func (c *CardScheduleClient) QueryUser(cs *CardSchedule) *UserQuery {
+	query := &UserQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := cs.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(cardschedule.Table, cardschedule.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, cardschedule.UserTable, cardschedule.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(cs.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCard queries the card edge of a CardSchedule.
+func (c *CardScheduleClient) QueryCard(cs *CardSchedule) *WordQuery {
+	query := &WordQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := cs.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(cardschedule.Table, cardschedule.FieldID, id),
+			sqlgraph.To(word.Table, word.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, cardschedule.CardTable, cardschedule.CardColumn),
+		)
+		fromV = sqlgraph.Neighbors(cs.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *CardScheduleClient) Hooks() []Hook {
+	return c.hooks.CardSchedule
+}
+
 // UserClient is a client for the User schema.
 type UserClient struct {
 	config
@@ -343,6 +470,22 @@ func (c *UserClient) QueryCardLogs(u *User) *CardLogQuery {
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(cardlog.Table, cardlog.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.CardLogsTable, user.CardLogsColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCardSchedules queries the CardSchedules edge of a User.
+func (c *UserClient) QueryCardSchedules(u *User) *CardScheduleQuery {
+	query := &CardScheduleQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(cardschedule.Table, cardschedule.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.CardSchedulesTable, user.CardSchedulesColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil
@@ -447,6 +590,22 @@ func (c *WordClient) QueryCardLogs(w *Word) *CardLogQuery {
 			sqlgraph.From(word.Table, word.FieldID, id),
 			sqlgraph.To(cardlog.Table, cardlog.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, true, word.CardLogsTable, word.CardLogsColumn),
+		)
+		fromV = sqlgraph.Neighbors(w.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCardSchedules queries the cardSchedules edge of a Word.
+func (c *WordClient) QueryCardSchedules(w *Word) *CardScheduleQuery {
+	query := &CardScheduleQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := w.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(word.Table, word.FieldID, id),
+			sqlgraph.To(cardschedule.Table, cardschedule.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, word.CardSchedulesTable, word.CardSchedulesColumn),
 		)
 		fromV = sqlgraph.Neighbors(w.driver.Dialect(), step)
 		return fromV, nil

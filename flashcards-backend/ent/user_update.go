@@ -5,6 +5,7 @@ package ent
 import (
 	"context"
 	"flashcards-backend/ent/cardlog"
+	"flashcards-backend/ent/cardschedule"
 	"flashcards-backend/ent/predicate"
 	"flashcards-backend/ent/user"
 	"fmt"
@@ -49,6 +50,21 @@ func (uu *UserUpdate) AddCardLogs(c ...*CardLog) *UserUpdate {
 	return uu.AddCardLogIDs(ids...)
 }
 
+// AddCardScheduleIDs adds the CardSchedules edge to CardSchedule by ids.
+func (uu *UserUpdate) AddCardScheduleIDs(ids ...int) *UserUpdate {
+	uu.mutation.AddCardScheduleIDs(ids...)
+	return uu
+}
+
+// AddCardSchedules adds the CardSchedules edges to CardSchedule.
+func (uu *UserUpdate) AddCardSchedules(c ...*CardSchedule) *UserUpdate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return uu.AddCardScheduleIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
@@ -67,6 +83,21 @@ func (uu *UserUpdate) RemoveCardLogs(c ...*CardLog) *UserUpdate {
 		ids[i] = c[i].ID
 	}
 	return uu.RemoveCardLogIDs(ids...)
+}
+
+// RemoveCardScheduleIDs removes the CardSchedules edge to CardSchedule by ids.
+func (uu *UserUpdate) RemoveCardScheduleIDs(ids ...int) *UserUpdate {
+	uu.mutation.RemoveCardScheduleIDs(ids...)
+	return uu
+}
+
+// RemoveCardSchedules removes CardSchedules edges to CardSchedule.
+func (uu *UserUpdate) RemoveCardSchedules(c ...*CardSchedule) *UserUpdate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return uu.RemoveCardScheduleIDs(ids...)
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
@@ -200,6 +231,44 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if nodes := uu.mutation.RemovedCardSchedulesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CardSchedulesTable,
+			Columns: []string{user.CardSchedulesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: cardschedule.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.CardSchedulesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CardSchedulesTable,
+			Columns: []string{user.CardSchedulesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: cardschedule.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, uu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -239,6 +308,21 @@ func (uuo *UserUpdateOne) AddCardLogs(c ...*CardLog) *UserUpdateOne {
 	return uuo.AddCardLogIDs(ids...)
 }
 
+// AddCardScheduleIDs adds the CardSchedules edge to CardSchedule by ids.
+func (uuo *UserUpdateOne) AddCardScheduleIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.AddCardScheduleIDs(ids...)
+	return uuo
+}
+
+// AddCardSchedules adds the CardSchedules edges to CardSchedule.
+func (uuo *UserUpdateOne) AddCardSchedules(c ...*CardSchedule) *UserUpdateOne {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return uuo.AddCardScheduleIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
@@ -257,6 +341,21 @@ func (uuo *UserUpdateOne) RemoveCardLogs(c ...*CardLog) *UserUpdateOne {
 		ids[i] = c[i].ID
 	}
 	return uuo.RemoveCardLogIDs(ids...)
+}
+
+// RemoveCardScheduleIDs removes the CardSchedules edge to CardSchedule by ids.
+func (uuo *UserUpdateOne) RemoveCardScheduleIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.RemoveCardScheduleIDs(ids...)
+	return uuo
+}
+
+// RemoveCardSchedules removes CardSchedules edges to CardSchedule.
+func (uuo *UserUpdateOne) RemoveCardSchedules(c ...*CardSchedule) *UserUpdateOne {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return uuo.RemoveCardScheduleIDs(ids...)
 }
 
 // Save executes the query and returns the updated entity.
@@ -380,6 +479,44 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (u *User, err error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: cardlog.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if nodes := uuo.mutation.RemovedCardSchedulesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CardSchedulesTable,
+			Columns: []string{user.CardSchedulesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: cardschedule.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.CardSchedulesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CardSchedulesTable,
+			Columns: []string{user.CardSchedulesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: cardschedule.FieldID,
 				},
 			},
 		}

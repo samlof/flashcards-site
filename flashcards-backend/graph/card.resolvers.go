@@ -7,11 +7,13 @@ import (
 	"context"
 	"flashcards-backend/ent"
 	"flashcards-backend/ent/cardlog"
+	"flashcards-backend/ent/cardschedule"
 	"flashcards-backend/ent/word"
 	"flashcards-backend/graph/generated"
 	"flashcards-backend/graph/model"
 	"flashcards-backend/modelconv"
 	"fmt"
+	"log"
 	"strconv"
 	"time"
 )
@@ -23,59 +25,78 @@ func (r *mutationResolver) CardStatus(ctx context.Context, input model.CardStatu
 	}
 	card, err := r.DB.Word.Query().
 		Where(word.ID(cardId)).
-		WithCardLogs(func(q *ent.CardLogQuery) {
-			q.Where(cardlog.Reviewed(false))
-		}).Only(ctx)
+		Only(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("getting card with id %d: %v", cardId, err)
 	}
 
-	var oldLog *ent.CardLog
-	// Get old log item related to this
-	if len(card.Edges.CardLogs) != 0 {
-		// Get old log item to calculate when this should be scheduled for
-		oldLog, err = r.DB.CardLog.UpdateOne(card.Edges.CardLogs[0]).SetReviewed(true).Save(ctx)
+	// For retry, we shouldn't reschedule the card
+	if input.Result != model.CardResultRetry {
+
+		// Update the old scheduled item to be done
+		_, err = r.DB.CardSchedule.Update().
+			Where(cardschedule.And(cardschedule.HasCardWith(word.ID(cardId)), cardschedule.Reviewed(false))).
+			SetReviewed(true).
+			Save(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("updating scheduled item: %v", err)
+		}
+
+		// Get old log item related to this
+		oldLog, err := r.DB.CardLog.Query().
+			Where(cardlog.HasCardWith(word.ID(cardId))).
+			Order(ent.Desc(cardlog.FieldCreateTime)).
+			First(ctx)
 		if err != nil && !ent.IsNotFound(err) {
-			return nil, fmt.Errorf("getting old log item: %v", err)
+			return nil, fmt.Errorf("finding old log: %v", err)
+		}
+
+		// Calculate when this will be scheduled next
+		mod := model.LogModifiers[input.Result]
+		// Default hoursSince last seen to 24
+		var hoursSince float64 = 24
+		if oldLog != nil {
+			hoursSince = time.Since(oldLog.CreateTime).Hours()
+		}
+		scheduleFor := time.Now().Add(time.Duration(float64(time.Hour) * hoursSince * mod))
+
+		// Insert to db
+		_, err = r.DB.CardSchedule.Create().
+			SetScheduledFor(scheduleFor).
+			SetCard(card).
+			Save(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("creating log item: %v", err)
 		}
 	}
-
-	// Calculate when this will be scheduled next
-	mod := model.LogModifiers[input.Result]
-	// Default hoursSince last seen to 24
-	var hoursSince float64 = 24
-	if oldLog != nil {
-		hoursSince = time.Since(oldLog.ScheduledFor).Hours()
-	}
-	scheduleFor := time.Now().Add(time.Duration(float64(time.Hour) * hoursSince * mod))
-
-	// Insert to db
-	log, err := r.DB.CardLog.Create().
-		SetResult(modelconv.ModelCardResult(input.Result)).
-		SetScheduledFor(scheduleFor).
-		SetCard(card).
-		Save(ctx)
+	// Add the status to db
+	dbResult := modelconv.ModelCardResult(input.Result)
+	cardLog, err := r.DB.CardLog.Create().SetCard(card).SetResult(dbResult).Save(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("creating log item: %v", err)
+		return nil, fmt.Errorf("adding log to db for id %d result %s: %v", cardId, dbResult, err)
 	}
-	log.Edges.Card = card
-	return modelconv.CardLog(log), nil
+	cardLog.Edges.Card = card
+	return modelconv.CardLog(cardLog), nil
 }
 
 func (r *queryResolver) ScheduledWords(ctx context.Context, newWordCount *int) (*model.ScheduledWordsResponse, error) {
 	// Get cards scheduled for review
-	cards, err := r.DB.CardLog.Query().
+	scheduledCards, err := r.DB.CardSchedule.Query().
 		WithCard().
-		Where(cardlog.And(cardlog.Reviewed(false), cardlog.ScheduledForLTE(time.Now()))).
-		Order(ent.Desc(cardlog.FieldScheduledFor)).
+		Where(cardschedule.And(cardschedule.Reviewed(false), cardschedule.ScheduledForLTE(time.Now()))).
+		Order(ent.Desc(cardschedule.FieldScheduledFor)).
 		Limit(500).
 		All(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("getting logs: %v", err)
 	}
-	reviews := modelconv.CardLogS(cards)
+	//reviews := modelconv.CardLogS(cards)
+	cards := make([]*model.Word, len(scheduledCards))
+	for i := range scheduledCards {
+		cards[i] = modelconv.Word(scheduledCards[i].Edges.Card)
+	}
 	ret := &model.ScheduledWordsResponse{
-		Reviews: reviews,
+		Cards: cards,
 	}
 
 	// If no new words wanted, return here
@@ -101,6 +122,7 @@ func (r *queryResolver) ScheduledWords(ctx context.Context, newWordCount *int) (
 		}
 		*newWordCount -= len(idCounts)
 	}
+	log.Printf("Getting %v new words", *newWordCount)
 	if *newWordCount > 0 {
 		// Get new cards
 		newWords, err := r.DB.Word.Query().
@@ -111,7 +133,7 @@ func (r *queryResolver) ScheduledWords(ctx context.Context, newWordCount *int) (
 			return nil, fmt.Errorf("getting new words: %v", err)
 		}
 
-		ret.NewWords = modelconv.WordS(newWords)
+		ret.Cards = append(ret.Cards, modelconv.WordS(newWords)...)
 	}
 
 	return ret, nil

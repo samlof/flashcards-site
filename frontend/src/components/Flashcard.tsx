@@ -53,10 +53,7 @@ const Flashcard = ({}: Props) => {
   const [words, setWords] = React.useState<FlashWord[]>([]);
   React.useEffect(() => {
     if (!data) return;
-    const copiedWords = [
-      ...data.scheduledWords.newWords,
-      ...data.scheduledWords.reviews.map((x) => x.word),
-    ];
+    const copiedWords = [...data.scheduledWords.cards];
     shuffle(copiedWords);
     setWords(copiedWords);
   }, [data]);
@@ -66,28 +63,23 @@ const Flashcard = ({}: Props) => {
   const index = 0;
   const word = words[index];
 
-  const handleClick = async (result?: CardResult) => {
+  const handleClick = async (result: CardResult) => {
     setAnimationName("card-in-out");
     setVisible(false);
-    if (result == null) {
-      await delayMs(animationSpeed);
-      setWords((prev) => {
-        const word = prev.splice(index, 1)[0];
 
+    setCardState({
+      variables: { cardId: word.id, result: result },
+    });
+    await delayMs(animationSpeed);
+    setWords((prev) => {
+      const word = prev.splice(index, 1)[0];
+      // If retry, then add the card back to deck
+      if (result === CardResult.Retry) {
         const nextIndex = randInt(0, prev.length);
         prev.splice(nextIndex, 0, word);
-        return prev;
-      });
-    } else {
-      setCardState({
-        variables: { cardId: word.id, result: result },
-      });
-      await delayMs(animationSpeed);
-      setWords((prev) => {
-        prev.splice(index, 1);
-        return prev;
-      });
-    }
+      }
+      return prev;
+    });
 
     setVisible(true);
   };
@@ -119,7 +111,7 @@ const Flashcard = ({}: Props) => {
         <DirButton type="button" onClick={(e) => handleClick(CardResult.Bad)}>
           Bad
         </DirButton>
-        <DirButton type="button" onClick={(e) => handleClick(undefined)}>
+        <DirButton type="button" onClick={(e) => handleClick(CardResult.Retry)}>
           Retry
         </DirButton>
       </ButtonDiv>

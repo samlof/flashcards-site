@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"flashcards-backend/ent/cardlog"
+	"flashcards-backend/ent/cardschedule"
 	"flashcards-backend/ent/word"
 	"fmt"
 	"time"
@@ -86,6 +87,21 @@ func (wc *WordCreate) AddCardLogs(c ...*CardLog) *WordCreate {
 		ids[i] = c[i].ID
 	}
 	return wc.AddCardLogIDs(ids...)
+}
+
+// AddCardScheduleIDs adds the cardSchedules edge to CardSchedule by ids.
+func (wc *WordCreate) AddCardScheduleIDs(ids ...int) *WordCreate {
+	wc.mutation.AddCardScheduleIDs(ids...)
+	return wc
+}
+
+// AddCardSchedules adds the cardSchedules edges to CardSchedule.
+func (wc *WordCreate) AddCardSchedules(c ...*CardSchedule) *WordCreate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return wc.AddCardScheduleIDs(ids...)
 }
 
 // Mutation returns the WordMutation object of the builder.
@@ -261,6 +277,25 @@ func (wc *WordCreate) createSpec() (*Word, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: cardlog.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := wc.mutation.CardSchedulesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   word.CardSchedulesTable,
+			Columns: []string{word.CardSchedulesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: cardschedule.FieldID,
 				},
 			},
 		}

@@ -7,6 +7,7 @@ import (
 	"database/sql/driver"
 	"errors"
 	"flashcards-backend/ent/cardlog"
+	"flashcards-backend/ent/cardschedule"
 	"flashcards-backend/ent/predicate"
 	"flashcards-backend/ent/user"
 	"fmt"
@@ -26,7 +27,8 @@ type UserQuery struct {
 	unique     []string
 	predicates []predicate.User
 	// eager-loading edges.
-	withCardLogs *CardLogQuery
+	withCardLogs      *CardLogQuery
+	withCardSchedules *CardScheduleQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -67,6 +69,24 @@ func (uq *UserQuery) QueryCardLogs() *CardLogQuery {
 			sqlgraph.From(user.Table, user.FieldID, uq.sqlQuery()),
 			sqlgraph.To(cardlog.Table, cardlog.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.CardLogsTable, user.CardLogsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCardSchedules chains the current query on the CardSchedules edge.
+func (uq *UserQuery) QueryCardSchedules() *CardScheduleQuery {
+	query := &CardScheduleQuery{config: uq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, uq.sqlQuery()),
+			sqlgraph.To(cardschedule.Table, cardschedule.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.CardSchedulesTable, user.CardSchedulesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -264,6 +284,17 @@ func (uq *UserQuery) WithCardLogs(opts ...func(*CardLogQuery)) *UserQuery {
 	return uq
 }
 
+//  WithCardSchedules tells the query-builder to eager-loads the nodes that are connected to
+// the "CardSchedules" edge. The optional arguments used to configure the query builder of the edge.
+func (uq *UserQuery) WithCardSchedules(opts ...func(*CardScheduleQuery)) *UserQuery {
+	query := &CardScheduleQuery{config: uq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withCardSchedules = query
+	return uq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -330,8 +361,9 @@ func (uq *UserQuery) sqlAll(ctx context.Context) ([]*User, error) {
 	var (
 		nodes       = []*User{}
 		_spec       = uq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			uq.withCardLogs != nil,
+			uq.withCardSchedules != nil,
 		}
 	)
 	_spec.ScanValues = func() []interface{} {
@@ -380,6 +412,34 @@ func (uq *UserQuery) sqlAll(ctx context.Context) ([]*User, error) {
 				return nil, fmt.Errorf(`unexpected foreign-key "user_card_logs" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.CardLogs = append(node.Edges.CardLogs, n)
+		}
+	}
+
+	if query := uq.withCardSchedules; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[int]*User)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.CardSchedule(func(s *sql.Selector) {
+			s.Where(sql.InValues(user.CardSchedulesColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.user_card_schedules
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "user_card_schedules" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "user_card_schedules" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.CardSchedules = append(node.Edges.CardSchedules, n)
 		}
 	}
 

@@ -26,6 +26,8 @@ const (
 
 	// EdgeCardLogs holds the string denoting the cardlogs edge name in mutations.
 	EdgeCardLogs = "cardLogs"
+	// EdgeCardSchedules holds the string denoting the cardschedules edge name in mutations.
+	EdgeCardSchedules = "cardSchedules"
 
 	// Table holds the table name of the word in the database.
 	Table = "words"
@@ -36,6 +38,13 @@ const (
 	CardLogsInverseTable = "card_logs"
 	// CardLogsColumn is the table column denoting the cardLogs relation/edge.
 	CardLogsColumn = "card_log_card"
+	// CardSchedulesTable is the table the holds the cardSchedules relation/edge.
+	CardSchedulesTable = "card_schedules"
+	// CardSchedulesInverseTable is the table name for the CardSchedule entity.
+	// It exists in this package in order to avoid circular dependency with the "cardschedule" package.
+	CardSchedulesInverseTable = "card_schedules"
+	// CardSchedulesColumn is the table column denoting the cardSchedules relation/edge.
+	CardSchedulesColumn = "card_schedule_card"
 )
 
 // Columns holds all SQL columns for word fields.

@@ -100,20 +100,6 @@ func CreateTime(v time.Time) predicate.CardLog {
 	})
 }
 
-// ScheduledFor applies equality check predicate on the "scheduled_for" field. It's identical to ScheduledForEQ.
-func ScheduledFor(v time.Time) predicate.CardLog {
-	return predicate.CardLog(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldScheduledFor), v))
-	})
-}
-
-// Reviewed applies equality check predicate on the "reviewed" field. It's identical to ReviewedEQ.
-func Reviewed(v bool) predicate.CardLog {
-	return predicate.CardLog(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldReviewed), v))
-	})
-}
-
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.CardLog {
 	return predicate.CardLog(func(s *sql.Selector) {
@@ -235,96 +221,6 @@ func ResultNotIn(vs ...Result) predicate.CardLog {
 			return
 		}
 		s.Where(sql.NotIn(s.C(FieldResult), v...))
-	})
-}
-
-// ScheduledForEQ applies the EQ predicate on the "scheduled_for" field.
-func ScheduledForEQ(v time.Time) predicate.CardLog {
-	return predicate.CardLog(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldScheduledFor), v))
-	})
-}
-
-// ScheduledForNEQ applies the NEQ predicate on the "scheduled_for" field.
-func ScheduledForNEQ(v time.Time) predicate.CardLog {
-	return predicate.CardLog(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldScheduledFor), v))
-	})
-}
-
-// ScheduledForIn applies the In predicate on the "scheduled_for" field.
-func ScheduledForIn(vs ...time.Time) predicate.CardLog {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.CardLog(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.In(s.C(FieldScheduledFor), v...))
-	})
-}
-
-// ScheduledForNotIn applies the NotIn predicate on the "scheduled_for" field.
-func ScheduledForNotIn(vs ...time.Time) predicate.CardLog {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.CardLog(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.NotIn(s.C(FieldScheduledFor), v...))
-	})
-}
-
-// ScheduledForGT applies the GT predicate on the "scheduled_for" field.
-func ScheduledForGT(v time.Time) predicate.CardLog {
-	return predicate.CardLog(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldScheduledFor), v))
-	})
-}
-
-// ScheduledForGTE applies the GTE predicate on the "scheduled_for" field.
-func ScheduledForGTE(v time.Time) predicate.CardLog {
-	return predicate.CardLog(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldScheduledFor), v))
-	})
-}
-
-// ScheduledForLT applies the LT predicate on the "scheduled_for" field.
-func ScheduledForLT(v time.Time) predicate.CardLog {
-	return predicate.CardLog(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldScheduledFor), v))
-	})
-}
-
-// ScheduledForLTE applies the LTE predicate on the "scheduled_for" field.
-func ScheduledForLTE(v time.Time) predicate.CardLog {
-	return predicate.CardLog(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldScheduledFor), v))
-	})
-}
-
-// ReviewedEQ applies the EQ predicate on the "reviewed" field.
-func ReviewedEQ(v bool) predicate.CardLog {
-	return predicate.CardLog(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldReviewed), v))
-	})
-}
-
-// ReviewedNEQ applies the NEQ predicate on the "reviewed" field.
-func ReviewedNEQ(v bool) predicate.CardLog {
-	return predicate.CardLog(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldReviewed), v))
 	})
 }
 

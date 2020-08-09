@@ -9,6 +9,9 @@ import (
 // CardLog is the predicate function for cardlog builders.
 type CardLog func(*sql.Selector)
 
+// CardSchedule is the predicate function for cardschedule builders.
+type CardSchedule func(*sql.Selector)
+
 // User is the predicate function for user builders.
 type User func(*sql.Selector)
 

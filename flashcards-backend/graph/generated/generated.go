@@ -45,9 +45,15 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	CardLog struct {
+		CreateTime func(childComplexity int) int
+		ID         func(childComplexity int) int
+		LastResult func(childComplexity int) int
+		Word       func(childComplexity int) int
+	}
+
+	CardSchedule struct {
 		CreateTime   func(childComplexity int) int
 		ID           func(childComplexity int) int
-		LastResult   func(childComplexity int) int
 		ScheduledFor func(childComplexity int) int
 		Word         func(childComplexity int) int
 	}
@@ -65,8 +71,7 @@ type ComplexityRoot struct {
 	}
 
 	ScheduledWordsResponse struct {
-		NewWords func(childComplexity int) int
-		Reviews  func(childComplexity int) int
+		Cards func(childComplexity int) int
 	}
 
 	Word struct {
@@ -127,19 +132,40 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.CardLog.LastResult(childComplexity), true
 
-	case "CardLog.scheduledFor":
-		if e.complexity.CardLog.ScheduledFor == nil {
-			break
-		}
-
-		return e.complexity.CardLog.ScheduledFor(childComplexity), true
-
 	case "CardLog.word":
 		if e.complexity.CardLog.Word == nil {
 			break
 		}
 
 		return e.complexity.CardLog.Word(childComplexity), true
+
+	case "CardSchedule.createTime":
+		if e.complexity.CardSchedule.CreateTime == nil {
+			break
+		}
+
+		return e.complexity.CardSchedule.CreateTime(childComplexity), true
+
+	case "CardSchedule.id":
+		if e.complexity.CardSchedule.ID == nil {
+			break
+		}
+
+		return e.complexity.CardSchedule.ID(childComplexity), true
+
+	case "CardSchedule.scheduledFor":
+		if e.complexity.CardSchedule.ScheduledFor == nil {
+			break
+		}
+
+		return e.complexity.CardSchedule.ScheduledFor(childComplexity), true
+
+	case "CardSchedule.word":
+		if e.complexity.CardSchedule.Word == nil {
+			break
+		}
+
+		return e.complexity.CardSchedule.Word(childComplexity), true
 
 	case "Mutation.cardStatus":
 		if e.complexity.Mutation.CardStatus == nil {
@@ -208,19 +234,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.ScheduledWords(childComplexity, args["newWordCount"].(*int)), true
 
-	case "ScheduledWordsResponse.newWords":
-		if e.complexity.ScheduledWordsResponse.NewWords == nil {
+	case "ScheduledWordsResponse.cards":
+		if e.complexity.ScheduledWordsResponse.Cards == nil {
 			break
 		}
 
-		return e.complexity.ScheduledWordsResponse.NewWords(childComplexity), true
-
-	case "ScheduledWordsResponse.reviews":
-		if e.complexity.ScheduledWordsResponse.Reviews == nil {
-			break
-		}
-
-		return e.complexity.ScheduledWordsResponse.Reviews(childComplexity), true
+		return e.complexity.ScheduledWordsResponse.Cards(childComplexity), true
 
 	case "Word.createTime":
 		if e.complexity.Word.CreateTime == nil {
@@ -339,19 +358,25 @@ var sources = []*ast.Source{
   Good
   Average
   Bad
+  Retry
 }
 
 type CardLog {
   createTime: Time!
   id: ID!
   word: Word!
-  scheduledFor: Time!
   lastResult: CardResult!
 }
 
+type CardSchedule {
+  createTime: Time!
+  id: ID!
+  word: Word!
+  scheduledFor: Time!
+}
+
 type ScheduledWordsResponse {
-  reviews: [CardLog!]!
-  newWords: [Word!]!
+  cards: [Word!]!
 }
 extend type Query {
   scheduledWords(newWordCount: Int): ScheduledWordsResponse!
@@ -632,40 +657,6 @@ func (ec *executionContext) _CardLog_word(ctx context.Context, field graphql.Col
 	return ec.marshalNWord2ᚖflashcardsᚑbackendᚋgraphᚋmodelᚐWord(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _CardLog_scheduledFor(ctx context.Context, field graphql.CollectedField, obj *model.CardLog) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "CardLog",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ScheduledFor, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(time.Time)
-	fc.Result = res
-	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _CardLog_lastResult(ctx context.Context, field graphql.CollectedField, obj *model.CardLog) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -698,6 +689,142 @@ func (ec *executionContext) _CardLog_lastResult(ctx context.Context, field graph
 	res := resTmp.(model.CardResult)
 	fc.Result = res
 	return ec.marshalNCardResult2flashcardsᚑbackendᚋgraphᚋmodelᚐCardResult(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CardSchedule_createTime(ctx context.Context, field graphql.CollectedField, obj *model.CardSchedule) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "CardSchedule",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreateTime, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CardSchedule_id(ctx context.Context, field graphql.CollectedField, obj *model.CardSchedule) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "CardSchedule",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CardSchedule_word(ctx context.Context, field graphql.CollectedField, obj *model.CardSchedule) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "CardSchedule",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Word, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Word)
+	fc.Result = res
+	return ec.marshalNWord2ᚖflashcardsᚑbackendᚋgraphᚋmodelᚐWord(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CardSchedule_scheduledFor(ctx context.Context, field graphql.CollectedField, obj *model.CardSchedule) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "CardSchedule",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ScheduledFor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_cardStatus(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1008,7 +1135,7 @@ func (ec *executionContext) _Query___schema(ctx context.Context, field graphql.C
 	return ec.marshalO__Schema2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐSchema(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ScheduledWordsResponse_reviews(ctx context.Context, field graphql.CollectedField, obj *model.ScheduledWordsResponse) (ret graphql.Marshaler) {
+func (ec *executionContext) _ScheduledWordsResponse_cards(ctx context.Context, field graphql.CollectedField, obj *model.ScheduledWordsResponse) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1025,41 +1152,7 @@ func (ec *executionContext) _ScheduledWordsResponse_reviews(ctx context.Context,
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Reviews, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*model.CardLog)
-	fc.Result = res
-	return ec.marshalNCardLog2ᚕᚖflashcardsᚑbackendᚋgraphᚋmodelᚐCardLogᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ScheduledWordsResponse_newWords(ctx context.Context, field graphql.CollectedField, obj *model.ScheduledWordsResponse) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "ScheduledWordsResponse",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.NewWords, nil
+		return obj.Cards, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2505,13 +2598,50 @@ func (ec *executionContext) _CardLog(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "scheduledFor":
-			out.Values[i] = ec._CardLog_scheduledFor(ctx, field, obj)
+		case "lastResult":
+			out.Values[i] = ec._CardLog_lastResult(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "lastResult":
-			out.Values[i] = ec._CardLog_lastResult(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var cardScheduleImplementors = []string{"CardSchedule"}
+
+func (ec *executionContext) _CardSchedule(ctx context.Context, sel ast.SelectionSet, obj *model.CardSchedule) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, cardScheduleImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CardSchedule")
+		case "createTime":
+			out.Values[i] = ec._CardSchedule_createTime(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "id":
+			out.Values[i] = ec._CardSchedule_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "word":
+			out.Values[i] = ec._CardSchedule_word(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "scheduledFor":
+			out.Values[i] = ec._CardSchedule_scheduledFor(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -2641,13 +2771,8 @@ func (ec *executionContext) _ScheduledWordsResponse(ctx context.Context, sel ast
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("ScheduledWordsResponse")
-		case "reviews":
-			out.Values[i] = ec._ScheduledWordsResponse_reviews(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "newWords":
-			out.Values[i] = ec._ScheduledWordsResponse_newWords(ctx, field, obj)
+		case "cards":
+			out.Values[i] = ec._ScheduledWordsResponse_cards(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -2980,43 +3105,6 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 
 func (ec *executionContext) marshalNCardLog2flashcardsᚑbackendᚋgraphᚋmodelᚐCardLog(ctx context.Context, sel ast.SelectionSet, v model.CardLog) graphql.Marshaler {
 	return ec._CardLog(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNCardLog2ᚕᚖflashcardsᚑbackendᚋgraphᚋmodelᚐCardLogᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CardLog) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNCardLog2ᚖflashcardsᚑbackendᚋgraphᚋmodelᚐCardLog(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-	return ret
 }
 
 func (ec *executionContext) marshalNCardLog2ᚖflashcardsᚑbackendᚋgraphᚋmodelᚐCardLog(ctx context.Context, sel ast.SelectionSet, v *model.CardLog) graphql.Marshaler {

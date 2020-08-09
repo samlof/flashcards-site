@@ -59,7 +59,7 @@ func main() {
 	}
 
 	graphResolver := &graph.Resolver{
-		DB: client,
+		DB: client.Debug(),
 	}
 	srv := handler.New(generated.NewExecutableSchema(generated.Config{Resolvers: graphResolver}))
 	configureGqlServer(srv)

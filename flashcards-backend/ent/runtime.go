@@ -4,6 +4,7 @@ package ent
 
 import (
 	"flashcards-backend/ent/cardlog"
+	"flashcards-backend/ent/cardschedule"
 	"flashcards-backend/ent/schema"
 	"flashcards-backend/ent/user"
 	"flashcards-backend/ent/word"
@@ -22,10 +23,18 @@ func init() {
 	cardlogDescCreateTime := cardlogMixinFields0[0].Descriptor()
 	// cardlog.DefaultCreateTime holds the default value on creation for the create_time field.
 	cardlog.DefaultCreateTime = cardlogDescCreateTime.Default.(func() time.Time)
-	// cardlogDescReviewed is the schema descriptor for reviewed field.
-	cardlogDescReviewed := cardlogFields[2].Descriptor()
-	// cardlog.DefaultReviewed holds the default value on creation for the reviewed field.
-	cardlog.DefaultReviewed = cardlogDescReviewed.Default.(bool)
+	cardscheduleMixin := schema.CardSchedule{}.Mixin()
+	cardscheduleMixinFields0 := cardscheduleMixin[0].Fields()
+	cardscheduleFields := schema.CardSchedule{}.Fields()
+	_ = cardscheduleFields
+	// cardscheduleDescCreateTime is the schema descriptor for create_time field.
+	cardscheduleDescCreateTime := cardscheduleMixinFields0[0].Descriptor()
+	// cardschedule.DefaultCreateTime holds the default value on creation for the create_time field.
+	cardschedule.DefaultCreateTime = cardscheduleDescCreateTime.Default.(func() time.Time)
+	// cardscheduleDescReviewed is the schema descriptor for reviewed field.
+	cardscheduleDescReviewed := cardscheduleFields[1].Descriptor()
+	// cardschedule.DefaultReviewed holds the default value on creation for the reviewed field.
+	cardschedule.DefaultReviewed = cardscheduleDescReviewed.Default.(bool)
 	userMixin := schema.User{}.Mixin()
 	userMixinFields0 := userMixin[0].Fields()
 	userFields := schema.User{}.Fields()

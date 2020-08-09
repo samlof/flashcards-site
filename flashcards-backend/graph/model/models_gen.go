@@ -10,11 +10,17 @@ import (
 )
 
 type CardLog struct {
-	CreateTime   time.Time  `json:"createTime"`
-	ID           string     `json:"id"`
-	Word         *Word      `json:"word"`
-	ScheduledFor time.Time  `json:"scheduledFor"`
-	LastResult   CardResult `json:"lastResult"`
+	CreateTime time.Time  `json:"createTime"`
+	ID         string     `json:"id"`
+	Word       *Word      `json:"word"`
+	LastResult CardResult `json:"lastResult"`
+}
+
+type CardSchedule struct {
+	CreateTime   time.Time `json:"createTime"`
+	ID           string    `json:"id"`
+	Word         *Word     `json:"word"`
+	ScheduledFor time.Time `json:"scheduledFor"`
 }
 
 type CardStatus struct {
@@ -30,8 +36,7 @@ type NewWord struct {
 }
 
 type ScheduledWordsResponse struct {
-	Reviews  []*CardLog `json:"reviews"`
-	NewWords []*Word    `json:"newWords"`
+	Cards []*Word `json:"cards"`
 }
 
 type UpdateWord struct {
@@ -58,17 +63,19 @@ const (
 	CardResultGood    CardResult = "Good"
 	CardResultAverage CardResult = "Average"
 	CardResultBad     CardResult = "Bad"
+	CardResultRetry   CardResult = "Retry"
 )
 
 var AllCardResult = []CardResult{
 	CardResultGood,
 	CardResultAverage,
 	CardResultBad,
+	CardResultRetry,
 }
 
 func (e CardResult) IsValid() bool {
 	switch e {
-	case CardResultGood, CardResultAverage, CardResultBad:
+	case CardResultGood, CardResultAverage, CardResultBad, CardResultRetry:
 		return true
 	}
 	return false

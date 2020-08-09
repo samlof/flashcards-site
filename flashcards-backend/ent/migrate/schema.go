@@ -12,9 +12,7 @@ var (
 	CardLogsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "create_time", Type: field.TypeTime},
-		{Name: "result", Type: field.TypeEnum, Enums: []string{"average", "bad", "good"}},
-		{Name: "scheduled_for", Type: field.TypeTime},
-		{Name: "reviewed", Type: field.TypeBool},
+		{Name: "result", Type: field.TypeEnum, Enums: []string{"average", "bad", "good", "retry"}},
 		{Name: "card_log_card", Type: field.TypeInt, Nullable: true},
 		{Name: "user_card_logs", Type: field.TypeInt, Nullable: true},
 	}
@@ -26,14 +24,45 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:  "card_logs_words_card",
-				Columns: []*schema.Column{CardLogsColumns[5]},
+				Columns: []*schema.Column{CardLogsColumns[3]},
 
 				RefColumns: []*schema.Column{WordsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "card_logs_users_cardLogs",
-				Columns: []*schema.Column{CardLogsColumns[6]},
+				Columns: []*schema.Column{CardLogsColumns[4]},
+
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// CardSchedulesColumns holds the columns for the "card_schedules" table.
+	CardSchedulesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "scheduled_for", Type: field.TypeTime},
+		{Name: "reviewed", Type: field.TypeBool},
+		{Name: "card_schedule_card", Type: field.TypeInt, Nullable: true},
+		{Name: "user_card_schedules", Type: field.TypeInt, Nullable: true},
+	}
+	// CardSchedulesTable holds the schema information for the "card_schedules" table.
+	CardSchedulesTable = &schema.Table{
+		Name:       "card_schedules",
+		Columns:    CardSchedulesColumns,
+		PrimaryKey: []*schema.Column{CardSchedulesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:  "card_schedules_words_card",
+				Columns: []*schema.Column{CardSchedulesColumns[4]},
+
+				RefColumns: []*schema.Column{WordsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:  "card_schedules_users_CardSchedules",
+				Columns: []*schema.Column{CardSchedulesColumns[5]},
 
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
@@ -74,6 +103,7 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		CardLogsTable,
+		CardSchedulesTable,
 		UsersTable,
 		WordsTable,
 	}
@@ -82,4 +112,6 @@ var (
 func init() {
 	CardLogsTable.ForeignKeys[0].RefTable = WordsTable
 	CardLogsTable.ForeignKeys[1].RefTable = UsersTable
+	CardSchedulesTable.ForeignKeys[0].RefTable = WordsTable
+	CardSchedulesTable.ForeignKeys[1].RefTable = UsersTable
 }

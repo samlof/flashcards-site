@@ -2,19 +2,25 @@ enum CardResult {
   Good
   Average
   Bad
+  Retry
 }
 
 type CardLog {
   createTime: Time!
   id: ID!
   word: Word!
-  scheduledFor: Time!
   lastResult: CardResult!
 }
 
+type CardSchedule {
+  createTime: Time!
+  id: ID!
+  word: Word!
+  scheduledFor: Time!
+}
+
 type ScheduledWordsResponse {
-  reviews: [CardLog!]!
-  newWords: [Word!]!
+  cards: [Word!]!
 }
 extend type Query {
   scheduledWords(newWordCount: Int): ScheduledWordsResponse!

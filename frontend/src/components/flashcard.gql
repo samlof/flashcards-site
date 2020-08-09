@@ -1,21 +1,11 @@
 query FlashcardPage($newWordCount: Int!) {
   scheduledWords(newWordCount: $newWordCount) {
-    newWords {
+    cards {
       id
       lang1
       lang2
       word1
       word2
-    }
-    reviews {
-      id
-      word {
-        id
-        lang1
-        lang2
-        word1
-        word2
-      }
     }
   }
 }

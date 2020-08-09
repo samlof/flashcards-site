@@ -5,6 +5,7 @@ package ent
 import (
 	"context"
 	"flashcards-backend/ent/cardlog"
+	"flashcards-backend/ent/cardschedule"
 	"flashcards-backend/ent/predicate"
 	"flashcards-backend/ent/word"
 	"fmt"
@@ -55,6 +56,21 @@ func (wu *WordUpdate) AddCardLogs(c ...*CardLog) *WordUpdate {
 	return wu.AddCardLogIDs(ids...)
 }
 
+// AddCardScheduleIDs adds the cardSchedules edge to CardSchedule by ids.
+func (wu *WordUpdate) AddCardScheduleIDs(ids ...int) *WordUpdate {
+	wu.mutation.AddCardScheduleIDs(ids...)
+	return wu
+}
+
+// AddCardSchedules adds the cardSchedules edges to CardSchedule.
+func (wu *WordUpdate) AddCardSchedules(c ...*CardSchedule) *WordUpdate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return wu.AddCardScheduleIDs(ids...)
+}
+
 // Mutation returns the WordMutation object of the builder.
 func (wu *WordUpdate) Mutation() *WordMutation {
 	return wu.mutation
@@ -73,6 +89,21 @@ func (wu *WordUpdate) RemoveCardLogs(c ...*CardLog) *WordUpdate {
 		ids[i] = c[i].ID
 	}
 	return wu.RemoveCardLogIDs(ids...)
+}
+
+// RemoveCardScheduleIDs removes the cardSchedules edge to CardSchedule by ids.
+func (wu *WordUpdate) RemoveCardScheduleIDs(ids ...int) *WordUpdate {
+	wu.mutation.RemoveCardScheduleIDs(ids...)
+	return wu
+}
+
+// RemoveCardSchedules removes cardSchedules edges to CardSchedule.
+func (wu *WordUpdate) RemoveCardSchedules(c ...*CardSchedule) *WordUpdate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return wu.RemoveCardScheduleIDs(ids...)
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
@@ -218,6 +249,44 @@ func (wu *WordUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if nodes := wu.mutation.RemovedCardSchedulesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   word.CardSchedulesTable,
+			Columns: []string{word.CardSchedulesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: cardschedule.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wu.mutation.CardSchedulesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   word.CardSchedulesTable,
+			Columns: []string{word.CardSchedulesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: cardschedule.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, wu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{word.Label}
@@ -263,6 +332,21 @@ func (wuo *WordUpdateOne) AddCardLogs(c ...*CardLog) *WordUpdateOne {
 	return wuo.AddCardLogIDs(ids...)
 }
 
+// AddCardScheduleIDs adds the cardSchedules edge to CardSchedule by ids.
+func (wuo *WordUpdateOne) AddCardScheduleIDs(ids ...int) *WordUpdateOne {
+	wuo.mutation.AddCardScheduleIDs(ids...)
+	return wuo
+}
+
+// AddCardSchedules adds the cardSchedules edges to CardSchedule.
+func (wuo *WordUpdateOne) AddCardSchedules(c ...*CardSchedule) *WordUpdateOne {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return wuo.AddCardScheduleIDs(ids...)
+}
+
 // Mutation returns the WordMutation object of the builder.
 func (wuo *WordUpdateOne) Mutation() *WordMutation {
 	return wuo.mutation
@@ -281,6 +365,21 @@ func (wuo *WordUpdateOne) RemoveCardLogs(c ...*CardLog) *WordUpdateOne {
 		ids[i] = c[i].ID
 	}
 	return wuo.RemoveCardLogIDs(ids...)
+}
+
+// RemoveCardScheduleIDs removes the cardSchedules edge to CardSchedule by ids.
+func (wuo *WordUpdateOne) RemoveCardScheduleIDs(ids ...int) *WordUpdateOne {
+	wuo.mutation.RemoveCardScheduleIDs(ids...)
+	return wuo
+}
+
+// RemoveCardSchedules removes cardSchedules edges to CardSchedule.
+func (wuo *WordUpdateOne) RemoveCardSchedules(c ...*CardSchedule) *WordUpdateOne {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return wuo.RemoveCardScheduleIDs(ids...)
 }
 
 // Save executes the query and returns the updated entity.
@@ -416,6 +515,44 @@ func (wuo *WordUpdateOne) sqlSave(ctx context.Context) (w *Word, err error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: cardlog.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if nodes := wuo.mutation.RemovedCardSchedulesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   word.CardSchedulesTable,
+			Columns: []string{word.CardSchedulesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: cardschedule.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wuo.mutation.CardSchedulesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   word.CardSchedulesTable,
+			Columns: []string{word.CardSchedulesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: cardschedule.FieldID,
 				},
 			},
 		}

@@ -34,5 +34,6 @@ func (Word) Fields() []ent.Field {
 func (Word) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("cardLogs", CardLog.Type).Ref("card"),
+		edge.From("cardSchedules", CardSchedule.Type).Ref("card"),
 	}
 }

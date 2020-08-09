@@ -18,6 +18,8 @@ func cardResult(res cardlog.Result) model.CardResult {
 		return model.CardResultBad
 	case cardlog.ResultGood:
 		return model.CardResultGood
+	case cardlog.ResultRetry:
+		return model.CardResultRetry
 	}
 	panic(fmt.Sprintf("Not supported cardlogResult: %v", res))
 }
@@ -31,6 +33,8 @@ func ModelCardResult(res model.CardResult) cardlog.Result {
 		return cardlog.ResultBad
 	case model.CardResultGood:
 		return cardlog.ResultGood
+	case model.CardResultRetry:
+		return cardlog.ResultRetry
 	}
 	panic(fmt.Sprintf("Not supported cardlogResult: %v", res))
 }
@@ -41,11 +45,10 @@ func CardLog(log *ent.CardLog) *model.CardLog {
 		return nil
 	}
 	return &model.CardLog{
-		ID:           strconv.Itoa(log.ID),
-		LastResult:   cardResult(log.Result),
-		Word:         Word(log.Edges.Card),
-		CreateTime:   log.CreateTime,
-		ScheduledFor: log.ScheduledFor,
+		ID:         strconv.Itoa(log.ID),
+		LastResult: cardResult(log.Result),
+		Word:       Word(log.Edges.Card),
+		CreateTime: log.CreateTime,
 	}
 }
 
