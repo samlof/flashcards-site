@@ -39,12 +39,20 @@ type ScheduledWordsResponse struct {
 	Cards []*Word `json:"cards"`
 }
 
+type SetSettings struct {
+	NewCardsPerDay int `json:"newCardsPerDay"`
+}
+
 type UpdateWord struct {
 	ID    string `json:"id"`
 	Lang1 string `json:"lang1"`
 	Lang2 string `json:"lang2"`
 	Word1 string `json:"word1"`
 	Word2 string `json:"word2"`
+}
+
+type UserSettings struct {
+	NewCardsPerDay int `json:"newCardsPerDay"`
 }
 
 type Word struct {
@@ -60,22 +68,22 @@ type Word struct {
 type CardResult string
 
 const (
-	CardResultGood    CardResult = "Good"
-	CardResultAverage CardResult = "Average"
-	CardResultBad     CardResult = "Bad"
-	CardResultRetry   CardResult = "Retry"
+	CardResultEasy  CardResult = "Easy"
+	CardResultGood  CardResult = "Good"
+	CardResultBad   CardResult = "Bad"
+	CardResultRetry CardResult = "Retry"
 )
 
 var AllCardResult = []CardResult{
+	CardResultEasy,
 	CardResultGood,
-	CardResultAverage,
 	CardResultBad,
 	CardResultRetry,
 }
 
 func (e CardResult) IsValid() bool {
 	switch e {
-	case CardResultGood, CardResultAverage, CardResultBad, CardResultRetry:
+	case CardResultEasy, CardResultGood, CardResultBad, CardResultRetry:
 		return true
 	}
 	return false

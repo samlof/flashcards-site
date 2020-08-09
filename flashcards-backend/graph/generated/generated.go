@@ -59,19 +59,25 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		CardStatus func(childComplexity int, input model.CardStatus) int
-		CreateWord func(childComplexity int, input model.NewWord) int
-		DeleteWord func(childComplexity int, id string) int
-		UpdateWord func(childComplexity int, input model.UpdateWord) int
+		CardStatus  func(childComplexity int, input model.CardStatus) int
+		CreateWord  func(childComplexity int, input model.NewWord) int
+		DeleteWord  func(childComplexity int, id string) int
+		SetSettings func(childComplexity int, input model.SetSettings) int
+		UpdateWord  func(childComplexity int, input model.UpdateWord) int
 	}
 
 	Query struct {
 		GetWords       func(childComplexity int) int
-		ScheduledWords func(childComplexity int, newWordCount *int) int
+		ScheduledWords func(childComplexity int) int
+		UserSettings   func(childComplexity int) int
 	}
 
 	ScheduledWordsResponse struct {
 		Cards func(childComplexity int) int
+	}
+
+	UserSettings struct {
+		NewCardsPerDay func(childComplexity int) int
 	}
 
 	Word struct {
@@ -87,12 +93,14 @@ type ComplexityRoot struct {
 
 type MutationResolver interface {
 	CardStatus(ctx context.Context, input model.CardStatus) (*model.CardLog, error)
+	SetSettings(ctx context.Context, input model.SetSettings) (*model.UserSettings, error)
 	CreateWord(ctx context.Context, input model.NewWord) (*model.Word, error)
 	DeleteWord(ctx context.Context, id string) (string, error)
 	UpdateWord(ctx context.Context, input model.UpdateWord) (*model.Word, error)
 }
 type QueryResolver interface {
-	ScheduledWords(ctx context.Context, newWordCount *int) (*model.ScheduledWordsResponse, error)
+	ScheduledWords(ctx context.Context) (*model.ScheduledWordsResponse, error)
+	UserSettings(ctx context.Context) (*model.UserSettings, error)
 	GetWords(ctx context.Context) ([]*model.Word, error)
 }
 
@@ -203,6 +211,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DeleteWord(childComplexity, args["id"].(string)), true
 
+	case "Mutation.setSettings":
+		if e.complexity.Mutation.SetSettings == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_setSettings_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SetSettings(childComplexity, args["input"].(model.SetSettings)), true
+
 	case "Mutation.updateWord":
 		if e.complexity.Mutation.UpdateWord == nil {
 			break
@@ -227,12 +247,14 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		args, err := ec.field_Query_scheduledWords_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
+		return e.complexity.Query.ScheduledWords(childComplexity), true
+
+	case "Query.userSettings":
+		if e.complexity.Query.UserSettings == nil {
+			break
 		}
 
-		return e.complexity.Query.ScheduledWords(childComplexity, args["newWordCount"].(*int)), true
+		return e.complexity.Query.UserSettings(childComplexity), true
 
 	case "ScheduledWordsResponse.cards":
 		if e.complexity.ScheduledWordsResponse.Cards == nil {
@@ -240,6 +262,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ScheduledWordsResponse.Cards(childComplexity), true
+
+	case "UserSettings.newCardsPerDay":
+		if e.complexity.UserSettings.NewCardsPerDay == nil {
+			break
+		}
+
+		return e.complexity.UserSettings.NewCardsPerDay(childComplexity), true
 
 	case "Word.createTime":
 		if e.complexity.Word.CreateTime == nil {
@@ -355,8 +384,8 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 
 var sources = []*ast.Source{
 	&ast.Source{Name: "graph/card.graphqls", Input: `enum CardResult {
+  Easy
   Good
-  Average
   Bad
   Retry
 }
@@ -379,7 +408,7 @@ type ScheduledWordsResponse {
   cards: [Word!]!
 }
 extend type Query {
-  scheduledWords(newWordCount: Int): ScheduledWordsResponse!
+  scheduledWords: ScheduledWordsResponse!
 }
 
 input CardStatus {
@@ -389,6 +418,21 @@ input CardStatus {
 
 extend type Mutation {
   cardStatus(input: CardStatus!): CardLog!
+}
+`, BuiltIn: false},
+	&ast.Source{Name: "graph/usersettings.graphqls", Input: `type UserSettings {
+  newCardsPerDay: Int!
+}
+extend type Query {
+  userSettings: UserSettings!
+}
+
+input SetSettings {
+  newCardsPerDay: Int!
+}
+
+extend type Mutation {
+  setSettings(input: SetSettings!): UserSettings!
 }
 `, BuiltIn: false},
 	&ast.Source{Name: "graph/utils.graphqls", Input: `scalar Time
@@ -477,6 +521,20 @@ func (ec *executionContext) field_Mutation_deleteWord_args(ctx context.Context, 
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_setSettings_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.SetSettings
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNSetSettings2flashcardsᚑbackendᚋgraphᚋmodelᚐSetSettings(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_updateWord_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -502,20 +560,6 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		}
 	}
 	args["name"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_scheduledWords_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *int
-	if tmp, ok := rawArgs["newWordCount"]; ok {
-		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["newWordCount"] = arg0
 	return args, nil
 }
 
@@ -868,6 +912,47 @@ func (ec *executionContext) _Mutation_cardStatus(ctx context.Context, field grap
 	return ec.marshalNCardLog2ᚖflashcardsᚑbackendᚋgraphᚋmodelᚐCardLog(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_setSettings(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_setSettings_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().SetSettings(rctx, args["input"].(model.SetSettings))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.UserSettings)
+	fc.Result = res
+	return ec.marshalNUserSettings2ᚖflashcardsᚑbackendᚋgraphᚋmodelᚐUserSettings(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_createWord(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -1006,16 +1091,9 @@ func (ec *executionContext) _Query_scheduledWords(ctx context.Context, field gra
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_scheduledWords_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ScheduledWords(rctx, args["newWordCount"].(*int))
+		return ec.resolvers.Query().ScheduledWords(rctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1030,6 +1108,40 @@ func (ec *executionContext) _Query_scheduledWords(ctx context.Context, field gra
 	res := resTmp.(*model.ScheduledWordsResponse)
 	fc.Result = res
 	return ec.marshalNScheduledWordsResponse2ᚖflashcardsᚑbackendᚋgraphᚋmodelᚐScheduledWordsResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_userSettings(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().UserSettings(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.UserSettings)
+	fc.Result = res
+	return ec.marshalNUserSettings2ᚖflashcardsᚑbackendᚋgraphᚋmodelᚐUserSettings(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_getWords(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1167,6 +1279,40 @@ func (ec *executionContext) _ScheduledWordsResponse_cards(ctx context.Context, f
 	res := resTmp.([]*model.Word)
 	fc.Result = res
 	return ec.marshalNWord2ᚕᚖflashcardsᚑbackendᚋgraphᚋmodelᚐWordᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserSettings_newCardsPerDay(ctx context.Context, field graphql.CollectedField, obj *model.UserSettings) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UserSettings",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.NewCardsPerDay, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Word_id(ctx context.Context, field graphql.CollectedField, obj *model.Word) (ret graphql.Marshaler) {
@@ -2522,6 +2668,24 @@ func (ec *executionContext) unmarshalInputNewWord(ctx context.Context, obj inter
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputSetSettings(ctx context.Context, obj interface{}) (model.SetSettings, error) {
+	var it model.SetSettings
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "newCardsPerDay":
+			var err error
+			it.NewCardsPerDay, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputUpdateWord(ctx context.Context, obj interface{}) (model.UpdateWord, error) {
 	var it model.UpdateWord
 	var asMap = obj.(map[string]interface{})
@@ -2676,6 +2840,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "setSettings":
+			out.Values[i] = ec._Mutation_setSettings(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "createWord":
 			out.Values[i] = ec._Mutation_createWord(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -2731,6 +2900,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
+		case "userSettings":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_userSettings(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "getWords":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -2773,6 +2956,33 @@ func (ec *executionContext) _ScheduledWordsResponse(ctx context.Context, sel ast
 			out.Values[i] = graphql.MarshalString("ScheduledWordsResponse")
 		case "cards":
 			out.Values[i] = ec._ScheduledWordsResponse_cards(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var userSettingsImplementors = []string{"UserSettings"}
+
+func (ec *executionContext) _UserSettings(ctx context.Context, sel ast.SelectionSet, obj *model.UserSettings) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, userSettingsImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UserSettings")
+		case "newCardsPerDay":
+			out.Values[i] = ec._UserSettings_newCardsPerDay(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -3144,6 +3354,20 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 	return res
 }
 
+func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
+	return graphql.UnmarshalInt(v)
+}
+
+func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
+	res := graphql.MarshalInt(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
+}
+
 func (ec *executionContext) unmarshalNNewWord2flashcardsᚑbackendᚋgraphᚋmodelᚐNewWord(ctx context.Context, v interface{}) (model.NewWord, error) {
 	return ec.unmarshalInputNewWord(ctx, v)
 }
@@ -3160,6 +3384,10 @@ func (ec *executionContext) marshalNScheduledWordsResponse2ᚖflashcardsᚑbacke
 		return graphql.Null
 	}
 	return ec._ScheduledWordsResponse(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNSetSettings2flashcardsᚑbackendᚋgraphᚋmodelᚐSetSettings(ctx context.Context, v interface{}) (model.SetSettings, error) {
+	return ec.unmarshalInputSetSettings(ctx, v)
 }
 
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
@@ -3192,6 +3420,20 @@ func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel as
 
 func (ec *executionContext) unmarshalNUpdateWord2flashcardsᚑbackendᚋgraphᚋmodelᚐUpdateWord(ctx context.Context, v interface{}) (model.UpdateWord, error) {
 	return ec.unmarshalInputUpdateWord(ctx, v)
+}
+
+func (ec *executionContext) marshalNUserSettings2flashcardsᚑbackendᚋgraphᚋmodelᚐUserSettings(ctx context.Context, sel ast.SelectionSet, v model.UserSettings) graphql.Marshaler {
+	return ec._UserSettings(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNUserSettings2ᚖflashcardsᚑbackendᚋgraphᚋmodelᚐUserSettings(ctx context.Context, sel ast.SelectionSet, v *model.UserSettings) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._UserSettings(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNWord2flashcardsᚑbackendᚋgraphᚋmodelᚐWord(ctx context.Context, sel ast.SelectionSet, v model.Word) graphql.Marshaler {
@@ -3492,29 +3734,6 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 		return graphql.Null
 	}
 	return ec.marshalOBoolean2bool(ctx, sel, *v)
-}
-
-func (ec *executionContext) unmarshalOInt2int(ctx context.Context, v interface{}) (int, error) {
-	return graphql.UnmarshalInt(v)
-}
-
-func (ec *executionContext) marshalOInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
-	return graphql.MarshalInt(v)
-}
-
-func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v interface{}) (*int, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalOInt2int(ctx, v)
-	return &res, err
-}
-
-func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.SelectionSet, v *int) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec.marshalOInt2int(ctx, sel, *v)
 }
 
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {

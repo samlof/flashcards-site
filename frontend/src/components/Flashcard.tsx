@@ -42,9 +42,7 @@ const Flashcard = ({}: Props) => {
   const [cardVisible, setVisible] = React.useState(true);
   const [animationName, setAnimationName] = React.useState("card-in-out");
 
-  const { loading, error, data } = useFlashcardPageQuery({
-    variables: { newWordCount: 10 },
-  });
+  const { loading, error, data } = useFlashcardPageQuery();
   const [
     setCardState,
     { loading: loadingCardState },
@@ -99,14 +97,11 @@ const Flashcard = ({}: Props) => {
       <div style={{ height: "2rem" }}></div>
       <span style={{ minWidth: "5rem" }}>Left: {words.length}</span>
       <ButtonDiv>
+        <DirButton type="button" onClick={(e) => handleClick(CardResult.Easy)}>
+          Easy
+        </DirButton>
         <DirButton type="button" onClick={(e) => handleClick(CardResult.Good)}>
           Good
-        </DirButton>
-        <DirButton
-          type="button"
-          onClick={(e) => handleClick(CardResult.Average)}
-        >
-          Average
         </DirButton>
         <DirButton type="button" onClick={(e) => handleClick(CardResult.Bad)}>
           Bad

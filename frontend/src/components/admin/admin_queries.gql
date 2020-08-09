@@ -19,3 +19,15 @@ mutation EditWord($id: ID!, $word1: String!, $word2: String!) {
     id
   }
 }
+
+query UserSettings {
+  userSettings {
+    newCardsPerDay
+  }
+}
+
+mutation SetUserSettings($cardsPerDay: Int!) {
+  setSettings(input: { newCardsPerDay: $cardsPerDay }) {
+    newCardsPerDay
+  }
+}

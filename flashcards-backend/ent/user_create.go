@@ -8,6 +8,7 @@ import (
 	"flashcards-backend/ent/cardlog"
 	"flashcards-backend/ent/cardschedule"
 	"flashcards-backend/ent/user"
+	"flashcards-backend/ent/usersettings"
 	"fmt"
 	"time"
 
@@ -84,6 +85,21 @@ func (uc *UserCreate) AddCardSchedules(c ...*CardSchedule) *UserCreate {
 		ids[i] = c[i].ID
 	}
 	return uc.AddCardScheduleIDs(ids...)
+}
+
+// AddSettingIDs adds the Settings edge to UserSettings by ids.
+func (uc *UserCreate) AddSettingIDs(ids ...int) *UserCreate {
+	uc.mutation.AddSettingIDs(ids...)
+	return uc
+}
+
+// AddSettings adds the Settings edges to UserSettings.
+func (uc *UserCreate) AddSettings(u ...*UserSettings) *UserCreate {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return uc.AddSettingIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -230,6 +246,25 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: cardschedule.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.SettingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.SettingsTable,
+			Columns: []string{user.SettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: usersettings.FieldID,
 				},
 			},
 		}

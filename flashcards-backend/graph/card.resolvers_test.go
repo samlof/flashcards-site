@@ -23,7 +23,7 @@ func TestCardStatus(t *testing.T) {
 	}
 	cardStatus := model.CardStatus{
 		CardID: word.ID,
-		Result: model.CardResultAverage,
+		Result: model.CardResultGood,
 	}
 	ret, err := resolver.Mutation().CardStatus(ctx, cardStatus)
 	if err != nil {

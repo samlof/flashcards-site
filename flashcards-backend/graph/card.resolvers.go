@@ -79,7 +79,7 @@ func (r *mutationResolver) CardStatus(ctx context.Context, input model.CardStatu
 	return modelconv.CardLog(cardLog), nil
 }
 
-func (r *queryResolver) ScheduledWords(ctx context.Context, newWordCount *int) (*model.ScheduledWordsResponse, error) {
+func (r *queryResolver) ScheduledWords(ctx context.Context) (*model.ScheduledWordsResponse, error) {
 	// Get cards scheduled for review
 	scheduledCards, err := r.DB.CardSchedule.Query().
 		WithCard().
@@ -99,8 +99,15 @@ func (r *queryResolver) ScheduledWords(ctx context.Context, newWordCount *int) (
 		Cards: cards,
 	}
 
+	// Get settings to find how many cards a day
+	settings, err := r.DB.UserSettings.Query().First(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("getting settings: %v", err)
+	}
+
 	// If no new words wanted, return here
-	if newWordCount == nil {
+	newWordCount := settings.NewCardsPerDay
+	if newWordCount == 0 {
 		return ret, nil
 	}
 
@@ -134,16 +141,16 @@ func (r *queryResolver) ScheduledWords(ctx context.Context, newWordCount *int) (
 		for _, count := range idCounts {
 			// If card has been done only once, it was a new card
 			if count == 1 {
-				*newWordCount--
+				newWordCount--
 			}
 		}
 	}
-	log.Printf("Getting %v new words", *newWordCount)
-	if *newWordCount > 0 {
+	log.Printf("Getting %v new words", newWordCount)
+	if newWordCount > 0 {
 		// Get new cards
 		newWords, err := r.DB.Word.Query().
 			Where(word.Not(word.HasCardLogs())).
-			Limit(*newWordCount).
+			Limit(newWordCount).
 			All(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("getting new words: %v", err)

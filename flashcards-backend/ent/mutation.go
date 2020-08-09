@@ -7,6 +7,7 @@ import (
 	"flashcards-backend/ent/cardlog"
 	"flashcards-backend/ent/cardschedule"
 	"flashcards-backend/ent/user"
+	"flashcards-backend/ent/usersettings"
 	"flashcards-backend/ent/word"
 	"fmt"
 	"sync"
@@ -27,6 +28,7 @@ const (
 	TypeCardLog      = "CardLog"
 	TypeCardSchedule = "CardSchedule"
 	TypeUser         = "User"
+	TypeUserSettings = "UserSettings"
 	TypeWord         = "Word"
 )
 
@@ -1107,6 +1109,8 @@ type UserMutation struct {
 	removedcardLogs       map[int]struct{}
 	_CardSchedules        map[int]struct{}
 	removed_CardSchedules map[int]struct{}
+	_Settings             map[int]struct{}
+	removed_Settings      map[int]struct{}
 	done                  bool
 	oldValue              func(context.Context) (*User, error)
 }
@@ -1385,6 +1389,48 @@ func (m *UserMutation) ResetCardSchedules() {
 	m.removed_CardSchedules = nil
 }
 
+// AddSettingIDs adds the Settings edge to UserSettings by ids.
+func (m *UserMutation) AddSettingIDs(ids ...int) {
+	if m._Settings == nil {
+		m._Settings = make(map[int]struct{})
+	}
+	for i := range ids {
+		m._Settings[ids[i]] = struct{}{}
+	}
+}
+
+// RemoveSettingIDs removes the Settings edge to UserSettings by ids.
+func (m *UserMutation) RemoveSettingIDs(ids ...int) {
+	if m.removed_Settings == nil {
+		m.removed_Settings = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removed_Settings[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedSettings returns the removed ids of Settings.
+func (m *UserMutation) RemovedSettingsIDs() (ids []int) {
+	for id := range m.removed_Settings {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// SettingsIDs returns the Settings ids in the mutation.
+func (m *UserMutation) SettingsIDs() (ids []int) {
+	for id := range m._Settings {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetSettings reset all changes of the "Settings" edge.
+func (m *UserMutation) ResetSettings() {
+	m._Settings = nil
+	m.removed_Settings = nil
+}
+
 // Op returns the operation name.
 func (m *UserMutation) Op() Op {
 	return m.op
@@ -1534,12 +1580,15 @@ func (m *UserMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this
 // mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.cardLogs != nil {
 		edges = append(edges, user.EdgeCardLogs)
 	}
 	if m._CardSchedules != nil {
 		edges = append(edges, user.EdgeCardSchedules)
+	}
+	if m._Settings != nil {
+		edges = append(edges, user.EdgeSettings)
 	}
 	return edges
 }
@@ -1560,6 +1609,12 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeSettings:
+		ids := make([]ent.Value, 0, len(m._Settings))
+		for id := range m._Settings {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
@@ -1567,12 +1622,15 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this
 // mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.removedcardLogs != nil {
 		edges = append(edges, user.EdgeCardLogs)
 	}
 	if m.removed_CardSchedules != nil {
 		edges = append(edges, user.EdgeCardSchedules)
+	}
+	if m.removed_Settings != nil {
+		edges = append(edges, user.EdgeSettings)
 	}
 	return edges
 }
@@ -1593,6 +1651,12 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeSettings:
+		ids := make([]ent.Value, 0, len(m.removed_Settings))
+		for id := range m.removed_Settings {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
@@ -1600,7 +1664,7 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this
 // mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	return edges
 }
 
@@ -1631,8 +1695,519 @@ func (m *UserMutation) ResetEdge(name string) error {
 	case user.EdgeCardSchedules:
 		m.ResetCardSchedules()
 		return nil
+	case user.EdgeSettings:
+		m.ResetSettings()
+		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)
+}
+
+// UserSettingsMutation represents an operation that mutate the UserSettingsSlice
+// nodes in the graph.
+type UserSettingsMutation struct {
+	config
+	op                Op
+	typ               string
+	id                *int
+	create_time       *time.Time
+	update_time       *time.Time
+	newCardsPerDay    *int
+	addnewCardsPerDay *int
+	clearedFields     map[string]struct{}
+	user              *int
+	cleareduser       bool
+	done              bool
+	oldValue          func(context.Context) (*UserSettings, error)
+}
+
+var _ ent.Mutation = (*UserSettingsMutation)(nil)
+
+// usersettingsOption allows to manage the mutation configuration using functional options.
+type usersettingsOption func(*UserSettingsMutation)
+
+// newUserSettingsMutation creates new mutation for $n.Name.
+func newUserSettingsMutation(c config, op Op, opts ...usersettingsOption) *UserSettingsMutation {
+	m := &UserSettingsMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeUserSettings,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withUserSettingsID sets the id field of the mutation.
+func withUserSettingsID(id int) usersettingsOption {
+	return func(m *UserSettingsMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *UserSettings
+		)
+		m.oldValue = func(ctx context.Context) (*UserSettings, error) {
+			once.Do(func() {
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().UserSettings.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withUserSettings sets the old UserSettings of the mutation.
+func withUserSettings(node *UserSettings) usersettingsOption {
+	return func(m *UserSettingsMutation) {
+		m.oldValue = func(context.Context) (*UserSettings, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m UserSettingsMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m UserSettingsMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, fmt.Errorf("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the id value in the mutation. Note that, the id
+// is available only if it was provided to the builder.
+func (m *UserSettingsMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// SetCreateTime sets the create_time field.
+func (m *UserSettingsMutation) SetCreateTime(t time.Time) {
+	m.create_time = &t
+}
+
+// CreateTime returns the create_time value in the mutation.
+func (m *UserSettingsMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.create_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreateTime returns the old create_time value of the UserSettings.
+// If the UserSettings object wasn't provided to the builder, the object is fetched
+// from the database.
+// An error is returned if the mutation operation is not UpdateOne, or database query fails.
+func (m *UserSettingsMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldCreateTime is allowed only on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldCreateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
+	}
+	return oldValue.CreateTime, nil
+}
+
+// ResetCreateTime reset all changes of the "create_time" field.
+func (m *UserSettingsMutation) ResetCreateTime() {
+	m.create_time = nil
+}
+
+// SetUpdateTime sets the update_time field.
+func (m *UserSettingsMutation) SetUpdateTime(t time.Time) {
+	m.update_time = &t
+}
+
+// UpdateTime returns the update_time value in the mutation.
+func (m *UserSettingsMutation) UpdateTime() (r time.Time, exists bool) {
+	v := m.update_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdateTime returns the old update_time value of the UserSettings.
+// If the UserSettings object wasn't provided to the builder, the object is fetched
+// from the database.
+// An error is returned if the mutation operation is not UpdateOne, or database query fails.
+func (m *UserSettingsMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldUpdateTime is allowed only on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldUpdateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
+	}
+	return oldValue.UpdateTime, nil
+}
+
+// ResetUpdateTime reset all changes of the "update_time" field.
+func (m *UserSettingsMutation) ResetUpdateTime() {
+	m.update_time = nil
+}
+
+// SetNewCardsPerDay sets the newCardsPerDay field.
+func (m *UserSettingsMutation) SetNewCardsPerDay(i int) {
+	m.newCardsPerDay = &i
+	m.addnewCardsPerDay = nil
+}
+
+// NewCardsPerDay returns the newCardsPerDay value in the mutation.
+func (m *UserSettingsMutation) NewCardsPerDay() (r int, exists bool) {
+	v := m.newCardsPerDay
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNewCardsPerDay returns the old newCardsPerDay value of the UserSettings.
+// If the UserSettings object wasn't provided to the builder, the object is fetched
+// from the database.
+// An error is returned if the mutation operation is not UpdateOne, or database query fails.
+func (m *UserSettingsMutation) OldNewCardsPerDay(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldNewCardsPerDay is allowed only on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldNewCardsPerDay requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNewCardsPerDay: %w", err)
+	}
+	return oldValue.NewCardsPerDay, nil
+}
+
+// AddNewCardsPerDay adds i to newCardsPerDay.
+func (m *UserSettingsMutation) AddNewCardsPerDay(i int) {
+	if m.addnewCardsPerDay != nil {
+		*m.addnewCardsPerDay += i
+	} else {
+		m.addnewCardsPerDay = &i
+	}
+}
+
+// AddedNewCardsPerDay returns the value that was added to the newCardsPerDay field in this mutation.
+func (m *UserSettingsMutation) AddedNewCardsPerDay() (r int, exists bool) {
+	v := m.addnewCardsPerDay
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetNewCardsPerDay reset all changes of the "newCardsPerDay" field.
+func (m *UserSettingsMutation) ResetNewCardsPerDay() {
+	m.newCardsPerDay = nil
+	m.addnewCardsPerDay = nil
+}
+
+// SetUserID sets the user edge to User by id.
+func (m *UserSettingsMutation) SetUserID(id int) {
+	m.user = &id
+}
+
+// ClearUser clears the user edge to User.
+func (m *UserSettingsMutation) ClearUser() {
+	m.cleareduser = true
+}
+
+// UserCleared returns if the edge user was cleared.
+func (m *UserSettingsMutation) UserCleared() bool {
+	return m.cleareduser
+}
+
+// UserID returns the user id in the mutation.
+func (m *UserSettingsMutation) UserID() (id int, exists bool) {
+	if m.user != nil {
+		return *m.user, true
+	}
+	return
+}
+
+// UserIDs returns the user ids in the mutation.
+// Note that ids always returns len(ids) <= 1 for unique edges, and you should use
+// UserID instead. It exists only for internal usage by the builders.
+func (m *UserSettingsMutation) UserIDs() (ids []int) {
+	if id := m.user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUser reset all changes of the "user" edge.
+func (m *UserSettingsMutation) ResetUser() {
+	m.user = nil
+	m.cleareduser = false
+}
+
+// Op returns the operation name.
+func (m *UserSettingsMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (UserSettings).
+func (m *UserSettingsMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during
+// this mutation. Note that, in order to get all numeric
+// fields that were in/decremented, call AddedFields().
+func (m *UserSettingsMutation) Fields() []string {
+	fields := make([]string, 0, 3)
+	if m.create_time != nil {
+		fields = append(fields, usersettings.FieldCreateTime)
+	}
+	if m.update_time != nil {
+		fields = append(fields, usersettings.FieldUpdateTime)
+	}
+	if m.newCardsPerDay != nil {
+		fields = append(fields, usersettings.FieldNewCardsPerDay)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name.
+// The second boolean value indicates that this field was
+// not set, or was not define in the schema.
+func (m *UserSettingsMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case usersettings.FieldCreateTime:
+		return m.CreateTime()
+	case usersettings.FieldUpdateTime:
+		return m.UpdateTime()
+	case usersettings.FieldNewCardsPerDay:
+		return m.NewCardsPerDay()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database.
+// An error is returned if the mutation operation is not UpdateOne,
+// or the query to the database was failed.
+func (m *UserSettingsMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case usersettings.FieldCreateTime:
+		return m.OldCreateTime(ctx)
+	case usersettings.FieldUpdateTime:
+		return m.OldUpdateTime(ctx)
+	case usersettings.FieldNewCardsPerDay:
+		return m.OldNewCardsPerDay(ctx)
+	}
+	return nil, fmt.Errorf("unknown UserSettings field %s", name)
+}
+
+// SetField sets the value for the given name. It returns an
+// error if the field is not defined in the schema, or if the
+// type mismatch the field type.
+func (m *UserSettingsMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case usersettings.FieldCreateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreateTime(v)
+		return nil
+	case usersettings.FieldUpdateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdateTime(v)
+		return nil
+	case usersettings.FieldNewCardsPerDay:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNewCardsPerDay(v)
+		return nil
+	}
+	return fmt.Errorf("unknown UserSettings field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented
+// or decremented during this mutation.
+func (m *UserSettingsMutation) AddedFields() []string {
+	var fields []string
+	if m.addnewCardsPerDay != nil {
+		fields = append(fields, usersettings.FieldNewCardsPerDay)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was in/decremented
+// from a field with the given name. The second value indicates
+// that this field was not set, or was not define in the schema.
+func (m *UserSettingsMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case usersettings.FieldNewCardsPerDay:
+		return m.AddedNewCardsPerDay()
+	}
+	return nil, false
+}
+
+// AddField adds the value for the given name. It returns an
+// error if the field is not defined in the schema, or if the
+// type mismatch the field type.
+func (m *UserSettingsMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case usersettings.FieldNewCardsPerDay:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddNewCardsPerDay(v)
+		return nil
+	}
+	return fmt.Errorf("unknown UserSettings numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared
+// during this mutation.
+func (m *UserSettingsMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicates if this field was
+// cleared in this mutation.
+func (m *UserSettingsMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value for the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *UserSettingsMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown UserSettings nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation regarding the
+// given field name. It returns an error if the field is not
+// defined in the schema.
+func (m *UserSettingsMutation) ResetField(name string) error {
+	switch name {
+	case usersettings.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
+	case usersettings.FieldUpdateTime:
+		m.ResetUpdateTime()
+		return nil
+	case usersettings.FieldNewCardsPerDay:
+		m.ResetNewCardsPerDay()
+		return nil
+	}
+	return fmt.Errorf("unknown UserSettings field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this
+// mutation.
+func (m *UserSettingsMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.user != nil {
+		edges = append(edges, usersettings.EdgeUser)
+	}
+	return edges
+}
+
+// AddedIDs returns all ids (to other nodes) that were added for
+// the given edge name.
+func (m *UserSettingsMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case usersettings.EdgeUser:
+		if id := m.user; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this
+// mutation.
+func (m *UserSettingsMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all ids (to other nodes) that were removed for
+// the given edge name.
+func (m *UserSettingsMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this
+// mutation.
+func (m *UserSettingsMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.cleareduser {
+		edges = append(edges, usersettings.EdgeUser)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean indicates if this edge was
+// cleared in this mutation.
+func (m *UserSettingsMutation) EdgeCleared(name string) bool {
+	switch name {
+	case usersettings.EdgeUser:
+		return m.cleareduser
+	}
+	return false
+}
+
+// ClearEdge clears the value for the given name. It returns an
+// error if the edge name is not defined in the schema.
+func (m *UserSettingsMutation) ClearEdge(name string) error {
+	switch name {
+	case usersettings.EdgeUser:
+		m.ClearUser()
+		return nil
+	}
+	return fmt.Errorf("unknown UserSettings unique edge %s", name)
+}
+
+// ResetEdge resets all changes in the mutation regarding the
+// given edge name. It returns an error if the edge is not
+// defined in the schema.
+func (m *UserSettingsMutation) ResetEdge(name string) error {
+	switch name {
+	case usersettings.EdgeUser:
+		m.ResetUser()
+		return nil
+	}
+	return fmt.Errorf("unknown UserSettings edge %s", name)
 }
 
 // WordMutation represents an operation that mutate the Words

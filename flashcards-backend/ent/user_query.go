@@ -10,6 +10,7 @@ import (
 	"flashcards-backend/ent/cardschedule"
 	"flashcards-backend/ent/predicate"
 	"flashcards-backend/ent/user"
+	"flashcards-backend/ent/usersettings"
 	"fmt"
 	"math"
 
@@ -29,6 +30,7 @@ type UserQuery struct {
 	// eager-loading edges.
 	withCardLogs      *CardLogQuery
 	withCardSchedules *CardScheduleQuery
+	withSettings      *UserSettingsQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -87,6 +89,24 @@ func (uq *UserQuery) QueryCardSchedules() *CardScheduleQuery {
 			sqlgraph.From(user.Table, user.FieldID, uq.sqlQuery()),
 			sqlgraph.To(cardschedule.Table, cardschedule.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.CardSchedulesTable, user.CardSchedulesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySettings chains the current query on the Settings edge.
+func (uq *UserQuery) QuerySettings() *UserSettingsQuery {
+	query := &UserSettingsQuery{config: uq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, uq.sqlQuery()),
+			sqlgraph.To(usersettings.Table, usersettings.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.SettingsTable, user.SettingsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -295,6 +315,17 @@ func (uq *UserQuery) WithCardSchedules(opts ...func(*CardScheduleQuery)) *UserQu
 	return uq
 }
 
+//  WithSettings tells the query-builder to eager-loads the nodes that are connected to
+// the "Settings" edge. The optional arguments used to configure the query builder of the edge.
+func (uq *UserQuery) WithSettings(opts ...func(*UserSettingsQuery)) *UserQuery {
+	query := &UserSettingsQuery{config: uq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withSettings = query
+	return uq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -361,9 +392,10 @@ func (uq *UserQuery) sqlAll(ctx context.Context) ([]*User, error) {
 	var (
 		nodes       = []*User{}
 		_spec       = uq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			uq.withCardLogs != nil,
 			uq.withCardSchedules != nil,
+			uq.withSettings != nil,
 		}
 	)
 	_spec.ScanValues = func() []interface{} {
@@ -440,6 +472,34 @@ func (uq *UserQuery) sqlAll(ctx context.Context) ([]*User, error) {
 				return nil, fmt.Errorf(`unexpected foreign-key "user_card_schedules" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.CardSchedules = append(node.Edges.CardSchedules, n)
+		}
+	}
+
+	if query := uq.withSettings; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[int]*User)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.UserSettings(func(s *sql.Selector) {
+			s.Where(sql.InValues(user.SettingsColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.user_settings
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "user_settings" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "user_settings" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Settings = append(node.Edges.Settings, n)
 		}
 	}
 

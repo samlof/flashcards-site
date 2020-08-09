@@ -22,6 +22,8 @@ const (
 	EdgeCardLogs = "cardLogs"
 	// EdgeCardSchedules holds the string denoting the cardschedules edge name in mutations.
 	EdgeCardSchedules = "CardSchedules"
+	// EdgeSettings holds the string denoting the settings edge name in mutations.
+	EdgeSettings = "Settings"
 
 	// Table holds the table name of the user in the database.
 	Table = "users"
@@ -39,6 +41,13 @@ const (
 	CardSchedulesInverseTable = "card_schedules"
 	// CardSchedulesColumn is the table column denoting the CardSchedules relation/edge.
 	CardSchedulesColumn = "user_card_schedules"
+	// SettingsTable is the table the holds the Settings relation/edge.
+	SettingsTable = "user_settings"
+	// SettingsInverseTable is the table name for the UserSettings entity.
+	// It exists in this package in order to avoid circular dependency with the "usersettings" package.
+	SettingsInverseTable = "user_settings"
+	// SettingsColumn is the table column denoting the Settings relation/edge.
+	SettingsColumn = "user_settings"
 )
 
 // Columns holds all SQL columns for user fields.

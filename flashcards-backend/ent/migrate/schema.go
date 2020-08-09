@@ -12,7 +12,7 @@ var (
 	CardLogsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "create_time", Type: field.TypeTime},
-		{Name: "result", Type: field.TypeEnum, Enums: []string{"average", "bad", "good", "retry"}},
+		{Name: "result", Type: field.TypeEnum, Enums: []string{"bad", "easy", "good", "retry"}},
 		{Name: "card_log_card", Type: field.TypeInt, Nullable: true},
 		{Name: "user_card_logs", Type: field.TypeInt, Nullable: true},
 	}
@@ -84,6 +84,29 @@ var (
 		PrimaryKey:  []*schema.Column{UsersColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{},
 	}
+	// UserSettingsColumns holds the columns for the "user_settings" table.
+	UserSettingsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "new_cards_per_day", Type: field.TypeInt, Default: 10},
+		{Name: "user_settings", Type: field.TypeInt, Nullable: true},
+	}
+	// UserSettingsTable holds the schema information for the "user_settings" table.
+	UserSettingsTable = &schema.Table{
+		Name:       "user_settings",
+		Columns:    UserSettingsColumns,
+		PrimaryKey: []*schema.Column{UserSettingsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:  "user_settings_users_Settings",
+				Columns: []*schema.Column{UserSettingsColumns[4]},
+
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// WordsColumns holds the columns for the "words" table.
 	WordsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -106,6 +129,7 @@ var (
 		CardLogsTable,
 		CardSchedulesTable,
 		UsersTable,
+		UserSettingsTable,
 		WordsTable,
 	}
 )
@@ -115,4 +139,5 @@ func init() {
 	CardLogsTable.ForeignKeys[1].RefTable = UsersTable
 	CardSchedulesTable.ForeignKeys[0].RefTable = WordsTable
 	CardSchedulesTable.ForeignKeys[1].RefTable = UsersTable
+	UserSettingsTable.ForeignKeys[0].RefTable = UsersTable
 }

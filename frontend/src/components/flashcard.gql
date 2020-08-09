@@ -1,5 +1,5 @@
-query FlashcardPage($newWordCount: Int!) {
-  scheduledWords(newWordCount: $newWordCount) {
+query FlashcardPage {
+  scheduledWords {
     cards {
       id
       lang1

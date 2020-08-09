@@ -23,7 +23,7 @@ func (CardLog) Mixin() []ent.Mixin {
 func (CardLog) Fields() []ent.Field {
 	return []ent.Field{
 		field.Enum("result").
-			Values("good", "average", "bad", "retry").
+			Values("easy", "good", "bad", "retry").
 			Immutable(),
 	}
 }

@@ -1,6 +1,6 @@
 enum CardResult {
+  Easy
   Good
-  Average
   Bad
   Retry
 }
@@ -23,7 +23,7 @@ type ScheduledWordsResponse {
   cards: [Word!]!
 }
 extend type Query {
-  scheduledWords(newWordCount: Int): ScheduledWordsResponse!
+  scheduledWords: ScheduledWordsResponse!
 }
 
 input CardStatus {

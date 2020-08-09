@@ -12,6 +12,7 @@ import (
 	"flashcards-backend/ent/cardlog"
 	"flashcards-backend/ent/cardschedule"
 	"flashcards-backend/ent/user"
+	"flashcards-backend/ent/usersettings"
 	"flashcards-backend/ent/word"
 
 	"github.com/facebookincubator/ent/dialect"
@@ -30,6 +31,8 @@ type Client struct {
 	CardSchedule *CardScheduleClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
+	// UserSettings is the client for interacting with the UserSettings builders.
+	UserSettings *UserSettingsClient
 	// Word is the client for interacting with the Word builders.
 	Word *WordClient
 }
@@ -48,6 +51,7 @@ func (c *Client) init() {
 	c.CardLog = NewCardLogClient(c.config)
 	c.CardSchedule = NewCardScheduleClient(c.config)
 	c.User = NewUserClient(c.config)
+	c.UserSettings = NewUserSettingsClient(c.config)
 	c.Word = NewWordClient(c.config)
 }
 
@@ -84,6 +88,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		CardLog:      NewCardLogClient(cfg),
 		CardSchedule: NewCardScheduleClient(cfg),
 		User:         NewUserClient(cfg),
+		UserSettings: NewUserSettingsClient(cfg),
 		Word:         NewWordClient(cfg),
 	}, nil
 }
@@ -103,6 +108,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		CardLog:      NewCardLogClient(cfg),
 		CardSchedule: NewCardScheduleClient(cfg),
 		User:         NewUserClient(cfg),
+		UserSettings: NewUserSettingsClient(cfg),
 		Word:         NewWordClient(cfg),
 	}, nil
 }
@@ -135,6 +141,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.CardLog.Use(hooks...)
 	c.CardSchedule.Use(hooks...)
 	c.User.Use(hooks...)
+	c.UserSettings.Use(hooks...)
 	c.Word.Use(hooks...)
 }
 
@@ -493,9 +500,129 @@ func (c *UserClient) QueryCardSchedules(u *User) *CardScheduleQuery {
 	return query
 }
 
+// QuerySettings queries the Settings edge of a User.
+func (c *UserClient) QuerySettings(u *User) *UserSettingsQuery {
+	query := &UserSettingsQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(usersettings.Table, usersettings.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.SettingsTable, user.SettingsColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
 	return c.hooks.User
+}
+
+// UserSettingsClient is a client for the UserSettings schema.
+type UserSettingsClient struct {
+	config
+}
+
+// NewUserSettingsClient returns a client for the UserSettings from the given config.
+func NewUserSettingsClient(c config) *UserSettingsClient {
+	return &UserSettingsClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `usersettings.Hooks(f(g(h())))`.
+func (c *UserSettingsClient) Use(hooks ...Hook) {
+	c.hooks.UserSettings = append(c.hooks.UserSettings, hooks...)
+}
+
+// Create returns a create builder for UserSettings.
+func (c *UserSettingsClient) Create() *UserSettingsCreate {
+	mutation := newUserSettingsMutation(c.config, OpCreate)
+	return &UserSettingsCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// BulkCreate returns a builder for creating a bulk of UserSettings entities.
+func (c *UserSettingsClient) CreateBulk(builders ...*UserSettingsCreate) *UserSettingsCreateBulk {
+	return &UserSettingsCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for UserSettings.
+func (c *UserSettingsClient) Update() *UserSettingsUpdate {
+	mutation := newUserSettingsMutation(c.config, OpUpdate)
+	return &UserSettingsUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *UserSettingsClient) UpdateOne(us *UserSettings) *UserSettingsUpdateOne {
+	mutation := newUserSettingsMutation(c.config, OpUpdateOne, withUserSettings(us))
+	return &UserSettingsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *UserSettingsClient) UpdateOneID(id int) *UserSettingsUpdateOne {
+	mutation := newUserSettingsMutation(c.config, OpUpdateOne, withUserSettingsID(id))
+	return &UserSettingsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for UserSettings.
+func (c *UserSettingsClient) Delete() *UserSettingsDelete {
+	mutation := newUserSettingsMutation(c.config, OpDelete)
+	return &UserSettingsDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *UserSettingsClient) DeleteOne(us *UserSettings) *UserSettingsDeleteOne {
+	return c.DeleteOneID(us.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *UserSettingsClient) DeleteOneID(id int) *UserSettingsDeleteOne {
+	builder := c.Delete().Where(usersettings.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &UserSettingsDeleteOne{builder}
+}
+
+// Query returns a query builder for UserSettings.
+func (c *UserSettingsClient) Query() *UserSettingsQuery {
+	return &UserSettingsQuery{config: c.config}
+}
+
+// Get returns a UserSettings entity by its id.
+func (c *UserSettingsClient) Get(ctx context.Context, id int) (*UserSettings, error) {
+	return c.Query().Where(usersettings.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *UserSettingsClient) GetX(ctx context.Context, id int) *UserSettings {
+	us, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return us
+}
+
+// QueryUser queries the user edge of a UserSettings.
+func (c *UserSettingsClient) QueryUser(us *UserSettings) *UserQuery {
+	query := &UserQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := us.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(usersettings.Table, usersettings.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, usersettings.UserTable, usersettings.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(us.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *UserSettingsClient) Hooks() []Hook {
+	return c.hooks.UserSettings
 }
 
 // WordClient is a client for the Word schema.

@@ -8,6 +8,7 @@ import (
 	"flashcards-backend/ent/cardschedule"
 	"flashcards-backend/ent/predicate"
 	"flashcards-backend/ent/user"
+	"flashcards-backend/ent/usersettings"
 	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
@@ -65,6 +66,21 @@ func (uu *UserUpdate) AddCardSchedules(c ...*CardSchedule) *UserUpdate {
 	return uu.AddCardScheduleIDs(ids...)
 }
 
+// AddSettingIDs adds the Settings edge to UserSettings by ids.
+func (uu *UserUpdate) AddSettingIDs(ids ...int) *UserUpdate {
+	uu.mutation.AddSettingIDs(ids...)
+	return uu
+}
+
+// AddSettings adds the Settings edges to UserSettings.
+func (uu *UserUpdate) AddSettings(u ...*UserSettings) *UserUpdate {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return uu.AddSettingIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
@@ -98,6 +114,21 @@ func (uu *UserUpdate) RemoveCardSchedules(c ...*CardSchedule) *UserUpdate {
 		ids[i] = c[i].ID
 	}
 	return uu.RemoveCardScheduleIDs(ids...)
+}
+
+// RemoveSettingIDs removes the Settings edge to UserSettings by ids.
+func (uu *UserUpdate) RemoveSettingIDs(ids ...int) *UserUpdate {
+	uu.mutation.RemoveSettingIDs(ids...)
+	return uu
+}
+
+// RemoveSettings removes Settings edges to UserSettings.
+func (uu *UserUpdate) RemoveSettings(u ...*UserSettings) *UserUpdate {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return uu.RemoveSettingIDs(ids...)
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
@@ -269,6 +300,44 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if nodes := uu.mutation.RemovedSettingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.SettingsTable,
+			Columns: []string{user.SettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: usersettings.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.SettingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.SettingsTable,
+			Columns: []string{user.SettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: usersettings.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, uu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -323,6 +392,21 @@ func (uuo *UserUpdateOne) AddCardSchedules(c ...*CardSchedule) *UserUpdateOne {
 	return uuo.AddCardScheduleIDs(ids...)
 }
 
+// AddSettingIDs adds the Settings edge to UserSettings by ids.
+func (uuo *UserUpdateOne) AddSettingIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.AddSettingIDs(ids...)
+	return uuo
+}
+
+// AddSettings adds the Settings edges to UserSettings.
+func (uuo *UserUpdateOne) AddSettings(u ...*UserSettings) *UserUpdateOne {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return uuo.AddSettingIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
@@ -356,6 +440,21 @@ func (uuo *UserUpdateOne) RemoveCardSchedules(c ...*CardSchedule) *UserUpdateOne
 		ids[i] = c[i].ID
 	}
 	return uuo.RemoveCardScheduleIDs(ids...)
+}
+
+// RemoveSettingIDs removes the Settings edge to UserSettings by ids.
+func (uuo *UserUpdateOne) RemoveSettingIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.RemoveSettingIDs(ids...)
+	return uuo
+}
+
+// RemoveSettings removes Settings edges to UserSettings.
+func (uuo *UserUpdateOne) RemoveSettings(u ...*UserSettings) *UserUpdateOne {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return uuo.RemoveSettingIDs(ids...)
 }
 
 // Save executes the query and returns the updated entity.
@@ -517,6 +616,44 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (u *User, err error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: cardschedule.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if nodes := uuo.mutation.RemovedSettingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.SettingsTable,
+			Columns: []string{user.SettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: usersettings.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.SettingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.SettingsTable,
+			Columns: []string{user.SettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: usersettings.FieldID,
 				},
 			},
 		}

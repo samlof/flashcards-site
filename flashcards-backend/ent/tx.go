@@ -18,6 +18,8 @@ type Tx struct {
 	CardSchedule *CardScheduleClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
+	// UserSettings is the client for interacting with the UserSettings builders.
+	UserSettings *UserSettingsClient
 	// Word is the client for interacting with the Word builders.
 	Word *WordClient
 
@@ -158,6 +160,7 @@ func (tx *Tx) init() {
 	tx.CardLog = NewCardLogClient(tx.config)
 	tx.CardSchedule = NewCardScheduleClient(tx.config)
 	tx.User = NewUserClient(tx.config)
+	tx.UserSettings = NewUserSettingsClient(tx.config)
 	tx.Word = NewWordClient(tx.config)
 }
 

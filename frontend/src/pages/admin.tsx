@@ -8,6 +8,7 @@ import GqlError from "../components/GqlError";
 import Loading from "../components/Loading";
 import { useAllWordsQuery } from "../gql.generated";
 import Head from "next/head";
+import UserSettings from "../components/admin/UserSettings";
 
 interface Props {}
 const AdminPage = ({}: Props) => {
@@ -26,8 +27,11 @@ const AdminPage = ({}: Props) => {
         <title>Admin | kieli.club</title>
       </Head>
       <h1>Admin panel</h1>
+      <h3>User Settings</h3>
+      <UserSettings />
       {handleStatuses() || (
         <>
+          <h3>Card Settings</h3>
           <AddWord refetchWords={refetchWords} />
           <AddCsvWords allWords={data!} refetchWords={refetchWords} />
           <AllWords />

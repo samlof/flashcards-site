@@ -33,9 +33,11 @@ type UserEdges struct {
 	CardLogs []*CardLog
 	// CardSchedules holds the value of the CardSchedules edge.
 	CardSchedules []*CardSchedule
+	// Settings holds the value of the Settings edge.
+	Settings []*UserSettings
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // CardLogsOrErr returns the CardLogs value or an error if the edge
@@ -54,6 +56,15 @@ func (e UserEdges) CardSchedulesOrErr() ([]*CardSchedule, error) {
 		return e.CardSchedules, nil
 	}
 	return nil, &NotLoadedError{edge: "CardSchedules"}
+}
+
+// SettingsOrErr returns the Settings value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) SettingsOrErr() ([]*UserSettings, error) {
+	if e.loadedTypes[2] {
+		return e.Settings, nil
+	}
+	return nil, &NotLoadedError{edge: "Settings"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -104,6 +115,11 @@ func (u *User) QueryCardLogs() *CardLogQuery {
 // QueryCardSchedules queries the CardSchedules edge of the User.
 func (u *User) QueryCardSchedules() *CardScheduleQuery {
 	return (&UserClient{config: u.config}).QueryCardSchedules(u)
+}
+
+// QuerySettings queries the Settings edge of the User.
+func (u *User) QuerySettings() *UserSettingsQuery {
+	return (&UserClient{config: u.config}).QuerySettings(u)
 }
 
 // Update returns a builder for updating this User.

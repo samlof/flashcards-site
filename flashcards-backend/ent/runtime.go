@@ -7,6 +7,7 @@ import (
 	"flashcards-backend/ent/cardschedule"
 	"flashcards-backend/ent/schema"
 	"flashcards-backend/ent/user"
+	"flashcards-backend/ent/usersettings"
 	"flashcards-backend/ent/word"
 	"time"
 )
@@ -73,6 +74,24 @@ func init() {
 			return nil
 		}
 	}()
+	usersettingsMixin := schema.UserSettings{}.Mixin()
+	usersettingsMixinFields0 := usersettingsMixin[0].Fields()
+	usersettingsFields := schema.UserSettings{}.Fields()
+	_ = usersettingsFields
+	// usersettingsDescCreateTime is the schema descriptor for create_time field.
+	usersettingsDescCreateTime := usersettingsMixinFields0[0].Descriptor()
+	// usersettings.DefaultCreateTime holds the default value on creation for the create_time field.
+	usersettings.DefaultCreateTime = usersettingsDescCreateTime.Default.(func() time.Time)
+	// usersettingsDescUpdateTime is the schema descriptor for update_time field.
+	usersettingsDescUpdateTime := usersettingsMixinFields0[1].Descriptor()
+	// usersettings.DefaultUpdateTime holds the default value on creation for the update_time field.
+	usersettings.DefaultUpdateTime = usersettingsDescUpdateTime.Default.(func() time.Time)
+	// usersettings.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	usersettings.UpdateDefaultUpdateTime = usersettingsDescUpdateTime.UpdateDefault.(func() time.Time)
+	// usersettingsDescNewCardsPerDay is the schema descriptor for newCardsPerDay field.
+	usersettingsDescNewCardsPerDay := usersettingsFields[0].Descriptor()
+	// usersettings.DefaultNewCardsPerDay holds the default value on creation for the newCardsPerDay field.
+	usersettings.DefaultNewCardsPerDay = usersettingsDescNewCardsPerDay.Default.(int)
 	wordMixin := schema.Word{}.Mixin()
 	wordMixinFields0 := wordMixin[0].Fields()
 	wordFields := schema.Word{}.Fields()

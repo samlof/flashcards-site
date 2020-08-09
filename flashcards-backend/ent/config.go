@@ -27,6 +27,7 @@ type hooks struct {
 	CardLog      []ent.Hook
 	CardSchedule []ent.Hook
 	User         []ent.Hook
+	UserSettings []ent.Hook
 	Word         []ent.Hook
 }
 

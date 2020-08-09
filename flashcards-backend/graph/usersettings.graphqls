@@ -1,0 +1,14 @@
+type UserSettings {
+  newCardsPerDay: Int!
+}
+extend type Query {
+  userSettings: UserSettings!
+}
+
+input SetSettings {
+  newCardsPerDay: Int!
+}
+
+extend type Mutation {
+  setSettings(input: SetSettings!): UserSettings!
+}

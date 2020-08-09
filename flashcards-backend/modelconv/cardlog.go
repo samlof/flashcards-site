@@ -12,8 +12,8 @@ import (
 
 func cardResult(res cardlog.Result) model.CardResult {
 	switch res {
-	case cardlog.ResultAverage:
-		return model.CardResultAverage
+	case cardlog.ResultEasy:
+		return model.CardResultEasy
 	case cardlog.ResultBad:
 		return model.CardResultBad
 	case cardlog.ResultGood:
@@ -27,8 +27,8 @@ func cardResult(res cardlog.Result) model.CardResult {
 // ModelCardResult converts model.CardResult to cardlog.Result
 func ModelCardResult(res model.CardResult) cardlog.Result {
 	switch res {
-	case model.CardResultAverage:
-		return cardlog.ResultAverage
+	case model.CardResultEasy:
+		return cardlog.ResultEasy
 	case model.CardResultBad:
 		return cardlog.ResultBad
 	case model.CardResultGood:

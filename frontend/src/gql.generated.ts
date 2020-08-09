@@ -13,44 +13,10 @@ export type Scalars = {
   Time: String;
 };
 
-export type Word = {
-  __typename?: 'Word';
-  id: Scalars['ID'];
-  lang1: Scalars['String'];
-  lang2: Scalars['String'];
-  word1: Scalars['String'];
-  word2: Scalars['String'];
-  createTime: Scalars['Time'];
-  updateTime: Scalars['Time'];
-};
-
-export type CardLog = {
-  __typename?: 'CardLog';
-  createTime: Scalars['Time'];
-  id: Scalars['ID'];
-  word: Word;
-  lastResult: CardResult;
-};
-
 export type CardStatus = {
   cardId: Scalars['ID'];
   result: CardResult;
 };
-
-
-export type NewWord = {
-  lang1: Scalars['String'];
-  lang2: Scalars['String'];
-  word1: Scalars['String'];
-  word2: Scalars['String'];
-};
-
-export enum CardResult {
-  Good = 'Good',
-  Average = 'Average',
-  Bad = 'Bad',
-  Retry = 'Retry'
-}
 
 export type UpdateWord = {
   id: Scalars['ID'];
@@ -60,33 +26,10 @@ export type UpdateWord = {
   word2: Scalars['String'];
 };
 
-export type CardSchedule = {
-  __typename?: 'CardSchedule';
-  createTime: Scalars['Time'];
-  id: Scalars['ID'];
-  word: Word;
-  scheduledFor: Scalars['Time'];
-};
-
-export type ScheduledWordsResponse = {
-  __typename?: 'ScheduledWordsResponse';
-  cards: Array<Word>;
-};
-
-export type Query = {
-  __typename?: 'Query';
-  scheduledWords: ScheduledWordsResponse;
-  getWords: Array<Word>;
-};
-
-
-export type QueryScheduledWordsArgs = {
-  newWordCount?: Maybe<Scalars['Int']>;
-};
-
 export type Mutation = {
   __typename?: 'Mutation';
   cardStatus: CardLog;
+  setSettings: UserSettings;
   createWord: Word;
   deleteWord: Scalars['ID'];
   updateWord: Word;
@@ -95,6 +38,11 @@ export type Mutation = {
 
 export type MutationCardStatusArgs = {
   input: CardStatus;
+};
+
+
+export type MutationSetSettingsArgs = {
+  input: SetSettings;
 };
 
 
@@ -110,6 +58,69 @@ export type MutationDeleteWordArgs = {
 
 export type MutationUpdateWordArgs = {
   input: UpdateWord;
+};
+
+export enum CardResult {
+  Easy = 'Easy',
+  Good = 'Good',
+  Bad = 'Bad',
+  Retry = 'Retry'
+}
+
+export type CardSchedule = {
+  __typename?: 'CardSchedule';
+  createTime: Scalars['Time'];
+  id: Scalars['ID'];
+  word: Word;
+  scheduledFor: Scalars['Time'];
+};
+
+export type ScheduledWordsResponse = {
+  __typename?: 'ScheduledWordsResponse';
+  cards: Array<Word>;
+};
+
+export type Word = {
+  __typename?: 'Word';
+  id: Scalars['ID'];
+  lang1: Scalars['String'];
+  lang2: Scalars['String'];
+  word1: Scalars['String'];
+  word2: Scalars['String'];
+  createTime: Scalars['Time'];
+  updateTime: Scalars['Time'];
+};
+
+export type NewWord = {
+  lang1: Scalars['String'];
+  lang2: Scalars['String'];
+  word1: Scalars['String'];
+  word2: Scalars['String'];
+};
+
+export type CardLog = {
+  __typename?: 'CardLog';
+  createTime: Scalars['Time'];
+  id: Scalars['ID'];
+  word: Word;
+  lastResult: CardResult;
+};
+
+
+export type SetSettings = {
+  newCardsPerDay: Scalars['Int'];
+};
+
+export type Query = {
+  __typename?: 'Query';
+  scheduledWords: ScheduledWordsResponse;
+  userSettings: UserSettings;
+  getWords: Array<Word>;
+};
+
+export type UserSettings = {
+  __typename?: 'UserSettings';
+  newCardsPerDay: Scalars['Int'];
 };
 
 export type AllFlashcardsQueryVariables = Exact<{ [key: string]: never; }>;
@@ -162,9 +173,31 @@ export type EditWordMutation = (
   ) }
 );
 
-export type FlashcardPageQueryVariables = Exact<{
-  newWordCount: Scalars['Int'];
+export type UserSettingsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type UserSettingsQuery = (
+  { __typename?: 'Query' }
+  & { userSettings: (
+    { __typename?: 'UserSettings' }
+    & Pick<UserSettings, 'newCardsPerDay'>
+  ) }
+);
+
+export type SetUserSettingsMutationVariables = Exact<{
+  cardsPerDay: Scalars['Int'];
 }>;
+
+
+export type SetUserSettingsMutation = (
+  { __typename?: 'Mutation' }
+  & { setSettings: (
+    { __typename?: 'UserSettings' }
+    & Pick<UserSettings, 'newCardsPerDay'>
+  ) }
+);
+
+export type FlashcardPageQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type FlashcardPageQuery = (
@@ -342,9 +375,73 @@ export function useEditWordMutation(baseOptions?: ApolloReactHooks.MutationHookO
 export type EditWordMutationHookResult = ReturnType<typeof useEditWordMutation>;
 export type EditWordMutationResult = ApolloReactCommon.MutationResult<EditWordMutation>;
 export type EditWordMutationOptions = ApolloReactCommon.BaseMutationOptions<EditWordMutation, EditWordMutationVariables>;
+export const UserSettingsDocument = gql`
+    query UserSettings {
+  userSettings {
+    newCardsPerDay
+  }
+}
+    `;
+
+/**
+ * __useUserSettingsQuery__
+ *
+ * To run a query within a React component, call `useUserSettingsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useUserSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useUserSettingsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useUserSettingsQuery(baseOptions?: ApolloReactHooks.QueryHookOptions<UserSettingsQuery, UserSettingsQueryVariables>) {
+        return ApolloReactHooks.useQuery<UserSettingsQuery, UserSettingsQueryVariables>(UserSettingsDocument, baseOptions);
+      }
+export function useUserSettingsLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<UserSettingsQuery, UserSettingsQueryVariables>) {
+          return ApolloReactHooks.useLazyQuery<UserSettingsQuery, UserSettingsQueryVariables>(UserSettingsDocument, baseOptions);
+        }
+export type UserSettingsQueryHookResult = ReturnType<typeof useUserSettingsQuery>;
+export type UserSettingsLazyQueryHookResult = ReturnType<typeof useUserSettingsLazyQuery>;
+export type UserSettingsQueryResult = ApolloReactCommon.QueryResult<UserSettingsQuery, UserSettingsQueryVariables>;
+export const SetUserSettingsDocument = gql`
+    mutation SetUserSettings($cardsPerDay: Int!) {
+  setSettings(input: {newCardsPerDay: $cardsPerDay}) {
+    newCardsPerDay
+  }
+}
+    `;
+export type SetUserSettingsMutationFn = ApolloReactCommon.MutationFunction<SetUserSettingsMutation, SetUserSettingsMutationVariables>;
+
+/**
+ * __useSetUserSettingsMutation__
+ *
+ * To run a mutation, you first call `useSetUserSettingsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSetUserSettingsMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [setUserSettingsMutation, { data, loading, error }] = useSetUserSettingsMutation({
+ *   variables: {
+ *      cardsPerDay: // value for 'cardsPerDay'
+ *   },
+ * });
+ */
+export function useSetUserSettingsMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<SetUserSettingsMutation, SetUserSettingsMutationVariables>) {
+        return ApolloReactHooks.useMutation<SetUserSettingsMutation, SetUserSettingsMutationVariables>(SetUserSettingsDocument, baseOptions);
+      }
+export type SetUserSettingsMutationHookResult = ReturnType<typeof useSetUserSettingsMutation>;
+export type SetUserSettingsMutationResult = ApolloReactCommon.MutationResult<SetUserSettingsMutation>;
+export type SetUserSettingsMutationOptions = ApolloReactCommon.BaseMutationOptions<SetUserSettingsMutation, SetUserSettingsMutationVariables>;
 export const FlashcardPageDocument = gql`
-    query FlashcardPage($newWordCount: Int!) {
-  scheduledWords(newWordCount: $newWordCount) {
+    query FlashcardPage {
+  scheduledWords {
     cards {
       id
       lang1
@@ -368,7 +465,6 @@ export const FlashcardPageDocument = gql`
  * @example
  * const { data, loading, error } = useFlashcardPageQuery({
  *   variables: {
- *      newWordCount: // value for 'newWordCount'
  *   },
  * });
  */
