@@ -1,15 +1,16 @@
 // Firebase App (the core Firebase SDK) is always required and must be listed first
 import firebase from "firebase/app";
 import "firebase/auth";
+import { environment } from "./environment";
 
-export const firebaseConfig = {
-  apiKey: "AIzaSyBk4Aia7cUwOYY9G_YB9E0Shdzbb2E24UY",
-  authDomain: "kieliclub.firebaseapp.com",
-  databaseURL: "https://kieliclub.firebaseio.com",
-  projectId: "kieliclub",
-  storageBucket: "kieliclub.appspot.com",
-  messagingSenderId: "676509926663",
-  appId: "1:676509926663:web:be676fcc9f702617cc31a2",
+const firebaseConfig = {
+  apiKey: environment.firebase.apiKey,
+  authDomain: environment.firebase.authDomain,
+  databaseURL: environment.firebase.databaseURL,
+  projectId: environment.firebase.projectId,
+  storageBucket: environment.firebase.storageBucket,
+  messagingSenderId: environment.firebase.messagingSenderId,
+  appId: environment.firebase.appId,
 };
 
 let app: firebase.app.App;
@@ -29,5 +30,5 @@ export const FbAuthUiConf = {
     },
   ],
   signInFlow: "popup",
-  signInSuccessUrl: "/signedIn",
+  signInSuccessUrl: "/",
 };

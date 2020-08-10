@@ -17,9 +17,9 @@ export default function App({ children }) {
         h4,
         h5,
         h6 {
-          font-family: "Lato", Menlo, Monaco, "Lucida Console",
-            "Liberation Mono", "DejaVu Sans Mono", "Bitstream Vera Sans Mono",
-            "Courier New", monospace, serif;
+          font-family: -apple-system, BlinkMacSystemFont, "Lato", Menlo, Monaco,
+            "Lucida Console", "Liberation Mono", "DejaVu Sans Mono",
+            "Bitstream Vera Sans Mono", "Courier New", monospace, serif;
           color: var(--color-blue);
         }
         main {
@@ -30,11 +30,11 @@ export default function App({ children }) {
           flex-direction: column;
         }
         body {
-          font-family: "Raleway", Menlo, Monaco, "Lucida Console",
-            "Liberation Mono", "DejaVu Sans Mono", "Bitstream Vera Sans Mono",
-            "Courier New", monospace, serif;
+          font-family: -apple-system, BlinkMacSystemFont, "Raleway", Menlo,
+            Monaco, "Lucida Console", "Liberation Mono", "DejaVu Sans Mono",
+            "Bitstream Vera Sans Mono", "Courier New", monospace, serif;
           margin: 0;
-          padding: 25px 50px;
+          padding: 0;
           --color-green: #4c9f70;
           --color-blue: #0b4f6c;
           --color-orange: #fcd7ad;
@@ -42,7 +42,9 @@ export default function App({ children }) {
           --color-red: #d55672;
           --color-white: #efefef;
           background-color: var(--color-orange);
-          font-size: 14px;
+          font-size: 16px;
+          letter-spacing: -0.003em;
+          line-height: 1.58;
         }
         .fade-in-out-enter {
           opacity: 0;

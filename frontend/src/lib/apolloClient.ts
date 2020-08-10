@@ -4,6 +4,7 @@ import {
   InMemoryCache,
   NormalizedCache,
 } from "@apollo/client";
+import { setContext } from "@apollo/client/link/context";
 import { useMemo } from "react";
 
 let apolloClient: ApolloClient<NormalizedCache>;
@@ -11,14 +12,25 @@ let apolloClient: ApolloClient<NormalizedCache>;
 function createApolloClient() {
   const serverUrl = process.env.NEXT_PUBLIC_GRAPHQL_URL;
   if (!serverUrl) {
-    throw new Error("Remember to set the env variable");
+    throw new Error("Remember to set the env 'NEXT_PUBLIC_GRAPHQL_URL'");
   }
+  const httpLink = new HttpLink({
+    uri: serverUrl, // Server URL (must be absolute)
+  });
+  const authLink = setContext((_, { headers }) => {
+    // get the authentication token from local storage if it exists
+    const token = localStorage.getItem("token");
+    // return the headers to the context so httpLink can read them
+    return {
+      headers: {
+        ...headers,
+        authorization: token ? `Bearer ${token}` : "",
+      },
+    };
+  });
   return new ApolloClient({
     ssrMode: typeof window === "undefined",
-    link: new HttpLink({
-      uri: serverUrl, // Server URL (must be absolute)
-      credentials: "same-origin", // Additional fetch() options like `credentials` or `headers`
-    }),
+    link: authLink.concat(httpLink),
     cache: new InMemoryCache(),
   });
 }
