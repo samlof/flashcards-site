@@ -16,10 +16,12 @@ export default function App({ Component, pageProps }: AppPropsType) {
   useEffect(() => {
     if (typeof window !== "undefined") {
       if (!user) {
-        window.localStorage.removeItem("token");
+        document.cookie = `idToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT`;
       } else if (user !== "pending") {
         user.getIdToken().then((token) => {
-          window.localStorage.setItem("token", token);
+          console.log("set id token");
+          const maxAge = 60 * 60; // 1 hour
+          document.cookie = `idToken=${token}; path=/; max-age=${maxAge};`;
         });
       }
     }
