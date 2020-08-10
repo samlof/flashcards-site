@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	firebase "firebase.google.com/go"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"github.com/rs/cors"
@@ -147,4 +148,12 @@ func applyDotEnv() string {
 	_ = godotenv.Load(".env." + env)
 	_ = godotenv.Load()
 	return env
+}
+
+func setupFirebase() (*firebase.App, error) {
+	app, err := firebase.NewApp(context.Background(), nil)
+	if err != nil {
+		return nil, fmt.Errorf("error initializing app: %v", err)
+	}
+	return app, nil
 }
