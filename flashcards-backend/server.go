@@ -21,6 +21,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
 
+	"flashcards-backend/auth"
 	"flashcards-backend/ent"
 	"flashcards-backend/ent/migrate"
 	"flashcards-backend/graph"
@@ -65,9 +66,18 @@ func main() {
 	srv := handler.New(generated.NewExecutableSchema(generated.Config{Resolvers: graphResolver}))
 	configureGqlServer(srv)
 
+	firebaseApp, err := setupFirebase()
+	if err != nil {
+		log.Fatalf("Error initializing firebase: %v", err)
+	}
+	firebaseAuth, err := firebaseApp.Auth(ctx)
+	if err != nil {
+		log.Fatalf("Error initializing firebase auth: %v", err)
+	}
+
 	mux := http.NewServeMux()
 
-	mux.Handle("/query", srv)
+	mux.Handle("/query", auth.Middleware(firebaseAuth)(srv))
 
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		_, err := w.Write([]byte("ok"))
@@ -82,7 +92,13 @@ func main() {
 		mux.Handle("/", playground.Handler("GraphQL playground", "/query"))
 		log.Printf("connect to http://localhost:%s/ for GraphQL playground\n", port)
 	}
-	handler := cors.Default().Handler(mux)
+
+	corsOptions := cors.Options{
+		AllowCredentials: true,
+		AllowedOrigins:   []string{"*"},
+		AllowedHeaders:   []string{"authorization", "content-type", "accept"},
+	}
+	handler := cors.New(corsOptions).Handler(mux)
 
 	// Setup close handler
 	httpServer := http.Server{

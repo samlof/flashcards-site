@@ -6,8 +6,9 @@ import {
 } from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
 import { useMemo } from "react";
-import nextCookie from "next-cookies";
 import { environment } from "./environment";
+import { cookieValue } from "../helpers/cookies";
+import { IdTokenCookie } from "../constants/cookieNames";
 
 let apolloClient: ApolloClient<NormalizedCache>;
 
@@ -17,18 +18,20 @@ function createApolloClient(staticIdToken?: string) {
   const httpLink = new HttpLink({
     uri: serverUrl, // Server URL (must be absolute)
   });
-  const authLink = setContext((_, ctx) => {
+  const authLink = setContext((_, { headers }) => {
     // get the authentication token from local storage if it exists
-    let idToken: string | undefined;
-    if (staticIdToken) {
-      idToken = staticIdToken;
-    } else {
-      idToken = nextCookie(ctx).idToken;
+    let idToken: string | undefined = staticIdToken;
+    if (typeof window !== "undefined") {
+      const cookieIdToken = cookieValue(IdTokenCookie);
+      if (cookieIdToken) {
+        idToken = cookieIdToken;
+      }
     }
+
     // return the headers to the context so httpLink can read them
     return {
       headers: {
-        ...ctx.headers,
+        ...headers,
         authorization: idToken ? `Bearer ${idToken}` : "",
       },
     };
@@ -42,9 +45,9 @@ function createApolloClient(staticIdToken?: string) {
 
 export function initializeApollo(
   initialState?: NormalizedCache,
-  idToken?: string
+  initialIdToken?: string
 ) {
-  const _apolloClient = apolloClient ?? createApolloClient(idToken);
+  const _apolloClient = apolloClient ?? createApolloClient(initialIdToken);
 
   // If your page has Next.js data fetching methods that use Apollo Client, the initial state
   // gets hydrated here
@@ -62,8 +65,4 @@ export function initializeApollo(
 export function useApollo(initialState: NormalizedCache) {
   const store = useMemo(() => initializeApollo(initialState), [initialState]);
   return store;
-}
-
-export function useSSGApollo() {
-  return createApolloClient("asdasd");
 }

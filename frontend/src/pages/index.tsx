@@ -7,6 +7,7 @@ import { initializeApollo } from "../lib/apolloClient";
 import nextCookie from "next-cookies";
 import { GetServerSideProps } from "next";
 import { AllFlashcardsDocument } from "../gql.generated";
+import { IdTokenCookie } from "../constants/cookieNames";
 
 const Login = dynamic(() => import("../components/Login"), { ssr: false });
 
@@ -26,7 +27,7 @@ const IndexPage = ({}: Props) => {
 };
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
-  const idtoken = nextCookie(ctx).idToken;
+  const idtoken = nextCookie(ctx)[IdTokenCookie];
 
   const apolloClient = initializeApollo(undefined, idtoken);
 
