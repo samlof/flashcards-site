@@ -11,7 +11,7 @@ import (
 
 // A private key for context that only this package can access. This is important
 // to prevent collisions between different context uses
-var userCtxKey = &contextKey{"uid"}
+var userCtxKey = &contextKey{"tokenInfo"}
 
 type contextKey struct {
 	name string
@@ -19,8 +19,8 @@ type contextKey struct {
 
 // A stand-in for our database backed user object
 type User struct {
-	Name    string
-	IsAdmin bool
+	FirebaseUID string
+	IdToken     string
 }
 
 // Middleware decodes the share session cookie and packs the user uid into context
@@ -50,7 +50,11 @@ func Middleware(firebaseAuth *auth.Client) func(http.Handler) http.Handler {
 			userUid := decToken.UID
 
 			// put it in context
-			ctx = context.WithValue(ctx, userCtxKey, userUid)
+			user := &User{
+				IdToken:     idToken,
+				FirebaseUID: userUid,
+			}
+			ctx = context.WithValue(ctx, userCtxKey, user)
 
 			// and call the next with our new context
 			r = r.WithContext(ctx)
@@ -60,7 +64,7 @@ func Middleware(firebaseAuth *auth.Client) func(http.Handler) http.Handler {
 }
 
 // ForContext finds the user uid from the context. REQUIRES Middleware to have run.
-func ForContext(ctx context.Context) string {
-	raw, _ := ctx.Value(userCtxKey).(string)
+func ForContext(ctx context.Context) *User {
+	raw, _ := ctx.Value(userCtxKey).(*User)
 	return raw
 }

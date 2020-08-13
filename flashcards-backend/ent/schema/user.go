@@ -4,6 +4,7 @@ import (
 	"github.com/facebookincubator/ent"
 	"github.com/facebookincubator/ent/schema/edge"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/ent/schema/index"
 	"github.com/facebookincubator/ent/schema/mixin"
 )
 
@@ -23,6 +24,7 @@ func (User) Mixin() []ent.Mixin {
 func (User) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("email").NotEmpty().Comment("User email").MaxLen(255),
+		field.String("firebaseUid").NotEmpty().Unique().Immutable(),
 	}
 }
 
@@ -32,5 +34,11 @@ func (User) Edges() []ent.Edge {
 		edge.To("cardLogs", CardLog.Type),
 		edge.To("CardSchedules", CardSchedule.Type),
 		edge.To("Settings", UserSettings.Type),
+	}
+}
+
+func (User) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Fields("firebaseUid").Unique(),
 	}
 }

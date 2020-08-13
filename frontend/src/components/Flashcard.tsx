@@ -3,17 +3,15 @@ import { CSSTransition } from "react-transition-group";
 import styled from "styled-components";
 import { Button } from "../components/Button";
 import FlipCard from "../components/FlipCard";
-import { delayMs } from "../helpers/delay";
-import { modulus } from "../helpers/modulus";
-import Loading from "./Loading";
-import GqlError from "./GqlError";
-import { shuffle, randInt } from "../helpers/randomUtils";
 import {
-  useFlashcardPageQuery,
-  Word,
-  useSetCardStatusMutation,
   CardResult,
+  useFlashcardPageQuery,
+  useSetCardStatusMutation,
 } from "../gql.generated";
+import { delayMs } from "../helpers/delay";
+import { randInt, shuffle } from "../helpers/randomUtils";
+import GqlError from "./GqlError";
+import Loading from "./Loading";
 
 const ButtonDiv = styled.div`
   display: flex;
@@ -36,28 +34,20 @@ interface FlashWord {
   lang2: string;
 }
 const animationSpeed = 175;
-interface Props {}
+interface Props {
+  initialWords: FlashWord[];
+}
 
-const Flashcard = ({}: Props) => {
+const Flashcard = ({ initialWords }: Props) => {
   const [cardVisible, setVisible] = React.useState(true);
   const [animationName, setAnimationName] = React.useState("card-in-out");
 
-  const { loading, error, data } = useFlashcardPageQuery();
   const [
     setCardState,
     { loading: loadingCardState },
   ] = useSetCardStatusMutation();
+  const [words, setWords] = React.useState<FlashWord[]>(initialWords);
 
-  const [words, setWords] = React.useState<FlashWord[]>([]);
-  React.useEffect(() => {
-    if (!data) return;
-    const copiedWords = [...data.scheduledWords.cards];
-    shuffle(copiedWords);
-    setWords(copiedWords);
-  }, [data]);
-  if (loading) return <Loading />;
-  if (error) return <GqlError msg="Error getting words" err={error} />;
-  if (words.length === 0) return <span>No words</span>;
   const index = 0;
   const word = words[index];
 

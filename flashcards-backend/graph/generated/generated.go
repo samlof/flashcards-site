@@ -68,7 +68,7 @@ type ComplexityRoot struct {
 
 	Query struct {
 		GetWords       func(childComplexity int) int
-		ScheduledWords func(childComplexity int) int
+		ScheduledWords func(childComplexity int, shuffle bool) int
 		UserSettings   func(childComplexity int) int
 	}
 
@@ -99,7 +99,7 @@ type MutationResolver interface {
 	UpdateWord(ctx context.Context, input model.UpdateWord) (*model.Word, error)
 }
 type QueryResolver interface {
-	ScheduledWords(ctx context.Context) (*model.ScheduledWordsResponse, error)
+	ScheduledWords(ctx context.Context, shuffle bool) (*model.ScheduledWordsResponse, error)
 	UserSettings(ctx context.Context) (*model.UserSettings, error)
 	GetWords(ctx context.Context) ([]*model.Word, error)
 }
@@ -247,7 +247,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Query.ScheduledWords(childComplexity), true
+		args, err := ec.field_Query_scheduledWords_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ScheduledWords(childComplexity, args["shuffle"].(bool)), true
 
 	case "Query.userSettings":
 		if e.complexity.Query.UserSettings == nil {
@@ -408,7 +413,7 @@ type ScheduledWordsResponse {
   cards: [Word!]!
 }
 extend type Query {
-  scheduledWords: ScheduledWordsResponse!
+  scheduledWords(shuffle: Boolean! = false): ScheduledWordsResponse!
 }
 
 input CardStatus {
@@ -560,6 +565,20 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		}
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_scheduledWords_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 bool
+	if tmp, ok := rawArgs["shuffle"]; ok {
+		arg0, err = ec.unmarshalNBoolean2bool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["shuffle"] = arg0
 	return args, nil
 }
 
@@ -1091,9 +1110,16 @@ func (ec *executionContext) _Query_scheduledWords(ctx context.Context, field gra
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_scheduledWords_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ScheduledWords(rctx)
+		return ec.resolvers.Query().ScheduledWords(rctx, args["shuffle"].(bool))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

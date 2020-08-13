@@ -13,7 +13,7 @@ import (
 	"flashcards-backend/graph/model"
 	"flashcards-backend/modelconv"
 	"fmt"
-	"log"
+	"math/rand"
 	"strconv"
 	"time"
 )
@@ -84,11 +84,15 @@ func (r *mutationResolver) CardStatus(ctx context.Context, input model.CardStatu
 	return modelconv.CardLog(cardLog), nil
 }
 
-func (r *queryResolver) ScheduledWords(ctx context.Context) (*model.ScheduledWordsResponse, error) {
+func (r *queryResolver) ScheduledWords(ctx context.Context, shuffle bool) (*model.ScheduledWordsResponse, error) {
 	// Get cards scheduled for review
 	scheduledCards, err := r.DB.CardSchedule.Query().
 		WithCard().
-		Where(cardschedule.And(cardschedule.Reviewed(false), cardschedule.ScheduledForLTE(time.Now()))).
+		Where(
+			cardschedule.And(
+				cardschedule.Reviewed(false),
+				cardschedule.ScheduledForLTE(time.Now()),
+			)).
 		Order(ent.Desc(cardschedule.FieldScheduledFor)).
 		Limit(500).
 		All(ctx)
@@ -118,10 +122,10 @@ func (r *queryResolver) ScheduledWords(ctx context.Context) (*model.ScheduledWor
 
 	// Get which cards have been done in last 24h
 	alreadyDoneCardIds, err := r.DB.CardLog.Query().
-		Where(
-			cardlog.And(
-				cardlog.CreateTimeGT(time.Now().Add(time.Hour*24*-1)),
-				cardlog.ResultNEQ(cardlog.ResultRetry))).
+		Where(cardlog.And(
+			cardlog.CreateTimeGT(time.Now().Add(time.Hour*24*-1)),
+			cardlog.ResultNEQ(cardlog.ResultRetry),
+		)).
 		Select(cardlog.ForeignKeys[0]).
 		Ints(ctx)
 
@@ -131,10 +135,10 @@ func (r *queryResolver) ScheduledWords(ctx context.Context) (*model.ScheduledWor
 	if len(alreadyDoneCardIds) > 0 {
 		// Get how many times each card has been done in the past
 		doneCardIds, err := r.DB.CardLog.Query().
-			Where(
-				cardlog.And(
-					cardlog.HasCardWith(word.IDIn(alreadyDoneCardIds...)),
-					cardlog.ResultNEQ(cardlog.ResultRetry))).
+			Where(cardlog.And(
+				cardlog.HasCardWith(word.IDIn(alreadyDoneCardIds...)),
+				cardlog.ResultNEQ(cardlog.ResultRetry),
+			)).
 			Select(cardlog.ForeignKeys[0]).Ints(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("getting already done doneCardIds: %v", err)
@@ -150,11 +154,11 @@ func (r *queryResolver) ScheduledWords(ctx context.Context) (*model.ScheduledWor
 			}
 		}
 	}
-	log.Printf("Getting %v new words", newWordCount)
+
 	if newWordCount > 0 {
 		// Get new cards
 		newWords, err := r.DB.Word.Query().
-			Where(word.Not(word.HasCardLogs())).
+			Where(word.Not(word.HasCardSchedules())).
 			Limit(newWordCount).
 			All(ctx)
 		if err != nil {
@@ -162,6 +166,11 @@ func (r *queryResolver) ScheduledWords(ctx context.Context) (*model.ScheduledWor
 		}
 
 		ret.Cards = append(ret.Cards, modelconv.WordS(newWords)...)
+	}
+
+	if shuffle {
+		cards = ret.Cards
+		rand.Shuffle(len(cards), func(i, j int) { cards[i], cards[j] = cards[j], cards[i] })
 	}
 
 	return ret, nil

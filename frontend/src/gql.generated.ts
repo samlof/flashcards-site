@@ -2,7 +2,7 @@ import gql from 'graphql-tag';
 import * as ApolloReactCommon from '@apollo/client';
 import * as ApolloReactHooks from '@apollo/client';
 export type Maybe<T> = T | null;
-export type Exact<T extends { [key: string]: any }> = { [K in keyof T]: T[K] };
+export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
   ID: string;
@@ -13,9 +13,39 @@ export type Scalars = {
   Time: String;
 };
 
-export type CardStatus = {
-  cardId: Scalars['ID'];
-  result: CardResult;
+export type Query = {
+  __typename?: 'Query';
+  scheduledWords: ScheduledWordsResponse;
+  userSettings: UserSettings;
+  getWords: Array<Word>;
+};
+
+
+export type QueryScheduledWordsArgs = {
+  shuffle?: Scalars['Boolean'];
+};
+
+export type CardSchedule = {
+  __typename?: 'CardSchedule';
+  createTime: Scalars['Time'];
+  id: Scalars['ID'];
+  word: Word;
+  scheduledFor: Scalars['Time'];
+};
+
+export type SetSettings = {
+  newCardsPerDay: Scalars['Int'];
+};
+
+export type Word = {
+  __typename?: 'Word';
+  id: Scalars['ID'];
+  lang1: Scalars['String'];
+  lang2: Scalars['String'];
+  word1: Scalars['String'];
+  word2: Scalars['String'];
+  createTime: Scalars['Time'];
+  updateTime: Scalars['Time'];
 };
 
 export type UpdateWord = {
@@ -25,6 +55,37 @@ export type UpdateWord = {
   word1: Scalars['String'];
   word2: Scalars['String'];
 };
+
+export enum CardResult {
+  Easy = 'Easy',
+  Good = 'Good',
+  Bad = 'Bad',
+  Retry = 'Retry'
+}
+
+export type ScheduledWordsResponse = {
+  __typename?: 'ScheduledWordsResponse';
+  cards: Array<Word>;
+};
+
+export type CardLog = {
+  __typename?: 'CardLog';
+  createTime: Scalars['Time'];
+  id: Scalars['ID'];
+  word: Word;
+  lastResult: CardResult;
+};
+
+export type CardStatus = {
+  cardId: Scalars['ID'];
+  result: CardResult;
+};
+
+export type UserSettings = {
+  __typename?: 'UserSettings';
+  newCardsPerDay: Scalars['Int'];
+};
+
 
 export type Mutation = {
   __typename?: 'Mutation';
@@ -60,67 +121,11 @@ export type MutationUpdateWordArgs = {
   input: UpdateWord;
 };
 
-export enum CardResult {
-  Easy = 'Easy',
-  Good = 'Good',
-  Bad = 'Bad',
-  Retry = 'Retry'
-}
-
-export type CardSchedule = {
-  __typename?: 'CardSchedule';
-  createTime: Scalars['Time'];
-  id: Scalars['ID'];
-  word: Word;
-  scheduledFor: Scalars['Time'];
-};
-
-export type ScheduledWordsResponse = {
-  __typename?: 'ScheduledWordsResponse';
-  cards: Array<Word>;
-};
-
-export type Word = {
-  __typename?: 'Word';
-  id: Scalars['ID'];
-  lang1: Scalars['String'];
-  lang2: Scalars['String'];
-  word1: Scalars['String'];
-  word2: Scalars['String'];
-  createTime: Scalars['Time'];
-  updateTime: Scalars['Time'];
-};
-
 export type NewWord = {
   lang1: Scalars['String'];
   lang2: Scalars['String'];
   word1: Scalars['String'];
   word2: Scalars['String'];
-};
-
-export type CardLog = {
-  __typename?: 'CardLog';
-  createTime: Scalars['Time'];
-  id: Scalars['ID'];
-  word: Word;
-  lastResult: CardResult;
-};
-
-
-export type SetSettings = {
-  newCardsPerDay: Scalars['Int'];
-};
-
-export type Query = {
-  __typename?: 'Query';
-  scheduledWords: ScheduledWordsResponse;
-  userSettings: UserSettings;
-  getWords: Array<Word>;
-};
-
-export type UserSettings = {
-  __typename?: 'UserSettings';
-  newCardsPerDay: Scalars['Int'];
 };
 
 export type AllFlashcardsQueryVariables = Exact<{ [key: string]: never; }>;
@@ -441,7 +446,7 @@ export type SetUserSettingsMutationResult = ApolloReactCommon.MutationResult<Set
 export type SetUserSettingsMutationOptions = ApolloReactCommon.BaseMutationOptions<SetUserSettingsMutation, SetUserSettingsMutationVariables>;
 export const FlashcardPageDocument = gql`
     query FlashcardPage {
-  scheduledWords {
+  scheduledWords(shuffle: true) {
     cards {
       id
       lang1
