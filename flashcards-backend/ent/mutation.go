@@ -1104,6 +1104,7 @@ type UserMutation struct {
 	create_time           *time.Time
 	update_time           *time.Time
 	email                 *string
+	firebaseUid           *string
 	clearedFields         map[string]struct{}
 	cardLogs              map[int]struct{}
 	removedcardLogs       map[int]struct{}
@@ -1300,9 +1301,59 @@ func (m *UserMutation) OldEmail(ctx context.Context) (v string, err error) {
 	return oldValue.Email, nil
 }
 
+// ClearEmail clears the value of email.
+func (m *UserMutation) ClearEmail() {
+	m.email = nil
+	m.clearedFields[user.FieldEmail] = struct{}{}
+}
+
+// EmailCleared returns if the field email was cleared in this mutation.
+func (m *UserMutation) EmailCleared() bool {
+	_, ok := m.clearedFields[user.FieldEmail]
+	return ok
+}
+
 // ResetEmail reset all changes of the "email" field.
 func (m *UserMutation) ResetEmail() {
 	m.email = nil
+	delete(m.clearedFields, user.FieldEmail)
+}
+
+// SetFirebaseUid sets the firebaseUid field.
+func (m *UserMutation) SetFirebaseUid(s string) {
+	m.firebaseUid = &s
+}
+
+// FirebaseUid returns the firebaseUid value in the mutation.
+func (m *UserMutation) FirebaseUid() (r string, exists bool) {
+	v := m.firebaseUid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFirebaseUid returns the old firebaseUid value of the User.
+// If the User object wasn't provided to the builder, the object is fetched
+// from the database.
+// An error is returned if the mutation operation is not UpdateOne, or database query fails.
+func (m *UserMutation) OldFirebaseUid(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldFirebaseUid is allowed only on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldFirebaseUid requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFirebaseUid: %w", err)
+	}
+	return oldValue.FirebaseUid, nil
+}
+
+// ResetFirebaseUid reset all changes of the "firebaseUid" field.
+func (m *UserMutation) ResetFirebaseUid() {
+	m.firebaseUid = nil
 }
 
 // AddCardLogIDs adds the cardLogs edge to CardLog by ids.
@@ -1445,7 +1496,7 @@ func (m *UserMutation) Type() string {
 // this mutation. Note that, in order to get all numeric
 // fields that were in/decremented, call AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 4)
 	if m.create_time != nil {
 		fields = append(fields, user.FieldCreateTime)
 	}
@@ -1454,6 +1505,9 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.email != nil {
 		fields = append(fields, user.FieldEmail)
+	}
+	if m.firebaseUid != nil {
+		fields = append(fields, user.FieldFirebaseUid)
 	}
 	return fields
 }
@@ -1469,6 +1523,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.UpdateTime()
 	case user.FieldEmail:
 		return m.Email()
+	case user.FieldFirebaseUid:
+		return m.FirebaseUid()
 	}
 	return nil, false
 }
@@ -1484,6 +1540,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldUpdateTime(ctx)
 	case user.FieldEmail:
 		return m.OldEmail(ctx)
+	case user.FieldFirebaseUid:
+		return m.OldFirebaseUid(ctx)
 	}
 	return nil, fmt.Errorf("unknown User field %s", name)
 }
@@ -1514,6 +1572,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetEmail(v)
 		return nil
+	case user.FieldFirebaseUid:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFirebaseUid(v)
+		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
 }
@@ -1543,7 +1608,11 @@ func (m *UserMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared
 // during this mutation.
 func (m *UserMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(user.FieldEmail) {
+		fields = append(fields, user.FieldEmail)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicates if this field was
@@ -1556,6 +1625,11 @@ func (m *UserMutation) FieldCleared(name string) bool {
 // ClearField clears the value for the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *UserMutation) ClearField(name string) error {
+	switch name {
+	case user.FieldEmail:
+		m.ClearEmail()
+		return nil
+	}
 	return fmt.Errorf("unknown User nullable field %s", name)
 }
 
@@ -1572,6 +1646,9 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldEmail:
 		m.ResetEmail()
+		return nil
+	case user.FieldFirebaseUid:
+		m.ResetFirebaseUid()
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)

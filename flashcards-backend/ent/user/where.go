@@ -114,6 +114,13 @@ func Email(v string) predicate.User {
 	})
 }
 
+// FirebaseUid applies equality check predicate on the "firebaseUid" field. It's identical to FirebaseUidEQ.
+func FirebaseUid(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldFirebaseUid), v))
+	})
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
@@ -363,6 +370,20 @@ func EmailHasSuffix(v string) predicate.User {
 	})
 }
 
+// EmailIsNil applies the IsNil predicate on the "email" field.
+func EmailIsNil() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldEmail)))
+	})
+}
+
+// EmailNotNil applies the NotNil predicate on the "email" field.
+func EmailNotNil() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldEmail)))
+	})
+}
+
 // EmailEqualFold applies the EqualFold predicate on the "email" field.
 func EmailEqualFold(v string) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
@@ -374,6 +395,117 @@ func EmailEqualFold(v string) predicate.User {
 func EmailContainsFold(v string) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldEmail), v))
+	})
+}
+
+// FirebaseUidEQ applies the EQ predicate on the "firebaseUid" field.
+func FirebaseUidEQ(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldFirebaseUid), v))
+	})
+}
+
+// FirebaseUidNEQ applies the NEQ predicate on the "firebaseUid" field.
+func FirebaseUidNEQ(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldFirebaseUid), v))
+	})
+}
+
+// FirebaseUidIn applies the In predicate on the "firebaseUid" field.
+func FirebaseUidIn(vs ...string) predicate.User {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.User(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldFirebaseUid), v...))
+	})
+}
+
+// FirebaseUidNotIn applies the NotIn predicate on the "firebaseUid" field.
+func FirebaseUidNotIn(vs ...string) predicate.User {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.User(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldFirebaseUid), v...))
+	})
+}
+
+// FirebaseUidGT applies the GT predicate on the "firebaseUid" field.
+func FirebaseUidGT(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldFirebaseUid), v))
+	})
+}
+
+// FirebaseUidGTE applies the GTE predicate on the "firebaseUid" field.
+func FirebaseUidGTE(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldFirebaseUid), v))
+	})
+}
+
+// FirebaseUidLT applies the LT predicate on the "firebaseUid" field.
+func FirebaseUidLT(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldFirebaseUid), v))
+	})
+}
+
+// FirebaseUidLTE applies the LTE predicate on the "firebaseUid" field.
+func FirebaseUidLTE(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldFirebaseUid), v))
+	})
+}
+
+// FirebaseUidContains applies the Contains predicate on the "firebaseUid" field.
+func FirebaseUidContains(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldFirebaseUid), v))
+	})
+}
+
+// FirebaseUidHasPrefix applies the HasPrefix predicate on the "firebaseUid" field.
+func FirebaseUidHasPrefix(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldFirebaseUid), v))
+	})
+}
+
+// FirebaseUidHasSuffix applies the HasSuffix predicate on the "firebaseUid" field.
+func FirebaseUidHasSuffix(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldFirebaseUid), v))
+	})
+}
+
+// FirebaseUidEqualFold applies the EqualFold predicate on the "firebaseUid" field.
+func FirebaseUidEqualFold(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldFirebaseUid), v))
+	})
+}
+
+// FirebaseUidContainsFold applies the ContainsFold predicate on the "firebaseUid" field.
+func FirebaseUidContainsFold(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldFirebaseUid), v))
 	})
 }
 

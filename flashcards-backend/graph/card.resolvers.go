@@ -5,9 +5,11 @@ package graph
 
 import (
 	"context"
+	"flashcards-backend/auth"
 	"flashcards-backend/ent"
 	"flashcards-backend/ent/cardlog"
 	"flashcards-backend/ent/cardschedule"
+	"flashcards-backend/ent/user"
 	"flashcards-backend/ent/word"
 	"flashcards-backend/graph/generated"
 	"flashcards-backend/graph/model"
@@ -19,6 +21,11 @@ import (
 )
 
 func (r *mutationResolver) CardStatus(ctx context.Context, input model.CardStatus) (*model.CardLog, error) {
+	ctxUser := auth.ForContext(ctx)
+	if ctxUser == nil {
+		return nil, accessDeniedErr(auth.ForContextErr(ctx))
+	}
+
 	cardId, err := strconv.Atoi(input.CardID)
 	if err != nil {
 		return nil, fmt.Errorf("parsing cardid %s to int: %v", input.CardID, err)
@@ -32,10 +39,13 @@ func (r *mutationResolver) CardStatus(ctx context.Context, input model.CardStatu
 
 	// For retry, we shouldn't reschedule the card
 	if input.Result != model.CardResultRetry {
-
 		// Update the old scheduled item to be done
 		_, err = r.DB.CardSchedule.Update().
-			Where(cardschedule.And(cardschedule.HasCardWith(word.ID(cardId)), cardschedule.Reviewed(false))).
+			Where(cardschedule.And(
+				cardschedule.HasCardWith(word.ID(cardId)),
+				cardschedule.Reviewed(false),
+				cardschedule.HasUserWith(user.ID(ctxUser.ID)),
+			)).
 			SetReviewed(true).
 			Save(ctx)
 		if err != nil {
@@ -44,7 +54,10 @@ func (r *mutationResolver) CardStatus(ctx context.Context, input model.CardStatu
 
 		// Get old log item related to this
 		oldLog, err := r.DB.CardLog.Query().
-			Where(cardlog.HasCardWith(word.ID(cardId))).
+			Where(cardlog.And(
+				cardlog.HasCardWith(word.ID(cardId))),
+				cardlog.HasUserWith(user.ID(ctxUser.ID)),
+			).
 			Order(ent.Desc(cardlog.FieldCreateTime)).
 			First(ctx)
 		if err != nil && !ent.IsNotFound(err) {
@@ -69,6 +82,7 @@ func (r *mutationResolver) CardStatus(ctx context.Context, input model.CardStatu
 		_, err = r.DB.CardSchedule.Create().
 			SetScheduledFor(scheduleFor).
 			SetCard(card).
+			SetUser(ctxUser).
 			Save(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("creating log item: %v", err)
@@ -76,7 +90,11 @@ func (r *mutationResolver) CardStatus(ctx context.Context, input model.CardStatu
 	}
 	// Add the status to db
 	dbResult := modelconv.ModelCardResult(input.Result)
-	cardLog, err := r.DB.CardLog.Create().SetCard(card).SetResult(dbResult).Save(ctx)
+	cardLog, err := r.DB.CardLog.Create().
+		SetCard(card).
+		SetResult(dbResult).
+		SetUser(ctxUser).
+		Save(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("adding log to db for id %d result %s: %v", cardId, dbResult, err)
 	}
@@ -85,6 +103,10 @@ func (r *mutationResolver) CardStatus(ctx context.Context, input model.CardStatu
 }
 
 func (r *queryResolver) ScheduledWords(ctx context.Context, shuffle bool) (*model.ScheduledWordsResponse, error) {
+	ctxUser := auth.ForContext(ctx)
+	if ctxUser == nil {
+		return nil, accessDeniedErr(auth.ForContextErr(ctx))
+	}
 	// Get cards scheduled for review
 	scheduledCards, err := r.DB.CardSchedule.Query().
 		WithCard().
@@ -92,6 +114,7 @@ func (r *queryResolver) ScheduledWords(ctx context.Context, shuffle bool) (*mode
 			cardschedule.And(
 				cardschedule.Reviewed(false),
 				cardschedule.ScheduledForLTE(time.Now()),
+				cardschedule.HasUserWith(user.ID(ctxUser.ID)),
 			)).
 		Order(ent.Desc(cardschedule.FieldScheduledFor)).
 		Limit(500).
@@ -109,7 +132,7 @@ func (r *queryResolver) ScheduledWords(ctx context.Context, shuffle bool) (*mode
 	}
 
 	// Get settings to find how many cards a day
-	settings, err := r.DB.UserSettings.Query().First(ctx)
+	settings, err := ctxUser.QuerySettings().First(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("getting settings: %v", err)
 	}
@@ -125,6 +148,7 @@ func (r *queryResolver) ScheduledWords(ctx context.Context, shuffle bool) (*mode
 		Where(cardlog.And(
 			cardlog.CreateTimeGT(time.Now().Add(time.Hour*24*-1)),
 			cardlog.ResultNEQ(cardlog.ResultRetry),
+			cardlog.HasUserWith(user.ID(ctxUser.ID)),
 		)).
 		Select(cardlog.ForeignKeys[0]).
 		Ints(ctx)
@@ -138,6 +162,7 @@ func (r *queryResolver) ScheduledWords(ctx context.Context, shuffle bool) (*mode
 			Where(cardlog.And(
 				cardlog.HasCardWith(word.IDIn(alreadyDoneCardIds...)),
 				cardlog.ResultNEQ(cardlog.ResultRetry),
+				cardlog.HasUserWith(user.ID(ctxUser.ID)),
 			)).
 			Select(cardlog.ForeignKeys[0]).Ints(ctx)
 		if err != nil {
@@ -158,7 +183,9 @@ func (r *queryResolver) ScheduledWords(ctx context.Context, shuffle bool) (*mode
 	if newWordCount > 0 {
 		// Get new cards
 		newWords, err := r.DB.Word.Query().
-			Where(word.Not(word.HasCardSchedules())).
+			Where(word.Not(
+				word.HasCardSchedulesWith(cardschedule.HasUserWith(user.ID(ctxUser.ID))),
+			)).
 			Limit(newWordCount).
 			All(ctx)
 		if err != nil {

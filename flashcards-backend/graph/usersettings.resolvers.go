@@ -5,6 +5,7 @@ package graph
 
 import (
 	"context"
+	"flashcards-backend/auth"
 	"flashcards-backend/ent"
 	"flashcards-backend/graph/model"
 	"flashcards-backend/modelconv"
@@ -12,13 +13,22 @@ import (
 )
 
 func (r *mutationResolver) SetSettings(ctx context.Context, input model.SetSettings) (*model.UserSettings, error) {
-	settings, err := r.DB.UserSettings.Query().First(ctx)
+	ctxUser := auth.ForContext(ctx)
+	if ctxUser == nil {
+		return nil, accessDeniedErr(auth.ForContextErr(ctx))
+	}
+
+	settings, err := ctxUser.QuerySettings().First(ctx)
 	if err != nil && !ent.IsNotFound(err) {
 		return nil, fmt.Errorf("finding old settings: %v", err)
 	}
+
 	if settings == nil {
 		// Create settings
-		settings, err = r.DB.UserSettings.Create().SetNewCardsPerDay(input.NewCardsPerDay).Save(ctx)
+		settings, err = r.DB.UserSettings.Create().
+			SetUser(ctxUser).
+			SetNewCardsPerDay(input.NewCardsPerDay).
+			Save(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("creating new settings: %v", err)
 		}
@@ -33,7 +43,12 @@ func (r *mutationResolver) SetSettings(ctx context.Context, input model.SetSetti
 }
 
 func (r *queryResolver) UserSettings(ctx context.Context) (*model.UserSettings, error) {
-	settings, err := r.DB.UserSettings.Query().First(ctx)
+	ctxUser := auth.ForContext(ctx)
+	if ctxUser == nil {
+		return nil, accessDeniedErr(auth.ForContextErr(ctx))
+	}
+
+	settings, err := ctxUser.QuerySettings().First(ctx)
 	if err != nil && !ent.IsNotFound(err) {
 		return nil, fmt.Errorf("finding old settings: %v", err)
 	}

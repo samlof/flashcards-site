@@ -23,8 +23,8 @@ func (User) Mixin() []ent.Mixin {
 // Fields of the User.
 func (User) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("email").NotEmpty().Comment("User email").MaxLen(255),
-		field.String("firebaseUid").NotEmpty().Unique().Immutable(),
+		field.String("email").Optional().Comment("User email").MaxLen(255),
+		field.String("firebaseUid").MinLen(5).Unique().Immutable().MaxLen(255),
 	}
 }
 

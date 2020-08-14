@@ -59,15 +59,19 @@ func init() {
 	// userDescEmail is the schema descriptor for email field.
 	userDescEmail := userFields[0].Descriptor()
 	// user.EmailValidator is a validator for the "email" field. It is called by the builders before save.
-	user.EmailValidator = func() func(string) error {
-		validators := userDescEmail.Validators
+	user.EmailValidator = userDescEmail.Validators[0].(func(string) error)
+	// userDescFirebaseUid is the schema descriptor for firebaseUid field.
+	userDescFirebaseUid := userFields[1].Descriptor()
+	// user.FirebaseUidValidator is a validator for the "firebaseUid" field. It is called by the builders before save.
+	user.FirebaseUidValidator = func() func(string) error {
+		validators := userDescFirebaseUid.Validators
 		fns := [...]func(string) error{
 			validators[0].(func(string) error),
 			validators[1].(func(string) error),
 		}
-		return func(email string) error {
+		return func(firebaseUid string) error {
 			for _, fn := range fns {
-				if err := fn(email); err != nil {
+				if err := fn(firebaseUid); err != nil {
 					return err
 				}
 			}

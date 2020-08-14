@@ -2,11 +2,18 @@ import React from "react";
 import StyledFirebaseAuth from "react-firebaseui/StyledFirebaseAuth";
 import { FbApp, FbAuthUiConf } from "../lib/firebase";
 import { useUser } from "../lib/user";
+import { Button } from "./Button";
+import { useApolloClient } from "@apollo/client";
 
 interface Props {}
 const Login = ({}: Props) => {
   const user = useUser();
+  const apolloClient = useApolloClient();
 
+  const clickLogout = async () => {
+    await FbApp.auth().signOut();
+    await apolloClient.clearStore();
+  };
   return (
     <>
       {!user && (
@@ -15,7 +22,14 @@ const Login = ({}: Props) => {
           firebaseAuth={FbApp.auth()}
         />
       )}
-      {user && user !== "pending" && <p>{JSON.stringify(user, null, 2)}</p>}
+      {user && user !== "pending" && (
+        <>
+          <em>Logged in</em>
+          <Button type="button" onClick={clickLogout}>
+            Logout
+          </Button>
+        </>
+      )}
     </>
   );
 };

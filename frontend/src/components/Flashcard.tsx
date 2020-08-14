@@ -60,11 +60,16 @@ const Flashcard = ({ initialWords }: Props) => {
     });
     await delayMs(animationSpeed);
     setWords((prev) => {
-      const word = prev.splice(index, 1)[0];
+      const word = prev[0];
+      prev = prev.slice(1);
       // If retry, then add the card back to deck
       if (result === CardResult.Retry) {
         const nextIndex = randInt(0, prev.length);
-        prev.splice(nextIndex, 0, word);
+        const newWords = prev.slice(0, nextIndex);
+        newWords.push(word);
+        newWords.push(...prev.slice(nextIndex));
+
+        prev = newWords;
       }
       return prev;
     });

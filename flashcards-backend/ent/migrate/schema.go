@@ -75,7 +75,8 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
-		{Name: "email", Type: field.TypeString, Size: 255},
+		{Name: "email", Type: field.TypeString, Nullable: true, Size: 255},
+		{Name: "firebase_uid", Type: field.TypeString, Unique: true, Size: 255},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{
@@ -83,6 +84,13 @@ var (
 		Columns:     UsersColumns,
 		PrimaryKey:  []*schema.Column{UsersColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{},
+		Indexes: []*schema.Index{
+			{
+				Name:    "user_firebase_uid",
+				Unique:  true,
+				Columns: []*schema.Column{UsersColumns[4]},
+			},
+		},
 	}
 	// UserSettingsColumns holds the columns for the "user_settings" table.
 	UserSettingsColumns = []*schema.Column{

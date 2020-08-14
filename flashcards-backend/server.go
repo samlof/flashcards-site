@@ -55,8 +55,8 @@ func main() {
 
 	// Run migrations
 	ctx := context.Background()
-	err = client.Schema.Create(ctx, migrate.WithGlobalUniqueID(true),
-		//err = client.Schema.WriteTo(ctx, os.Stdout, migrate.WithGlobalUniqueID(true),
+	err = client.Schema.Create(ctx,
+		//err = client.Schema.WriteTo(ctx, os.Stdout,
 		migrate.WithDropIndex(true),
 		migrate.WithDropColumn(true))
 	if err != nil {
@@ -96,7 +96,7 @@ func main() {
 		AllowedHeaders:   []string{"authorization", "content-type", "accept"},
 	}).Handler)
 
-	r.With(auth.Middleware(firebaseAuth)).Handle("/query", srv)
+	r.With(auth.Middleware(firebaseAuth, client)).Handle("/query", srv)
 
 	// Enable introspection and playground for development
 	if !isProduction {
