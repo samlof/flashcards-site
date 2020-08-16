@@ -3,12 +3,12 @@ import StyledFirebaseAuth from "react-firebaseui/StyledFirebaseAuth";
 import { FbApp, FbAuthUiConf } from "../lib/firebase";
 import { useUser } from "../lib/user";
 import { Button } from "./Button";
-import { useApolloClient } from "@apollo/client";
+import { useApollo } from "../lib/apolloClient";
 
 interface Props {}
 const Login = ({}: Props) => {
   const user = useUser();
-  const apolloClient = useApolloClient();
+  const apolloClient = useApollo();
 
   const clickLogout = async () => {
     await FbApp.auth().signOut();

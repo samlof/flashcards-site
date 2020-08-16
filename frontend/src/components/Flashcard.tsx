@@ -3,15 +3,9 @@ import { CSSTransition } from "react-transition-group";
 import styled from "styled-components";
 import { Button } from "../components/Button";
 import FlipCard from "../components/FlipCard";
-import {
-  CardResult,
-  useFlashcardPageQuery,
-  useSetCardStatusMutation,
-} from "../gql.generated";
+import { CardResult, useSetCardStatusMutation } from "../gql.generated";
 import { delayMs } from "../helpers/delay";
-import { randInt, shuffle } from "../helpers/randomUtils";
-import GqlError from "./GqlError";
-import Loading from "./Loading";
+import { randInt } from "../helpers/randomUtils";
 
 const ButtonDiv = styled.div`
   display: flex;
@@ -42,10 +36,7 @@ const Flashcard = ({ initialWords }: Props) => {
   const [cardVisible, setVisible] = React.useState(true);
   const [animationName, setAnimationName] = React.useState("card-in-out");
 
-  const [
-    setCardState,
-    { loading: loadingCardState },
-  ] = useSetCardStatusMutation();
+  const [setCardState] = useSetCardStatusMutation();
   const [words, setWords] = React.useState<FlashWord[]>(initialWords);
 
   const index = 0;

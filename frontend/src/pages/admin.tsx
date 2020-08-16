@@ -8,7 +8,7 @@ import GqlError from "../components/GqlError";
 import Loading from "../components/Loading";
 import { useAllWordsQuery } from "../gql.generated";
 import Head from "next/head";
-import UserSettings from "../components/admin/UserSettings";
+import UserSettings from "../components/UserSettings";
 
 interface Props {}
 const AdminPage = ({}: Props) => {

@@ -3,10 +3,10 @@ import styled from "styled-components";
 import {
   useUserSettingsQuery,
   useSetUserSettingsMutation,
-} from "../../gql.generated";
-import GqlError from "../GqlError";
-import Loading from "../Loading";
-import { Button } from "../Button";
+} from "../gql.generated";
+import GqlError from "./GqlError";
+import Loading from "./Loading";
+import { Button } from "./Button";
 
 const SmallInput = styled.input`
   width: 4rem;

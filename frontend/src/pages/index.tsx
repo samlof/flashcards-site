@@ -9,6 +9,7 @@ import { FlashcardPageDocument, useFlashcardPageQuery } from "../gql.generated";
 import { initializeApollo } from "../lib/apolloClient";
 import Loading from "../components/Loading";
 import GqlError from "../components/GqlError";
+import Navbar from "../components/Navbar";
 
 const Login = dynamic(() => import("../components/Login"), { ssr: false });
 
@@ -29,7 +30,8 @@ const IndexPage = ({}: Props) => {
       <Head>
         <title>Flashcards | kieli.club</title>
       </Head>
-      <Login />
+      <Navbar />
+      {false && <Login />}
 
       <h1>Flashcards</h1>
       <FlashcardElement />
@@ -42,9 +44,11 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const idtoken = nextCookie(ctx)[IdTokenCookie];
 
   const apolloClient = initializeApollo(undefined, idtoken);
-  await apolloClient.query({
-    query: FlashcardPageDocument,
-  });
+  try {
+    await apolloClient.query({
+      query: FlashcardPageDocument,
+    });
+  } catch (error) {}
   return {
     props: { initialApolloState: apolloClient.cache.extract() },
   };

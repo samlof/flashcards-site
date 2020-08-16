@@ -63,6 +63,20 @@ func Middleware(firebaseAuth *auth.Client, client *ent.Client) func(http.Handler
 				next.ServeHTTP(w, r)
 				return
 			}
+			settingsExists, err := dbUser.QuerySettings().Exist(ctx)
+			if err != nil {
+				r = setError(r, ctx, "error getting settings for uid %s: %v", userUid, err)
+				next.ServeHTTP(w, r)
+				return
+			}
+			if !settingsExists {
+				_, err := client.UserSettings.Create().SetUser(dbUser).Save(ctx)
+				if err != nil {
+					r = setError(r, ctx, "error creating settings for uid %s: %v", userUid, err)
+					next.ServeHTTP(w, r)
+					return
+				}
+			}
 
 			ctx = context.WithValue(ctx, userCtxKey, dbUser)
 			r = r.WithContext(ctx)
