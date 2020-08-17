@@ -1,10 +1,11 @@
 import { ApolloProvider, NormalizedCache } from "@apollo/client";
-import { useApollo } from "../lib/apolloClient";
 import { AppPropsType } from "next/dist/next-server/lib/utils";
-import { ThemeProvider } from "styled-components";
-import { useUser } from "../lib/user";
 import { useEffect } from "react";
+import { ThemeProvider } from "styled-components";
 import { IdTokenCookie } from "../constants/cookieNames";
+import { useApollo } from "../lib/apolloClient";
+import { environment } from "../lib/environment";
+import { useUser } from "../lib/user";
 
 const theme = {};
 
@@ -16,13 +17,14 @@ export default function App({ Component, pageProps }: AppPropsType) {
   const user = useUser();
   useEffect(() => {
     if (typeof window !== "undefined") {
+      if (user.loading) return;
+
       if (!user) {
         document.cookie = `${IdTokenCookie}=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT`;
-      } else if (user !== "pending") {
-        user.getIdToken().then((token) => {
-          console.log("set id token");
+      } else if (user.user) {
+        user.user.getIdToken().then((token) => {
           const maxAge = 60 * 60; // 1 hour
-          document.cookie = `${IdTokenCookie}=${token}; path=/; max-age=${maxAge};`;
+          document.cookie = `${IdTokenCookie}=${token}; path=/; max-age=${maxAge}; Domain=${environment.ssrDomain}`;
         });
       }
     }

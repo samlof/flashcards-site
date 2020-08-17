@@ -14,15 +14,17 @@ const Login = ({}: Props) => {
     await FbApp.auth().signOut();
     await apolloClient.clearStore();
   };
+
+  if (user.loading) return null;
+
   return (
     <>
-      {!user && (
+      {!user.user ? (
         <StyledFirebaseAuth
           uiConfig={FbAuthUiConf}
           firebaseAuth={FbApp.auth()}
         />
-      )}
-      {user && user !== "pending" && (
+      ) : (
         <>
           <em>Logged in</em>
           <Button type="button" onClick={clickLogout}>

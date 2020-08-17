@@ -3,11 +3,15 @@ import { User } from "firebase/app";
 import { useEffect, useState } from "react";
 import { FbApp } from "./firebase";
 
-export const useUser: () => User | null | "pending" = () => {
-  const [user, setUser] = useState<User | null | "pending">("pending");
+interface userValue {
+  loading: boolean;
+  user: User | null;
+}
+export const useUser: () => userValue = () => {
+  const [user, setUser] = useState<userValue>({ loading: true, user: null });
   useEffect(() => {
-    const unsub = FbApp.auth().onAuthStateChanged((user) => {
-      setUser(user);
+    const unsub = FbApp.auth().onIdTokenChanged((user) => {
+      setUser({ user, loading: false });
     });
     return unsub;
   }, []);

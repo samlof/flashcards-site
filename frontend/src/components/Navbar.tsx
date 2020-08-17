@@ -14,7 +14,7 @@ const NavDiv = styled.nav`
   align-items: center;
   justify-content: center;
   padding: 0 0 0 2rem;
-  background-color: var(--color-red);
+  background-color: var(--color-green);
 `;
 const Right = styled.div`
   display: flex;
@@ -34,7 +34,7 @@ const Left = styled.div`
 `;
 const NavItem = styled.a<{ selected?: boolean }>`
   font-size: 1.3rem;
-  color: var(--color-orange);
+  color: var(--color-white);
   height: 100%;
   padding: 0.5rem;
   cursor: pointer;
@@ -68,7 +68,7 @@ const Navbar = ({}: Props) => {
       </Right>
       <Middle></Middle>
       <Left>
-        {user && user !== "pending" && (
+        {!user.loading && user && (
           <>
             <Link href="/usersettings" passHref>
               <NavItem selected={router.pathname === "/usersettings"}>

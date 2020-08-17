@@ -4,12 +4,12 @@ import Head from "next/head";
 import React from "react";
 import App from "../components/App";
 import Flashcard from "../components/Flashcard";
+import GqlError from "../components/GqlError";
+import Loading from "../components/Loading";
+import Navbar from "../components/Navbar";
 import { IdTokenCookie } from "../constants/cookieNames";
 import { FlashcardPageDocument, useFlashcardPageQuery } from "../gql.generated";
 import { initializeApollo } from "../lib/apolloClient";
-import Loading from "../components/Loading";
-import GqlError from "../components/GqlError";
-import Navbar from "../components/Navbar";
 
 const Login = dynamic(() => import("../components/Login"), { ssr: false });
 
@@ -31,7 +31,6 @@ const IndexPage = ({}: Props) => {
         <title>Flashcards | kieli.club</title>
       </Head>
       <Navbar />
-      {false && <Login />}
 
       <h1>Flashcards</h1>
       <FlashcardElement />
@@ -40,8 +39,14 @@ const IndexPage = ({}: Props) => {
 };
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
+  // console.log(ctx.req.headers.cookie);
   const nextCookie = await import("next-cookies").then((x) => x.default);
   const idtoken = nextCookie(ctx)[IdTokenCookie];
+
+  if (!idtoken) {
+    // No point trying here if no idtoken
+    return { props: {} };
+  }
 
   const apolloClient = initializeApollo(undefined, idtoken);
   try {
