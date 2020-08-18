@@ -5,6 +5,7 @@ import { FbApp } from "../lib/firebase";
 import { useUser } from "../lib/user";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import NavLink from "./Navbar/NavLink";
 
 const NavDiv = styled.nav`
   width: 100%;
@@ -62,19 +63,14 @@ const Navbar = ({}: Props) => {
   return (
     <NavDiv>
       <Right>
-        <Link href="/" passHref>
-          <NavItem selected={router.pathname === "/"}>Cards</NavItem>
-        </Link>
+        <NavLink path="/" label="Cards" />
+        <NavLink path="/all" label="All Cards" />
       </Right>
       <Middle></Middle>
       <Left>
         {!user.loading && user && (
           <>
-            <Link href="/usersettings" passHref>
-              <NavItem selected={router.pathname === "/usersettings"}>
-                Settings
-              </NavItem>
-            </Link>
+            <NavLink path="/usersettings" label="Settings" />
 
             <NavItem onClick={clickLogout}>Logout</NavItem>
           </>
