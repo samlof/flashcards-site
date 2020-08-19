@@ -3,10 +3,17 @@ import React from "react";
 import App from "../components/App";
 import Navbar from "../components/Navbar";
 import UserSettings from "../components/UserSettings";
-import Login from "../components/Login";
+import { useUser } from "../lib/user";
+import { useRouter } from "next/router";
 
 interface Props {}
-const AdminPage = ({}: Props) => {
+const UserSettingsPage = ({}: Props) => {
+  const user = useUser();
+  const router = useRouter();
+
+  if (!user.loading && !user.user) {
+    router.push("/all");
+  }
   return (
     <App>
       <Head>
@@ -14,11 +21,10 @@ const AdminPage = ({}: Props) => {
       </Head>
       <Navbar />
 
-      <h3>User Settings</h3>
-      <Login />
+      <h1>User Settings</h1>
       <UserSettings />
     </App>
   );
 };
 
-export default AdminPage;
+export default UserSettingsPage;

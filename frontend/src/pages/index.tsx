@@ -10,12 +10,18 @@ import Navbar from "../components/Navbar";
 import { IdTokenCookie } from "../constants/cookieNames";
 import { FlashcardPageDocument, useFlashcardPageQuery } from "../gql.generated";
 import { initializeApollo } from "../lib/apolloClient";
-
-const Login = dynamic(() => import("../components/Login"), { ssr: false });
+import { useUser } from "../lib/user";
+import { useRouter } from "next/router";
 
 interface Props {}
 const IndexPage = ({}: Props) => {
   const { loading, error, data } = useFlashcardPageQuery();
+  const user = useUser();
+  const router = useRouter();
+
+  if (!user.loading && !user.user) {
+    router.push("/all");
+  }
 
   const FlashcardElement = () => {
     if (loading) return <Loading />;

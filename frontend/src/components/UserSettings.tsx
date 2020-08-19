@@ -20,6 +20,9 @@ const NumberSpan = styled.span`
 const SaveButton = styled(Button)`
   margin-right: 0.5rem;
 `;
+const Spacer = styled.span`
+  margin-left: 5.3rem;
+`;
 
 interface Props {}
 const UserSettings = ({}: Props) => {
@@ -67,10 +70,21 @@ const UserSettings = ({}: Props) => {
         ) : (
           <NumberSpan>{cardsPerDay}</NumberSpan>
         )}{" "}
-        {editing && <SaveButton onClick={(e) => HandleSave()}>Save</SaveButton>}
-        <Button onClick={(e) => setEditing((p) => !p)}>
-          {editing ? "Cancel" : "Edit"}
-        </Button>
+        {editing ? (
+          <>
+            <SaveButton onClick={(e) => HandleSave()}>Save</SaveButton>
+            <Button onClick={(e) => setEditing((p) => !p)}>
+              {editing ? "Cancel" : "Edit"}
+            </Button>
+          </>
+        ) : (
+          <>
+            <Button onClick={(e) => setEditing((p) => !p)}>
+              {editing ? "Cancel" : "Edit"}
+            </Button>
+            <Spacer />
+          </>
+        )}
       </div>
     </>
   );

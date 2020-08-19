@@ -1,11 +1,15 @@
 import { useApolloClient } from "@apollo/client";
+import { useRouter } from "next/router";
 import React from "react";
 import styled from "styled-components";
 import { FbApp } from "../lib/firebase";
 import { useUser } from "../lib/user";
-import Link from "next/link";
-import { useRouter } from "next/router";
 import NavLink from "./Navbar/NavLink";
+import dynamic from "next/dynamic";
+import NavItem from "./Navbar/NavItem";
+import { delayMs } from "../helpers/delay";
+
+const NavLogin = dynamic(() => import("./Navbar/NavLogin"), { ssr: false });
 
 const NavDiv = styled.nav`
   width: 100%;
@@ -33,21 +37,6 @@ const Left = styled.div`
   align-items: center;
   height: 100%;
 `;
-const NavItem = styled.a<{ selected?: boolean }>`
-  font-size: 1.3rem;
-  color: var(--color-white);
-  height: 100%;
-  padding: 0.5rem;
-  cursor: pointer;
-  transition: filter 0.3s;
-  text-decoration: none;
-
-  &:hover {
-    filter: brightness(85%);
-  }
-
-  ${(props) => (props.selected ? "background-color: var(--color-blue)" : "")}
-`;
 
 interface Props {}
 const Navbar = ({}: Props) => {
@@ -55,20 +44,28 @@ const Navbar = ({}: Props) => {
   const user = useUser();
   const apolloClient = useApolloClient();
 
+  const loggedIn = !user.loading && !!user.user;
+  const loggedOut = !user.loading && !user.user;
+
   const clickLogout = async () => {
     await FbApp.auth().signOut();
+    await delayMs(200);
     await apolloClient.clearStore();
+    await apolloClient.resetStore().catch((err) => {
+      console.error("Error resetting store: ", err);
+    });
   };
 
   return (
     <NavDiv>
       <Right>
-        <NavLink path="/" label="Cards" />
+        {loggedIn && <NavLink path="/" label="Cards" />}
         <NavLink path="/all" label="All Cards" />
       </Right>
       <Middle></Middle>
       <Left>
-        {!user.loading && user && (
+        {loggedOut && <NavLogin />}
+        {loggedIn && (
           <>
             <NavLink path="/usersettings" label="Settings" />
 

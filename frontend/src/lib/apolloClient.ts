@@ -9,6 +9,7 @@ import { useMemo } from "react";
 import { environment } from "./environment";
 import { cookieValue } from "../helpers/cookies";
 import { IdTokenCookie } from "../constants/cookieNames";
+import { onError } from "@apollo/client/link/error";
 
 let apolloClient: ApolloClient<NormalizedCache>;
 
@@ -27,7 +28,6 @@ function createApolloClient(staticIdToken?: string) {
         idToken = cookieIdToken;
       }
     }
-
     // return the headers to the context so httpLink can read them
     return {
       headers: {
@@ -36,9 +36,19 @@ function createApolloClient(staticIdToken?: string) {
       },
     };
   });
+  const errorLink = onError(({ graphQLErrors, networkError }) => {
+    if (graphQLErrors)
+      graphQLErrors.map(({ message, locations, path }) =>
+        console.log(
+          `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`
+        )
+      );
+
+    if (networkError) console.log(`[Network error]: ${networkError}`);
+  });
   return new ApolloClient({
     ssrMode: typeof window === "undefined",
-    link: authLink.concat(httpLink),
+    link: errorLink.concat(authLink).concat(httpLink),
     cache: new InMemoryCache(),
   });
 }

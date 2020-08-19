@@ -19,8 +19,8 @@ interface Props {
 }
 const GqlError = ({ err, msg }: Props) => {
   const parsedError = parseError(err);
-  console.dir(err);
-  console.error("Got error", parsedError);
+  //console.dir(err);
+  //console.error("Got error", parsedError);
 
   return (
     <span>

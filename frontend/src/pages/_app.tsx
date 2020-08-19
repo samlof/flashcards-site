@@ -19,9 +19,9 @@ export default function App({ Component, pageProps }: AppPropsType) {
     if (typeof window !== "undefined") {
       if (user.loading) return;
 
-      if (!user) {
+      if (!user.user) {
         document.cookie = `${IdTokenCookie}=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT`;
-      } else if (user.user) {
+      } else {
         user.user.getIdToken().then((token) => {
           const maxAge = 60 * 60; // 1 hour
           document.cookie = `${IdTokenCookie}=${token}; path=/; max-age=${maxAge}; Domain=${environment.ssrDomain}`;

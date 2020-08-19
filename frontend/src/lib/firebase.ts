@@ -30,5 +30,8 @@ export const FbAuthUiConf = {
     },
   ],
   signInFlow: "popup",
-  signInSuccessUrl: "/",
+  callbacks: {
+    // Avoid redirects after sign-in.
+    signInSuccessWithAuthResult: () => false,
+  },
 };
