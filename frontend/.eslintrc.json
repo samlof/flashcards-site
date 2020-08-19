@@ -14,6 +14,7 @@
       "version": "detect"
     }
   },
+  "ignorePatterns": ["gql.generated.ts"],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "ecmaFeatures": {
