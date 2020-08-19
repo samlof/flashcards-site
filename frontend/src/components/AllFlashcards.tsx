@@ -88,13 +88,13 @@ const AllFlashcards = ({}: Props) => {
       </CSSTransition>
       <div style={{ height: "2rem" }}></div>
       <ButtonDiv>
-        <DirButton type="button" onClick={(e) => nextCard(false)}>
+        <DirButton type="button" onClick={() => nextCard(false)}>
           Back
         </DirButton>
         <span style={{ minWidth: "5rem" }}>
           {index + 1}/{words.length}
         </span>
-        <DirButton type="button" onClick={(e) => nextCard(true)}>
+        <DirButton type="button" onClick={() => nextCard(true)}>
           Next
         </DirButton>
       </ButtonDiv>

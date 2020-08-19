@@ -83,16 +83,16 @@ const Flashcard = ({ initialWords }: Props) => {
       <div style={{ height: "2rem" }}></div>
       <span style={{ minWidth: "5rem" }}>Left: {words.length}</span>
       <ButtonDiv>
-        <DirButton type="button" onClick={(e) => handleClick(CardResult.Easy)}>
+        <DirButton type="button" onClick={() => handleClick(CardResult.Easy)}>
           Easy
         </DirButton>
-        <DirButton type="button" onClick={(e) => handleClick(CardResult.Good)}>
+        <DirButton type="button" onClick={() => handleClick(CardResult.Good)}>
           Good
         </DirButton>
-        <DirButton type="button" onClick={(e) => handleClick(CardResult.Bad)}>
+        <DirButton type="button" onClick={() => handleClick(CardResult.Bad)}>
           Bad
         </DirButton>
-        <DirButton type="button" onClick={(e) => handleClick(CardResult.Retry)}>
+        <DirButton type="button" onClick={() => handleClick(CardResult.Retry)}>
           Retry
         </DirButton>
       </ButtonDiv>

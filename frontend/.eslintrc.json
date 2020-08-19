@@ -9,6 +9,11 @@
     "plugin:@typescript-eslint/recommended",
     "plugin:react-hooks/recommended"
   ],
+  "settings": {
+    "react": {
+      "version": "detect"
+    }
+  },
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "ecmaFeatures": {
@@ -19,8 +24,12 @@
   },
   "plugins": ["react", "@typescript-eslint"],
   "rules": {
-    "no-empty-interface": false,
-    "explicit-module-boundary-types": false,
-    "no-empty-pattern": "off"
+    // Want to leave empty Props interface, so easier to add stuff later
+    "@typescript-eslint/no-empty-interface": "off",
+    // Don't want to annotate React component type everywhere
+    "@typescript-eslint/explicit-module-boundary-types": "off",
+    "no-empty-pattern": "off",
+    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/no-non-null-assertion": "off"
   }
 }

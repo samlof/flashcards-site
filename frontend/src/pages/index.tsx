@@ -1,6 +1,6 @@
 import { GetServerSideProps } from "next";
-import dynamic from "next/dynamic";
 import Head from "next/head";
+import { useRouter } from "next/router";
 import React from "react";
 import App from "../components/App";
 import Flashcard from "../components/Flashcard";
@@ -11,7 +11,6 @@ import { IdTokenCookie } from "../constants/cookieNames";
 import { FlashcardPageDocument, useFlashcardPageQuery } from "../gql.generated";
 import { initializeApollo } from "../lib/apolloClient";
 import { useUser } from "../lib/user";
-import { useRouter } from "next/router";
 
 interface Props {}
 const IndexPage = ({}: Props) => {
@@ -59,7 +58,9 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     await apolloClient.query({
       query: FlashcardPageDocument,
     });
-  } catch (error) {}
+  } catch (error) {
+    // No need to worry about error here
+  }
   return {
     props: { initialApolloState: apolloClient.cache.extract() },
   };

@@ -1,8 +1,11 @@
 function verifyHasValue(obj: any) {
+  if (!obj) {
+    throw new Error(`environment.ts verifyHasValue got empty param`);
+  }
   for (const key in obj) {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {
       const element = obj[key];
-      if (typeof element === "object") verifyHasValue(element);
+      if (typeof element === "object" && element) verifyHasValue(element);
       else {
         if (!element) throw new Error(`environment.ts ${key} is empty`);
       }

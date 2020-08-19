@@ -32,10 +32,7 @@ const UserSettings = ({}: Props) => {
     error,
     refetch: refetchsettings,
   } = useUserSettingsQuery();
-  const [
-    setSettings,
-    { loading: loadingSetSettings },
-  ] = useSetUserSettingsMutation();
+  const [setSettings] = useSetUserSettingsMutation();
 
   const [editing, setEditing] = React.useState(false);
   const [cardsPerDay, setCardsPerDay] = React.useState(10);
@@ -72,14 +69,14 @@ const UserSettings = ({}: Props) => {
         )}{" "}
         {editing ? (
           <>
-            <SaveButton onClick={(e) => HandleSave()}>Save</SaveButton>
-            <Button onClick={(e) => setEditing((p) => !p)}>
+            <SaveButton onClick={() => HandleSave()}>Save</SaveButton>
+            <Button onClick={() => setEditing((p) => !p)}>
               {editing ? "Cancel" : "Edit"}
             </Button>
           </>
         ) : (
           <>
-            <Button onClick={(e) => setEditing((p) => !p)}>
+            <Button onClick={() => setEditing((p) => !p)}>
               {editing ? "Cancel" : "Edit"}
             </Button>
             <Spacer />

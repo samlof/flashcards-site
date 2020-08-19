@@ -1,13 +1,12 @@
 import { useApolloClient } from "@apollo/client";
-import { useRouter } from "next/router";
+import dynamic from "next/dynamic";
 import React from "react";
 import styled from "styled-components";
+import { delayMs } from "../helpers/delay";
 import { FbApp } from "../lib/firebase";
 import { useUser } from "../lib/user";
-import NavLink from "./Navbar/NavLink";
-import dynamic from "next/dynamic";
 import NavItem from "./Navbar/NavItem";
-import { delayMs } from "../helpers/delay";
+import NavLink from "./Navbar/NavLink";
 
 const NavLogin = dynamic(() => import("./Navbar/NavLogin"), { ssr: false });
 
@@ -40,7 +39,6 @@ const Left = styled.div`
 
 interface Props {}
 const Navbar = ({}: Props) => {
-  const router = useRouter();
   const user = useUser();
   const apolloClient = useApolloClient();
 

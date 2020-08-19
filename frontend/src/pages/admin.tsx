@@ -1,14 +1,13 @@
+import Head from "next/head";
 import React from "react";
-import styled from "styled-components";
 import AddCsvWords from "../components/admin/AddCsvWords";
 import AddWord from "../components/admin/AddWord";
 import AllWords from "../components/admin/AllWords";
 import App from "../components/App";
 import GqlError from "../components/GqlError";
 import Loading from "../components/Loading";
-import { useAllWordsQuery } from "../gql.generated";
-import Head from "next/head";
 import UserSettings from "../components/UserSettings";
+import { useAllWordsQuery } from "../gql.generated";
 
 interface Props {}
 const AdminPage = ({}: Props) => {

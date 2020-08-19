@@ -1,3 +1,4 @@
+/* eslint-disable react/react-in-jsx-scope */
 import { ApolloProvider, NormalizedCache } from "@apollo/client";
 import { AppPropsType } from "next/dist/next-server/lib/utils";
 import { useEffect } from "react";

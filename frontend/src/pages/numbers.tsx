@@ -54,7 +54,8 @@ const NumbersPage = ({}: Props) => {
 
   React.useEffect(() => {
     if (questions.length === 0) setQuestions(generateQuestions());
-  }, []);
+  }, [questions]);
+
   const generateNewQuestions = () => {
     setQuestions(generateQuestions());
     setRightAnswerCount(0);
@@ -116,12 +117,12 @@ const NumbersPage = ({}: Props) => {
           <Button
             type="button"
             disabled={loadingResults}
-            onClick={(e) => submitResults()}
+            onClick={() => submitResults()}
           >
             Show results
           </Button>
         ) : (
-          <Button type="button" onClick={(e) => generateNewQuestions()}>
+          <Button type="button" onClick={() => generateNewQuestions()}>
             New Questions
           </Button>
         )}
