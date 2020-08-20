@@ -1,4 +1,3 @@
-import { GetServerSideProps } from "next";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import React from "react";
@@ -7,9 +6,7 @@ import Flashcard from "../components/Flashcard";
 import GqlError from "../components/GqlError";
 import Loading from "../components/Loading";
 import Navbar from "../components/Navbar";
-import { IdTokenCookie } from "../constants/cookieNames";
-import { FlashcardPageDocument, useFlashcardPageQuery } from "../gql.generated";
-import { initializeApollo } from "../lib/apolloClient";
+import { useFlashcardPageQuery } from "../gql.generated";
 import { useUser } from "../lib/user";
 
 interface Props {}
@@ -41,29 +38,6 @@ const IndexPage = ({}: Props) => {
       <FlashcardElement />
     </App>
   );
-};
-
-export const getServerSideProps: GetServerSideProps = async (ctx) => {
-  // console.log(ctx.req.headers.cookie);
-  const nextCookie = await import("next-cookies").then((x) => x.default);
-  const idtoken = nextCookie(ctx)[IdTokenCookie];
-
-  if (!idtoken) {
-    // No point trying here if no idtoken
-    return { props: {} };
-  }
-
-  const apolloClient = initializeApollo(undefined, idtoken);
-  try {
-    await apolloClient.query({
-      query: FlashcardPageDocument,
-    });
-  } catch (error) {
-    // No need to worry about error here
-  }
-  return {
-    props: { initialApolloState: apolloClient.cache.extract() },
-  };
 };
 
 export default IndexPage;

@@ -3,10 +3,11 @@ import dynamic from "next/dynamic";
 import React from "react";
 import styled from "styled-components";
 import { delayMs } from "../helpers/delay";
-import { FbApp } from "../lib/firebase";
 import { useUser } from "../lib/user";
 import NavItem from "./Navbar/NavItem";
 import NavLink from "./Navbar/NavLink";
+
+const FbAppPromise = import("../lib/firebase").then((x) => x.FbApp);
 
 const NavLogin = dynamic(() => import("./Navbar/NavLogin"), { ssr: false });
 
@@ -46,6 +47,7 @@ const Navbar = ({}: Props) => {
   const loggedOut = !user.loading && !user.user;
 
   const clickLogout = async () => {
+    const FbApp = await FbAppPromise;
     await FbApp.auth().signOut();
     await delayMs(200);
     await apolloClient.clearStore();
