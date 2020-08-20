@@ -3,17 +3,9 @@ import { CSSTransition } from "react-transition-group";
 import styled from "styled-components";
 import { Button } from "../components/Button";
 import FlipCard from "../components/FlipCard";
+import { CardResult, useSetCardStatusMutation } from "../gql.generated";
 import { delayMs } from "../helpers/delay";
-import { modulus } from "../helpers/modulus";
-import Loading from "./Loading";
-import GqlError from "./GqlError";
-import { shuffle, randInt } from "../helpers/randomUtils";
-import {
-  useFlashcardPageQuery,
-  Word,
-  useSetCardStatusMutation,
-  CardResult,
-} from "../gql.generated";
+import { randInt } from "../helpers/randomUtils";
 
 const ButtonDiv = styled.div`
   display: flex;
@@ -36,28 +28,17 @@ interface FlashWord {
   lang2: string;
 }
 const animationSpeed = 175;
-interface Props {}
+interface Props {
+  initialWords: FlashWord[];
+}
 
-const Flashcard = ({}: Props) => {
+const Flashcard = ({ initialWords }: Props) => {
   const [cardVisible, setVisible] = React.useState(true);
   const [animationName, setAnimationName] = React.useState("card-in-out");
 
-  const { loading, error, data } = useFlashcardPageQuery();
-  const [
-    setCardState,
-    { loading: loadingCardState },
-  ] = useSetCardStatusMutation();
+  const [setCardState] = useSetCardStatusMutation();
+  const [words, setWords] = React.useState<FlashWord[]>(initialWords);
 
-  const [words, setWords] = React.useState<FlashWord[]>([]);
-  React.useEffect(() => {
-    if (!data) return;
-    const copiedWords = [...data.scheduledWords.cards];
-    shuffle(copiedWords);
-    setWords(copiedWords);
-  }, [data]);
-  if (loading) return <Loading />;
-  if (error) return <GqlError msg="Error getting words" err={error} />;
-  if (words.length === 0) return <span>No words</span>;
   const index = 0;
   const word = words[index];
 
@@ -70,11 +51,16 @@ const Flashcard = ({}: Props) => {
     });
     await delayMs(animationSpeed);
     setWords((prev) => {
-      const word = prev.splice(index, 1)[0];
+      const word = prev[0];
+      prev = prev.slice(1);
       // If retry, then add the card back to deck
       if (result === CardResult.Retry) {
         const nextIndex = randInt(0, prev.length);
-        prev.splice(nextIndex, 0, word);
+        const newWords = prev.slice(0, nextIndex);
+        newWords.push(word);
+        newWords.push(...prev.slice(nextIndex));
+
+        prev = newWords;
       }
       return prev;
     });
@@ -97,16 +83,16 @@ const Flashcard = ({}: Props) => {
       <div style={{ height: "2rem" }}></div>
       <span style={{ minWidth: "5rem" }}>Left: {words.length}</span>
       <ButtonDiv>
-        <DirButton type="button" onClick={(e) => handleClick(CardResult.Easy)}>
+        <DirButton type="button" onClick={() => handleClick(CardResult.Easy)}>
           Easy
         </DirButton>
-        <DirButton type="button" onClick={(e) => handleClick(CardResult.Good)}>
+        <DirButton type="button" onClick={() => handleClick(CardResult.Good)}>
           Good
         </DirButton>
-        <DirButton type="button" onClick={(e) => handleClick(CardResult.Bad)}>
+        <DirButton type="button" onClick={() => handleClick(CardResult.Bad)}>
           Bad
         </DirButton>
-        <DirButton type="button" onClick={(e) => handleClick(CardResult.Retry)}>
+        <DirButton type="button" onClick={() => handleClick(CardResult.Retry)}>
           Retry
         </DirButton>
       </ButtonDiv>

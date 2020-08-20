@@ -59,7 +59,7 @@ export const stringToNumber = (numStr: string): number | undefined => {
 
   let result: number | undefined;
   while (numStr) {
-    let firstNumArray = checkSingleNumber(numStr);
+    const firstNumArray = checkSingleNumber(numStr);
     let found = false;
     let foundNumber = 1;
     if (firstNumArray) {

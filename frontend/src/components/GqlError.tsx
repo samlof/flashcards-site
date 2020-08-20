@@ -3,7 +3,7 @@ import { ApolloError, ServerError } from "@apollo/client";
 
 const parseError = (err: ApolloError): string => {
   if ((err.networkError as ServerError)?.result) {
-    const errors: any[] = (err.networkError as ServerError)?.result?.errors;
+    const errors: unknown[] = (err.networkError as ServerError)?.result?.errors;
     if (Array.isArray(errors)) {
       return errors
         .map((x) => x.message)
@@ -19,8 +19,8 @@ interface Props {
 }
 const GqlError = ({ err, msg }: Props) => {
   const parsedError = parseError(err);
-  console.dir(err);
-  console.error("Got error", parsedError);
+  //console.dir(err);
+  //console.error("Got error", parsedError);
 
   return (
     <span>

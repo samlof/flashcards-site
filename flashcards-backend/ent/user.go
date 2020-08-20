@@ -22,6 +22,8 @@ type User struct {
 	UpdateTime time.Time `json:"update_time,omitempty"`
 	// Email holds the value of the "email" field.
 	Email string `json:"email,omitempty"`
+	// FirebaseUid holds the value of the "firebaseUid" field.
+	FirebaseUid string `json:"firebaseUid,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges UserEdges `json:"edges"`
@@ -74,6 +76,7 @@ func (*User) scanValues() []interface{} {
 		&sql.NullTime{},   // create_time
 		&sql.NullTime{},   // update_time
 		&sql.NullString{}, // email
+		&sql.NullString{}, // firebaseUid
 	}
 }
 
@@ -103,6 +106,11 @@ func (u *User) assignValues(values ...interface{}) error {
 		return fmt.Errorf("unexpected type %T for field email", values[2])
 	} else if value.Valid {
 		u.Email = value.String
+	}
+	if value, ok := values[3].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field firebaseUid", values[3])
+	} else if value.Valid {
+		u.FirebaseUid = value.String
 	}
 	return nil
 }
@@ -151,6 +159,8 @@ func (u *User) String() string {
 	builder.WriteString(u.UpdateTime.Format(time.ANSIC))
 	builder.WriteString(", email=")
 	builder.WriteString(u.Email)
+	builder.WriteString(", firebaseUid=")
+	builder.WriteString(u.FirebaseUid)
 	builder.WriteByte(')')
 	return builder.String()
 }

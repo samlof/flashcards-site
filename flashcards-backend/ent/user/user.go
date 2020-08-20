@@ -17,6 +17,8 @@ const (
 	FieldUpdateTime = "update_time"
 	// FieldEmail holds the string denoting the email field in the database.
 	FieldEmail = "email"
+	// FieldFirebaseUid holds the string denoting the firebaseuid field in the database.
+	FieldFirebaseUid = "firebase_uid"
 
 	// EdgeCardLogs holds the string denoting the cardlogs edge name in mutations.
 	EdgeCardLogs = "cardLogs"
@@ -56,6 +58,7 @@ var Columns = []string{
 	FieldCreateTime,
 	FieldUpdateTime,
 	FieldEmail,
+	FieldFirebaseUid,
 }
 
 var (
@@ -67,4 +70,6 @@ var (
 	UpdateDefaultUpdateTime func() time.Time
 	// EmailValidator is a validator for the "email" field. It is called by the builders before save.
 	EmailValidator func(string) error
+	// FirebaseUidValidator is a validator for the "firebaseUid" field. It is called by the builders before save.
+	FirebaseUidValidator func(string) error
 )

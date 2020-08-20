@@ -3,10 +3,10 @@ import styled from "styled-components";
 import {
   useUserSettingsQuery,
   useSetUserSettingsMutation,
-} from "../../gql.generated";
-import GqlError from "../GqlError";
-import Loading from "../Loading";
-import { Button } from "../Button";
+} from "../gql.generated";
+import GqlError from "./GqlError";
+import Loading from "./Loading";
+import { Button } from "./Button";
 
 const SmallInput = styled.input`
   width: 4rem;
@@ -20,6 +20,9 @@ const NumberSpan = styled.span`
 const SaveButton = styled(Button)`
   margin-right: 0.5rem;
 `;
+const Spacer = styled.span`
+  margin-left: 5.3rem;
+`;
 
 interface Props {}
 const UserSettings = ({}: Props) => {
@@ -29,10 +32,7 @@ const UserSettings = ({}: Props) => {
     error,
     refetch: refetchsettings,
   } = useUserSettingsQuery();
-  const [
-    setSettings,
-    { loading: loadingSetSettings },
-  ] = useSetUserSettingsMutation();
+  const [setSettings] = useSetUserSettingsMutation();
 
   const [editing, setEditing] = React.useState(false);
   const [cardsPerDay, setCardsPerDay] = React.useState(10);
@@ -67,10 +67,21 @@ const UserSettings = ({}: Props) => {
         ) : (
           <NumberSpan>{cardsPerDay}</NumberSpan>
         )}{" "}
-        {editing && <SaveButton onClick={(e) => HandleSave()}>Save</SaveButton>}
-        <Button onClick={(e) => setEditing((p) => !p)}>
-          {editing ? "Cancel" : "Edit"}
-        </Button>
+        {editing ? (
+          <>
+            <SaveButton onClick={() => HandleSave()}>Save</SaveButton>
+            <Button onClick={() => setEditing((p) => !p)}>
+              {editing ? "Cancel" : "Edit"}
+            </Button>
+          </>
+        ) : (
+          <>
+            <Button onClick={() => setEditing((p) => !p)}>
+              {editing ? "Cancel" : "Edit"}
+            </Button>
+            <Spacer />
+          </>
+        )}
       </div>
     </>
   );

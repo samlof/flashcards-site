@@ -1,5 +1,5 @@
 query FlashcardPage {
-  scheduledWords {
+  scheduledWords(shuffle: true) {
     cards {
       id
       lang1

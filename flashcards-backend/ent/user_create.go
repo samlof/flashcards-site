@@ -57,6 +57,20 @@ func (uc *UserCreate) SetEmail(s string) *UserCreate {
 	return uc
 }
 
+// SetNillableEmail sets the email field if the given value is not nil.
+func (uc *UserCreate) SetNillableEmail(s *string) *UserCreate {
+	if s != nil {
+		uc.SetEmail(*s)
+	}
+	return uc
+}
+
+// SetFirebaseUid sets the firebaseUid field.
+func (uc *UserCreate) SetFirebaseUid(s string) *UserCreate {
+	uc.mutation.SetFirebaseUid(s)
+	return uc
+}
+
 // AddCardLogIDs adds the cardLogs edge to CardLog by ids.
 func (uc *UserCreate) AddCardLogIDs(ids ...int) *UserCreate {
 	uc.mutation.AddCardLogIDs(ids...)
@@ -157,12 +171,17 @@ func (uc *UserCreate) preSave() error {
 		v := user.DefaultUpdateTime()
 		uc.mutation.SetUpdateTime(v)
 	}
-	if _, ok := uc.mutation.Email(); !ok {
-		return &ValidationError{Name: "email", err: errors.New("ent: missing required field \"email\"")}
-	}
 	if v, ok := uc.mutation.Email(); ok {
 		if err := user.EmailValidator(v); err != nil {
 			return &ValidationError{Name: "email", err: fmt.Errorf("ent: validator failed for field \"email\": %w", err)}
+		}
+	}
+	if _, ok := uc.mutation.FirebaseUid(); !ok {
+		return &ValidationError{Name: "firebaseUid", err: errors.New("ent: missing required field \"firebaseUid\"")}
+	}
+	if v, ok := uc.mutation.FirebaseUid(); ok {
+		if err := user.FirebaseUidValidator(v); err != nil {
+			return &ValidationError{Name: "firebaseUid", err: fmt.Errorf("ent: validator failed for field \"firebaseUid\": %w", err)}
 		}
 	}
 	return nil
@@ -215,6 +234,14 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Column: user.FieldEmail,
 		})
 		u.Email = value
+	}
+	if value, ok := uc.mutation.FirebaseUid(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: user.FieldFirebaseUid,
+		})
+		u.FirebaseUid = value
 	}
 	if nodes := uc.mutation.CardLogsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

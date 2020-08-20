@@ -2,15 +2,17 @@ import Head from "next/head";
 import React from "react";
 import App from "../components/App";
 import AllFlashcards from "../components/AllFlashcards";
+import Navbar from "../components/Navbar";
 
 interface Props {}
 const IndexPage = ({}: Props) => {
   return (
     <App>
       <Head>
-        <title>Flashcards | kieli.club</title>
+        <title>All Cards | kieli.club</title>
       </Head>
-      <h1>Flashcards</h1>
+      <Navbar />
+      <h1>All Cards</h1>
       <AllFlashcards />
     </App>
   );

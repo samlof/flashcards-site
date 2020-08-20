@@ -14,16 +14,16 @@ export const levDistance = (a: string, b: string): number => {
   a = a.toLowerCase();
   b = b.toLowerCase();
 
-  var matrix = [];
+  const matrix = [];
 
   // increment along the first column of each row
-  var i;
+  let i;
   for (i = 0; i <= b.length; i++) {
     matrix[i] = [i];
   }
 
   // increment each column in the first row
-  var j;
+  let j;
   for (j = 0; j <= a.length; j++) {
     matrix[0][j] = j;
   }

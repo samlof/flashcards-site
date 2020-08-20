@@ -51,16 +51,12 @@ const FlipCard = ({ front, back }: Props) => {
       flipSpeedBackToFront={flipSpeedS}
       flipSpeedFrontToBack={flipSpeedS}
     >
-      <CardSide
-        key="front"
-        onClick={(e) => handleFlip()}
-        front={isFrontVisible}
-      >
+      <CardSide key="front" onClick={() => handleFlip()} front={isFrontVisible}>
         <span>{front.text}</span>
         <LanguageText>{front.lang}</LanguageText>
       </CardSide>
 
-      <CardSide key="back" onClick={(e) => handleFlip()} front={isFrontVisible}>
+      <CardSide key="back" onClick={() => handleFlip()} front={isFrontVisible}>
         <span>{back.text}</span>
         <LanguageText>{back.lang}</LanguageText>
       </CardSide>

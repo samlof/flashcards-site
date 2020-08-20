@@ -1,8 +1,7 @@
-import gql from 'graphql-tag';
-import * as ApolloReactCommon from '@apollo/client';
-import * as ApolloReactHooks from '@apollo/client';
+import { gql } from '@apollo/client';
+import * as Apollo from '@apollo/client';
 export type Maybe<T> = T | null;
-export type Exact<T extends { [key: string]: any }> = { [K in keyof T]: T[K] };
+export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
   ID: string;
@@ -13,13 +12,81 @@ export type Scalars = {
   Time: String;
 };
 
+export type CardSchedule = {
+  __typename?: 'CardSchedule';
+  createTime: Scalars['Time'];
+  id: Scalars['ID'];
+  word: Word;
+  scheduledFor: Scalars['Time'];
+};
+
+export type UpdateWord = {
+  id: Scalars['ID'];
+  lang1: Scalars['String'];
+  lang2: Scalars['String'];
+  word1: Scalars['String'];
+  word2: Scalars['String'];
+};
+
+export type CardLog = {
+  __typename?: 'CardLog';
+  createTime: Scalars['Time'];
+  id: Scalars['ID'];
+  word: Word;
+  lastResult: CardResult;
+};
+
 export type CardStatus = {
   cardId: Scalars['ID'];
   result: CardResult;
 };
 
-export type UpdateWord = {
+export type UserSettings = {
+  __typename?: 'UserSettings';
+  newCardsPerDay: Scalars['Int'];
+};
+
+export type SetSettings = {
+  newCardsPerDay: Scalars['Int'];
+};
+
+export type Word = {
+  __typename?: 'Word';
   id: Scalars['ID'];
+  lang1: Scalars['String'];
+  lang2: Scalars['String'];
+  word1: Scalars['String'];
+  word2: Scalars['String'];
+  createTime: Scalars['Time'];
+  updateTime: Scalars['Time'];
+};
+
+export type Query = {
+  __typename?: 'Query';
+  scheduledWords: ScheduledWordsResponse;
+  userSettings: UserSettings;
+  getWords: Array<Word>;
+};
+
+
+export type QueryScheduledWordsArgs = {
+  shuffle?: Scalars['Boolean'];
+};
+
+export enum CardResult {
+  Easy = 'Easy',
+  Good = 'Good',
+  Bad = 'Bad',
+  Retry = 'Retry'
+}
+
+export type ScheduledWordsResponse = {
+  __typename?: 'ScheduledWordsResponse';
+  cards: Array<Word>;
+};
+
+
+export type NewWord = {
   lang1: Scalars['String'];
   lang2: Scalars['String'];
   word1: Scalars['String'];
@@ -58,69 +125,6 @@ export type MutationDeleteWordArgs = {
 
 export type MutationUpdateWordArgs = {
   input: UpdateWord;
-};
-
-export enum CardResult {
-  Easy = 'Easy',
-  Good = 'Good',
-  Bad = 'Bad',
-  Retry = 'Retry'
-}
-
-export type CardSchedule = {
-  __typename?: 'CardSchedule';
-  createTime: Scalars['Time'];
-  id: Scalars['ID'];
-  word: Word;
-  scheduledFor: Scalars['Time'];
-};
-
-export type ScheduledWordsResponse = {
-  __typename?: 'ScheduledWordsResponse';
-  cards: Array<Word>;
-};
-
-export type Word = {
-  __typename?: 'Word';
-  id: Scalars['ID'];
-  lang1: Scalars['String'];
-  lang2: Scalars['String'];
-  word1: Scalars['String'];
-  word2: Scalars['String'];
-  createTime: Scalars['Time'];
-  updateTime: Scalars['Time'];
-};
-
-export type NewWord = {
-  lang1: Scalars['String'];
-  lang2: Scalars['String'];
-  word1: Scalars['String'];
-  word2: Scalars['String'];
-};
-
-export type CardLog = {
-  __typename?: 'CardLog';
-  createTime: Scalars['Time'];
-  id: Scalars['ID'];
-  word: Word;
-  lastResult: CardResult;
-};
-
-
-export type SetSettings = {
-  newCardsPerDay: Scalars['Int'];
-};
-
-export type Query = {
-  __typename?: 'Query';
-  scheduledWords: ScheduledWordsResponse;
-  userSettings: UserSettings;
-  getWords: Array<Word>;
-};
-
-export type UserSettings = {
-  __typename?: 'UserSettings';
-  newCardsPerDay: Scalars['Int'];
 };
 
 export type AllFlashcardsQueryVariables = Exact<{ [key: string]: never; }>;
@@ -267,15 +271,15 @@ export const AllFlashcardsDocument = gql`
  *   },
  * });
  */
-export function useAllFlashcardsQuery(baseOptions?: ApolloReactHooks.QueryHookOptions<AllFlashcardsQuery, AllFlashcardsQueryVariables>) {
-        return ApolloReactHooks.useQuery<AllFlashcardsQuery, AllFlashcardsQueryVariables>(AllFlashcardsDocument, baseOptions);
+export function useAllFlashcardsQuery(baseOptions?: Apollo.QueryHookOptions<AllFlashcardsQuery, AllFlashcardsQueryVariables>) {
+        return Apollo.useQuery<AllFlashcardsQuery, AllFlashcardsQueryVariables>(AllFlashcardsDocument, baseOptions);
       }
-export function useAllFlashcardsLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<AllFlashcardsQuery, AllFlashcardsQueryVariables>) {
-          return ApolloReactHooks.useLazyQuery<AllFlashcardsQuery, AllFlashcardsQueryVariables>(AllFlashcardsDocument, baseOptions);
+export function useAllFlashcardsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<AllFlashcardsQuery, AllFlashcardsQueryVariables>) {
+          return Apollo.useLazyQuery<AllFlashcardsQuery, AllFlashcardsQueryVariables>(AllFlashcardsDocument, baseOptions);
         }
 export type AllFlashcardsQueryHookResult = ReturnType<typeof useAllFlashcardsQuery>;
 export type AllFlashcardsLazyQueryHookResult = ReturnType<typeof useAllFlashcardsLazyQuery>;
-export type AllFlashcardsQueryResult = ApolloReactCommon.QueryResult<AllFlashcardsQuery, AllFlashcardsQueryVariables>;
+export type AllFlashcardsQueryResult = Apollo.QueryResult<AllFlashcardsQuery, AllFlashcardsQueryVariables>;
 export const AddWordDocument = gql`
     mutation AddWord($word1: String!, $word2: String!) {
   createWord(input: {lang1: "fi", lang2: "en", word1: $word1, word2: $word2}) {
@@ -285,7 +289,7 @@ export const AddWordDocument = gql`
   }
 }
     `;
-export type AddWordMutationFn = ApolloReactCommon.MutationFunction<AddWordMutation, AddWordMutationVariables>;
+export type AddWordMutationFn = Apollo.MutationFunction<AddWordMutation, AddWordMutationVariables>;
 
 /**
  * __useAddWordMutation__
@@ -305,18 +309,18 @@ export type AddWordMutationFn = ApolloReactCommon.MutationFunction<AddWordMutati
  *   },
  * });
  */
-export function useAddWordMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<AddWordMutation, AddWordMutationVariables>) {
-        return ApolloReactHooks.useMutation<AddWordMutation, AddWordMutationVariables>(AddWordDocument, baseOptions);
+export function useAddWordMutation(baseOptions?: Apollo.MutationHookOptions<AddWordMutation, AddWordMutationVariables>) {
+        return Apollo.useMutation<AddWordMutation, AddWordMutationVariables>(AddWordDocument, baseOptions);
       }
 export type AddWordMutationHookResult = ReturnType<typeof useAddWordMutation>;
-export type AddWordMutationResult = ApolloReactCommon.MutationResult<AddWordMutation>;
-export type AddWordMutationOptions = ApolloReactCommon.BaseMutationOptions<AddWordMutation, AddWordMutationVariables>;
+export type AddWordMutationResult = Apollo.MutationResult<AddWordMutation>;
+export type AddWordMutationOptions = Apollo.BaseMutationOptions<AddWordMutation, AddWordMutationVariables>;
 export const DeleteWordDocument = gql`
     mutation DeleteWord($id: ID!) {
   deleteWord(id: $id)
 }
     `;
-export type DeleteWordMutationFn = ApolloReactCommon.MutationFunction<DeleteWordMutation, DeleteWordMutationVariables>;
+export type DeleteWordMutationFn = Apollo.MutationFunction<DeleteWordMutation, DeleteWordMutationVariables>;
 
 /**
  * __useDeleteWordMutation__
@@ -335,12 +339,12 @@ export type DeleteWordMutationFn = ApolloReactCommon.MutationFunction<DeleteWord
  *   },
  * });
  */
-export function useDeleteWordMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<DeleteWordMutation, DeleteWordMutationVariables>) {
-        return ApolloReactHooks.useMutation<DeleteWordMutation, DeleteWordMutationVariables>(DeleteWordDocument, baseOptions);
+export function useDeleteWordMutation(baseOptions?: Apollo.MutationHookOptions<DeleteWordMutation, DeleteWordMutationVariables>) {
+        return Apollo.useMutation<DeleteWordMutation, DeleteWordMutationVariables>(DeleteWordDocument, baseOptions);
       }
 export type DeleteWordMutationHookResult = ReturnType<typeof useDeleteWordMutation>;
-export type DeleteWordMutationResult = ApolloReactCommon.MutationResult<DeleteWordMutation>;
-export type DeleteWordMutationOptions = ApolloReactCommon.BaseMutationOptions<DeleteWordMutation, DeleteWordMutationVariables>;
+export type DeleteWordMutationResult = Apollo.MutationResult<DeleteWordMutation>;
+export type DeleteWordMutationOptions = Apollo.BaseMutationOptions<DeleteWordMutation, DeleteWordMutationVariables>;
 export const EditWordDocument = gql`
     mutation EditWord($id: ID!, $word1: String!, $word2: String!) {
   updateWord(input: {id: $id, word1: $word1, word2: $word2, lang1: "fi", lang2: "en"}) {
@@ -348,7 +352,7 @@ export const EditWordDocument = gql`
   }
 }
     `;
-export type EditWordMutationFn = ApolloReactCommon.MutationFunction<EditWordMutation, EditWordMutationVariables>;
+export type EditWordMutationFn = Apollo.MutationFunction<EditWordMutation, EditWordMutationVariables>;
 
 /**
  * __useEditWordMutation__
@@ -369,12 +373,12 @@ export type EditWordMutationFn = ApolloReactCommon.MutationFunction<EditWordMuta
  *   },
  * });
  */
-export function useEditWordMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<EditWordMutation, EditWordMutationVariables>) {
-        return ApolloReactHooks.useMutation<EditWordMutation, EditWordMutationVariables>(EditWordDocument, baseOptions);
+export function useEditWordMutation(baseOptions?: Apollo.MutationHookOptions<EditWordMutation, EditWordMutationVariables>) {
+        return Apollo.useMutation<EditWordMutation, EditWordMutationVariables>(EditWordDocument, baseOptions);
       }
 export type EditWordMutationHookResult = ReturnType<typeof useEditWordMutation>;
-export type EditWordMutationResult = ApolloReactCommon.MutationResult<EditWordMutation>;
-export type EditWordMutationOptions = ApolloReactCommon.BaseMutationOptions<EditWordMutation, EditWordMutationVariables>;
+export type EditWordMutationResult = Apollo.MutationResult<EditWordMutation>;
+export type EditWordMutationOptions = Apollo.BaseMutationOptions<EditWordMutation, EditWordMutationVariables>;
 export const UserSettingsDocument = gql`
     query UserSettings {
   userSettings {
@@ -398,15 +402,15 @@ export const UserSettingsDocument = gql`
  *   },
  * });
  */
-export function useUserSettingsQuery(baseOptions?: ApolloReactHooks.QueryHookOptions<UserSettingsQuery, UserSettingsQueryVariables>) {
-        return ApolloReactHooks.useQuery<UserSettingsQuery, UserSettingsQueryVariables>(UserSettingsDocument, baseOptions);
+export function useUserSettingsQuery(baseOptions?: Apollo.QueryHookOptions<UserSettingsQuery, UserSettingsQueryVariables>) {
+        return Apollo.useQuery<UserSettingsQuery, UserSettingsQueryVariables>(UserSettingsDocument, baseOptions);
       }
-export function useUserSettingsLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<UserSettingsQuery, UserSettingsQueryVariables>) {
-          return ApolloReactHooks.useLazyQuery<UserSettingsQuery, UserSettingsQueryVariables>(UserSettingsDocument, baseOptions);
+export function useUserSettingsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<UserSettingsQuery, UserSettingsQueryVariables>) {
+          return Apollo.useLazyQuery<UserSettingsQuery, UserSettingsQueryVariables>(UserSettingsDocument, baseOptions);
         }
 export type UserSettingsQueryHookResult = ReturnType<typeof useUserSettingsQuery>;
 export type UserSettingsLazyQueryHookResult = ReturnType<typeof useUserSettingsLazyQuery>;
-export type UserSettingsQueryResult = ApolloReactCommon.QueryResult<UserSettingsQuery, UserSettingsQueryVariables>;
+export type UserSettingsQueryResult = Apollo.QueryResult<UserSettingsQuery, UserSettingsQueryVariables>;
 export const SetUserSettingsDocument = gql`
     mutation SetUserSettings($cardsPerDay: Int!) {
   setSettings(input: {newCardsPerDay: $cardsPerDay}) {
@@ -414,7 +418,7 @@ export const SetUserSettingsDocument = gql`
   }
 }
     `;
-export type SetUserSettingsMutationFn = ApolloReactCommon.MutationFunction<SetUserSettingsMutation, SetUserSettingsMutationVariables>;
+export type SetUserSettingsMutationFn = Apollo.MutationFunction<SetUserSettingsMutation, SetUserSettingsMutationVariables>;
 
 /**
  * __useSetUserSettingsMutation__
@@ -433,15 +437,15 @@ export type SetUserSettingsMutationFn = ApolloReactCommon.MutationFunction<SetUs
  *   },
  * });
  */
-export function useSetUserSettingsMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<SetUserSettingsMutation, SetUserSettingsMutationVariables>) {
-        return ApolloReactHooks.useMutation<SetUserSettingsMutation, SetUserSettingsMutationVariables>(SetUserSettingsDocument, baseOptions);
+export function useSetUserSettingsMutation(baseOptions?: Apollo.MutationHookOptions<SetUserSettingsMutation, SetUserSettingsMutationVariables>) {
+        return Apollo.useMutation<SetUserSettingsMutation, SetUserSettingsMutationVariables>(SetUserSettingsDocument, baseOptions);
       }
 export type SetUserSettingsMutationHookResult = ReturnType<typeof useSetUserSettingsMutation>;
-export type SetUserSettingsMutationResult = ApolloReactCommon.MutationResult<SetUserSettingsMutation>;
-export type SetUserSettingsMutationOptions = ApolloReactCommon.BaseMutationOptions<SetUserSettingsMutation, SetUserSettingsMutationVariables>;
+export type SetUserSettingsMutationResult = Apollo.MutationResult<SetUserSettingsMutation>;
+export type SetUserSettingsMutationOptions = Apollo.BaseMutationOptions<SetUserSettingsMutation, SetUserSettingsMutationVariables>;
 export const FlashcardPageDocument = gql`
     query FlashcardPage {
-  scheduledWords {
+  scheduledWords(shuffle: true) {
     cards {
       id
       lang1
@@ -468,15 +472,15 @@ export const FlashcardPageDocument = gql`
  *   },
  * });
  */
-export function useFlashcardPageQuery(baseOptions?: ApolloReactHooks.QueryHookOptions<FlashcardPageQuery, FlashcardPageQueryVariables>) {
-        return ApolloReactHooks.useQuery<FlashcardPageQuery, FlashcardPageQueryVariables>(FlashcardPageDocument, baseOptions);
+export function useFlashcardPageQuery(baseOptions?: Apollo.QueryHookOptions<FlashcardPageQuery, FlashcardPageQueryVariables>) {
+        return Apollo.useQuery<FlashcardPageQuery, FlashcardPageQueryVariables>(FlashcardPageDocument, baseOptions);
       }
-export function useFlashcardPageLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<FlashcardPageQuery, FlashcardPageQueryVariables>) {
-          return ApolloReactHooks.useLazyQuery<FlashcardPageQuery, FlashcardPageQueryVariables>(FlashcardPageDocument, baseOptions);
+export function useFlashcardPageLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<FlashcardPageQuery, FlashcardPageQueryVariables>) {
+          return Apollo.useLazyQuery<FlashcardPageQuery, FlashcardPageQueryVariables>(FlashcardPageDocument, baseOptions);
         }
 export type FlashcardPageQueryHookResult = ReturnType<typeof useFlashcardPageQuery>;
 export type FlashcardPageLazyQueryHookResult = ReturnType<typeof useFlashcardPageLazyQuery>;
-export type FlashcardPageQueryResult = ApolloReactCommon.QueryResult<FlashcardPageQuery, FlashcardPageQueryVariables>;
+export type FlashcardPageQueryResult = Apollo.QueryResult<FlashcardPageQuery, FlashcardPageQueryVariables>;
 export const SetCardStatusDocument = gql`
     mutation SetCardStatus($cardId: ID!, $result: CardResult!) {
   cardStatus(input: {cardId: $cardId, result: $result}) {
@@ -487,7 +491,7 @@ export const SetCardStatusDocument = gql`
   }
 }
     `;
-export type SetCardStatusMutationFn = ApolloReactCommon.MutationFunction<SetCardStatusMutation, SetCardStatusMutationVariables>;
+export type SetCardStatusMutationFn = Apollo.MutationFunction<SetCardStatusMutation, SetCardStatusMutationVariables>;
 
 /**
  * __useSetCardStatusMutation__
@@ -507,12 +511,12 @@ export type SetCardStatusMutationFn = ApolloReactCommon.MutationFunction<SetCard
  *   },
  * });
  */
-export function useSetCardStatusMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<SetCardStatusMutation, SetCardStatusMutationVariables>) {
-        return ApolloReactHooks.useMutation<SetCardStatusMutation, SetCardStatusMutationVariables>(SetCardStatusDocument, baseOptions);
+export function useSetCardStatusMutation(baseOptions?: Apollo.MutationHookOptions<SetCardStatusMutation, SetCardStatusMutationVariables>) {
+        return Apollo.useMutation<SetCardStatusMutation, SetCardStatusMutationVariables>(SetCardStatusDocument, baseOptions);
       }
 export type SetCardStatusMutationHookResult = ReturnType<typeof useSetCardStatusMutation>;
-export type SetCardStatusMutationResult = ApolloReactCommon.MutationResult<SetCardStatusMutation>;
-export type SetCardStatusMutationOptions = ApolloReactCommon.BaseMutationOptions<SetCardStatusMutation, SetCardStatusMutationVariables>;
+export type SetCardStatusMutationResult = Apollo.MutationResult<SetCardStatusMutation>;
+export type SetCardStatusMutationOptions = Apollo.BaseMutationOptions<SetCardStatusMutation, SetCardStatusMutationVariables>;
 export const AllWordsDocument = gql`
     query AllWords {
   getWords {
@@ -538,12 +542,12 @@ export const AllWordsDocument = gql`
  *   },
  * });
  */
-export function useAllWordsQuery(baseOptions?: ApolloReactHooks.QueryHookOptions<AllWordsQuery, AllWordsQueryVariables>) {
-        return ApolloReactHooks.useQuery<AllWordsQuery, AllWordsQueryVariables>(AllWordsDocument, baseOptions);
+export function useAllWordsQuery(baseOptions?: Apollo.QueryHookOptions<AllWordsQuery, AllWordsQueryVariables>) {
+        return Apollo.useQuery<AllWordsQuery, AllWordsQueryVariables>(AllWordsDocument, baseOptions);
       }
-export function useAllWordsLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<AllWordsQuery, AllWordsQueryVariables>) {
-          return ApolloReactHooks.useLazyQuery<AllWordsQuery, AllWordsQueryVariables>(AllWordsDocument, baseOptions);
+export function useAllWordsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<AllWordsQuery, AllWordsQueryVariables>) {
+          return Apollo.useLazyQuery<AllWordsQuery, AllWordsQueryVariables>(AllWordsDocument, baseOptions);
         }
 export type AllWordsQueryHookResult = ReturnType<typeof useAllWordsQuery>;
 export type AllWordsLazyQueryHookResult = ReturnType<typeof useAllWordsLazyQuery>;
-export type AllWordsQueryResult = ApolloReactCommon.QueryResult<AllWordsQuery, AllWordsQueryVariables>;
+export type AllWordsQueryResult = Apollo.QueryResult<AllWordsQuery, AllWordsQueryVariables>;

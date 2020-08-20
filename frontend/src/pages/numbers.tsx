@@ -1,10 +1,9 @@
-import { GetStaticProps } from "next";
 import React from "react";
 import styled from "styled-components";
 import App from "../components/App";
 import { numberToString } from "../helpers/numberToString";
 import { shuffle } from "../helpers/randomUtils";
-import { QuestionLine, Question } from "../components/QuestionLine";
+import { QuestionLine, Question } from "../components/numberspage/QuestionLine";
 import { CSSTransition } from "react-transition-group";
 import { Button } from "../components/Button";
 import Head from "next/head";
@@ -55,7 +54,8 @@ const NumbersPage = ({}: Props) => {
 
   React.useEffect(() => {
     if (questions.length === 0) setQuestions(generateQuestions());
-  }, []);
+  }, [questions]);
+
   const generateNewQuestions = () => {
     setQuestions(generateQuestions());
     setRightAnswerCount(0);
@@ -117,12 +117,12 @@ const NumbersPage = ({}: Props) => {
           <Button
             type="button"
             disabled={loadingResults}
-            onClick={(e) => submitResults()}
+            onClick={() => submitResults()}
           >
             Show results
           </Button>
         ) : (
-          <Button type="button" onClick={(e) => generateNewQuestions()}>
+          <Button type="button" onClick={() => generateNewQuestions()}>
             New Questions
           </Button>
         )}

@@ -4,27 +4,60 @@ import {
   InMemoryCache,
   NormalizedCache,
 } from "@apollo/client";
+import { setContext } from "@apollo/client/link/context";
 import { useMemo } from "react";
+import { environment } from "./environment";
+import { cookieValue } from "../helpers/cookies";
+import { IdTokenCookie } from "../constants/cookieNames";
+import { onError } from "@apollo/client/link/error";
 
 let apolloClient: ApolloClient<NormalizedCache>;
 
-function createApolloClient() {
-  const serverUrl = process.env.NEXT_PUBLIC_GRAPHQL_URL;
-  if (!serverUrl) {
-    throw new Error("Remember to set the env variable");
-  }
+function createApolloClient(staticIdToken?: string) {
+  const serverUrl = environment.graphqlUrl;
+
+  const httpLink = new HttpLink({
+    uri: serverUrl, // Server URL (must be absolute)
+  });
+  const authLink = setContext((_, { headers }) => {
+    // get the authentication token from local storage if it exists
+    let idToken: string | undefined = staticIdToken;
+    if (typeof window !== "undefined") {
+      const cookieIdToken = cookieValue(IdTokenCookie);
+      if (cookieIdToken) {
+        idToken = cookieIdToken;
+      }
+    }
+    // return the headers to the context so httpLink can read them
+    return {
+      headers: {
+        ...headers,
+        authorization: idToken ? `Bearer ${idToken}` : "",
+      },
+    };
+  });
+  const errorLink = onError(({ graphQLErrors, networkError }) => {
+    if (graphQLErrors)
+      graphQLErrors.map(({ message, locations, path }) =>
+        console.log(
+          `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`
+        )
+      );
+
+    if (networkError) console.log(`[Network error]: ${networkError}`);
+  });
   return new ApolloClient({
     ssrMode: typeof window === "undefined",
-    link: new HttpLink({
-      uri: serverUrl, // Server URL (must be absolute)
-      credentials: "same-origin", // Additional fetch() options like `credentials` or `headers`
-    }),
+    link: errorLink.concat(authLink).concat(httpLink),
     cache: new InMemoryCache(),
   });
 }
 
-export function initializeApollo(initialState?: NormalizedCache) {
-  const _apolloClient = apolloClient ?? createApolloClient();
+export function initializeApollo(
+  initialState?: NormalizedCache,
+  initialIdToken?: string
+) {
+  const _apolloClient = apolloClient ?? createApolloClient(initialIdToken);
 
   // If your page has Next.js data fetching methods that use Apollo Client, the initial state
   // gets hydrated here
@@ -39,7 +72,7 @@ export function initializeApollo(initialState?: NormalizedCache) {
   return _apolloClient;
 }
 
-export function useApollo(initialState: NormalizedCache) {
+export function useApollo(initialState?: NormalizedCache) {
   const store = useMemo(() => initializeApollo(initialState), [initialState]);
   return store;
 }
