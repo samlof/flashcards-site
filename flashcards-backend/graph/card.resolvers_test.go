@@ -25,9 +25,9 @@ func TestCardStatus(t *testing.T) {
 		CardID: word.ID,
 		Result: model.CardResultGood,
 	}
-	ret, err := resolver.Mutation().CardStatus(ctx, cardStatus)
+	_, err = resolver.Mutation().CardStatus(ctx, cardStatus)
 	if err != nil {
-		t.Errorf("adding status: %v", ret)
+		t.Errorf("adding status: %v", err)
 	}
 }
 
