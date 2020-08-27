@@ -3,7 +3,6 @@ import { User } from "firebase/app";
 import { useEffect, useState } from "react";
 
 const FbAppPromise = import("./firebase").then((x) => x.FbApp);
-
 interface userValue {
   loading: boolean;
   user: User | null;

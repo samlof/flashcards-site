@@ -58,7 +58,11 @@ const Flashcard = ({ initialWords }: Props) => {
         const nextIndex = randInt(0, prev.length);
         const newWords = prev.slice(0, nextIndex);
         newWords.push(word);
-        newWords.push(...prev.slice(nextIndex));
+
+        const remainingWords = prev.slice(nextIndex);
+        if (remainingWords.length > 0) {
+          newWords.push(...remainingWords);
+        }
 
         prev = newWords;
       }
