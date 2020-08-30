@@ -72,6 +72,10 @@ const Flashcard = ({ initialWords }: Props) => {
     setVisible(true);
   };
 
+  // Handle no cards case
+  if (!word) {
+    return <span>All cards done!</span>;
+  }
   return (
     <>
       <CSSTransition
