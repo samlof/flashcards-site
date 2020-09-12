@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { environment } from "./environment";
 
-export const useAudio = (url: string): [boolean, () => void] => {
+export const useAudio = (url: string): [boolean, () => void, () => void] => {
   const [audio] = useState(() => new Audio(url));
   const [playing, setPlaying] = useState(false);
 
   const toggle = () => setPlaying(!playing);
+  const start = () => setPlaying(true);
 
   useEffect(() => {
     playing ? audio.play() : audio.pause();
@@ -18,7 +19,7 @@ export const useAudio = (url: string): [boolean, () => void] => {
     };
   }, [audio]);
 
-  return [playing, toggle];
+  return [playing, start, toggle];
 };
 
 export const makeAudioUrl = (text: string, lang: string): string => {

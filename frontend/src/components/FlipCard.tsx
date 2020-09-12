@@ -53,8 +53,8 @@ const FlipCard = ({ front, back }: Props) => {
   const [isFront, setFront] = React.useState(false);
   const [isFrontVisible, setIsFrontVisible] = React.useState(false);
 
-  const [, frontToggle] = useAudio(makeAudioUrl(front.text, front.lang));
-  const [, backToggle] = useAudio(makeAudioUrl(back.text, back.lang));
+  const [, frontAudio] = useAudio(makeAudioUrl(front.text, front.lang));
+  const [, backAudio] = useAudio(makeAudioUrl(back.text, back.lang));
 
   const handleFlip = async (e: React.MouseEvent) => {
     if (e.isPropagationStopped()) return;
@@ -64,15 +64,15 @@ const FlipCard = ({ front, back }: Props) => {
     setIsFrontVisible((f) => !f);
   };
 
-  const playBackAudio = (e: React.MouseEvent) => {
+  const playBackAudio = (e: React.MouseEvent | React.TouchEvent) => {
     e.stopPropagation();
     e.preventDefault();
-    backToggle();
+    backAudio();
   };
-  const playFrontAudio = (e: React.MouseEvent) => {
+  const playFrontAudio = (e: React.MouseEvent | React.TouchEvent) => {
     e.stopPropagation();
     e.preventDefault();
-    frontToggle();
+    frontAudio();
   };
 
   return (
@@ -93,7 +93,9 @@ const FlipCard = ({ front, back }: Props) => {
         </CardMiddle>
         <CardBottom>
           <LanguageText>{front.lang}</LanguageText>
-          <Button onClick={playFrontAudio}>Listen</Button>
+          <Button onClick={playFrontAudio} onTouchStart={playFrontAudio}>
+            Listen
+          </Button>
         </CardBottom>
       </CardSide>
 
@@ -109,7 +111,9 @@ const FlipCard = ({ front, back }: Props) => {
         <CardBottom>
           <LanguageText>{back.lang}</LanguageText>
 
-          <Button onClick={playBackAudio}>Listen</Button>
+          <Button onClick={playBackAudio} onTouchStart={playBackAudio}>
+            Listen
+          </Button>
         </CardBottom>
       </CardSide>
     </ReactCardFlip>
