@@ -20,12 +20,7 @@ type CardSchedule {
 }
 
 type ScheduledWordsResponse {
-  cards: [ShownCard!]!
-}
-
-type ShownCard {
-  word: Word!
-  isNew: Boolean!
+  cards: [Word!]!
 }
 
 extend type Query {
