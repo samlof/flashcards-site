@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { environment } from "./environment";
 
-export const useAudio = (url: string): [boolean, () => void, () => void] => {
+export const useAudio = (url: string): [boolean, () => void] => {
   const [audio] = useState(() => {
     const audio = new Audio(url);
     audio.autoplay = false;
@@ -10,16 +10,10 @@ export const useAudio = (url: string): [boolean, () => void, () => void] => {
   });
   const [playing, setPlaying] = useState(false);
 
-  const toggle = () => setPlaying(!playing);
-  const start = () => setPlaying(true);
-
-  useEffect(() => {
-    // If audio hasn't been loaded yet, then load it before playing
-    if (playing && audio.networkState === 0) {
-      audio.load();
-    }
-    playing ? audio.play() : audio.pause();
-  }, [playing, audio]);
+  const start = () => {
+    setPlaying(true);
+    audio.play();
+  };
 
   useEffect(() => {
     const setPlayFalse = () => setPlaying(false);
@@ -37,7 +31,7 @@ export const useAudio = (url: string): [boolean, () => void, () => void] => {
     };
   }, [audio]);
 
-  return [playing, start, toggle];
+  return [playing, start];
 };
 
 export const makeAudioUrl = (text: string, lang: string): string => {
