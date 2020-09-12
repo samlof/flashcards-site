@@ -24,6 +24,7 @@ export const environment = {
     appId: process.env.NEXT_PUBLIC_APP_ID,
   },
   graphqlUrl: process.env.NEXT_PUBLIC_GRAPHQL_URL,
+  ttsUrl: process.env.NEXT_PUBLIC_TTS_URL,
   ssrDomain: process.env.NEXT_PUBLIC_SSR_DOMAIN,
 };
 verifyHasValue(environment);

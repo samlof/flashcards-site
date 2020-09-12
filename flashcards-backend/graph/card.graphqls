@@ -22,6 +22,7 @@ type CardSchedule {
 type ScheduledWordsResponse {
   cards: [Word!]!
 }
+
 extend type Query {
   scheduledWords(shuffle: Boolean! = false): ScheduledWordsResponse!
 }

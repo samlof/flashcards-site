@@ -30,6 +30,7 @@ import (
 	"flashcards-backend/ent/migrate"
 	"flashcards-backend/graph"
 	"flashcards-backend/graph/generated"
+	"flashcards-backend/tts"
 )
 
 const defaultPort = "8080"
@@ -96,7 +97,9 @@ func main() {
 		AllowedHeaders:   []string{"authorization", "content-type", "accept"},
 	}).Handler)
 
-	r.With(auth.Middleware(firebaseAuth, client)).Handle("/query", srv)
+	authHandler := r.With(auth.Middleware(firebaseAuth, client))
+	authHandler.Handle("/query", srv)
+	r.Get("/tts/{text}-{lang}.mp3", ttsHandler())
 
 	// Enable introspection and playground for development
 	if !isProduction {
@@ -172,6 +175,48 @@ func configureGqlServer(client *ent.Client) *handler.Server {
 		Cache: lru.New(100),
 	})
 	return srv
+}
+
+func ttsHandler() http.HandlerFunc {
+	ttsService, err := tts.New(context.Background())
+	if err != nil {
+		log.Fatalf("Unable to make tts service: %v", err)
+	}
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Get params
+		text := chi.URLParam(r, "text")
+		lang := chi.URLParam(r, "lang")
+		if text == "" || lang == "" {
+			_, err = w.Write([]byte("params missing"))
+			if err != nil {
+				log.Printf("error writing error: %v", err)
+			}
+		}
+		if lang == "en" {
+			lang = "en-US"
+		}
+		if lang == "fi" {
+			lang = "fi-FI"
+		}
+
+		// Get audio bytes
+		audio, err := ttsService.Tts(r.Context(), text, lang)
+		if err != nil {
+			log.Printf("error getting tts: %v", err)
+			_, err = w.Write([]byte("error getting audio"))
+			if err != nil {
+				log.Printf("error writing error: %v", err)
+			}
+			return
+		}
+
+		// Return bytes
+		w.Header().Add("content-type", "audio/mpeg3;audio/mpeg")
+		_, err = w.Write(audio)
+		if err != nil {
+			log.Printf("error writing tts: %v", err)
+		}
+	}
 }
 
 func applyDotEnv() string {
