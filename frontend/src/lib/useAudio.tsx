@@ -22,9 +22,18 @@ export const useAudio = (url: string): [boolean, () => void, () => void] => {
   }, [playing, audio]);
 
   useEffect(() => {
-    audio.addEventListener("ended", () => setPlaying(false));
+    const setPlayFalse = () => setPlaying(false);
+    audio.addEventListener("ended", setPlayFalse);
+
+    document.body.appendChild(audio);
     return () => {
-      audio.removeEventListener("ended", () => setPlaying(false));
+      audio.removeEventListener("ended", setPlayFalse);
+
+      try {
+        document.body.removeChild(audio);
+      } catch (error) {
+        //
+      }
     };
   }, [audio]);
 
