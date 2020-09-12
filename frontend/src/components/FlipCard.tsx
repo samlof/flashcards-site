@@ -93,9 +93,7 @@ const FlipCard = ({ front, back }: Props) => {
         </CardMiddle>
         <CardBottom>
           <LanguageText>{front.lang}</LanguageText>
-          <Button onClick={playFrontAudio} onTouchStart={playFrontAudio}>
-            Listen
-          </Button>
+          <Button onClick={playFrontAudio}>Listen</Button>
         </CardBottom>
       </CardSide>
 
@@ -111,9 +109,7 @@ const FlipCard = ({ front, back }: Props) => {
         <CardBottom>
           <LanguageText>{back.lang}</LanguageText>
 
-          <Button onClick={playBackAudio} onTouchStart={playBackAudio}>
-            Listen
-          </Button>
+          <Button onClick={playBackAudio}>Listen</Button>
         </CardBottom>
       </CardSide>
     </ReactCardFlip>

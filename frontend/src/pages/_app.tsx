@@ -25,7 +25,7 @@ export default function App({ Component, pageProps }: AppPropsType) {
       } else {
         user.user.getIdToken().then((token) => {
           const maxAge = 60 * 60; // 1 hour
-          document.cookie = `${IdTokenCookie}=${token}; path=/; max-age=${maxAge}; Domain=${environment.ssrDomain}`;
+          document.cookie = `${IdTokenCookie}=${token}; path=/; max-age=${maxAge}; Domain=${environment.ssrDomain}; SameSite=None;`;
         });
       }
     }
