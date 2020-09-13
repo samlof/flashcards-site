@@ -47,6 +47,7 @@ const AllFlashcards = ({}: Props) => {
   const [index, setIndex] = React.useState(0);
   const [cardVisible, setVisible] = React.useState(true);
   const [animationName, setAnimationName] = React.useState("card-in-out");
+  const [isFrontVisible, setIsFrontVisible] = React.useState(false);
 
   const { loading, error, data } = useAllFlashcardsQuery();
   const [words, setWords] = React.useState<FlashWord[]>([]);
@@ -81,6 +82,8 @@ const AllFlashcards = ({}: Props) => {
         classNames={animationName}
       >
         <FlipCard
+          isFront={isFrontVisible}
+          setFront={setIsFrontVisible}
           key={index}
           front={{ lang: word.lang1, text: word.word1 }}
           back={{ lang: word.lang2, text: word.word2 }}
