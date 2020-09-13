@@ -6,6 +6,7 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 	"syscall"
@@ -189,14 +190,28 @@ func ttsHandler() http.HandlerFunc {
 		if text == "" || lang == "" {
 			_, err = w.Write([]byte("params missing"))
 			if err != nil {
-				log.Printf("error writing error: %v", err)
+				log.Printf("error writing params missing error: %v", err)
 			}
+		}
+		text, err = url.QueryUnescape(text)
+		if err != nil {
+			log.Printf("error unescaping text: %v", err)
+			_, err = w.Write([]byte("Invalid text param"))
+			if err != nil {
+				log.Printf("error writing invalid text param error: %v", err)
+			}
+			return
 		}
 		if lang == "en" {
 			lang = "en-US"
-		}
-		if lang == "fi" {
+		} else if lang == "fi" {
 			lang = "fi-FI"
+		} else {
+			_, err = w.Write([]byte("Invalid language"))
+			if err != nil {
+				log.Printf("error writing invalid lang error: %v", err)
+			}
+			return
 		}
 
 		// Get audio bytes
@@ -210,8 +225,10 @@ func ttsHandler() http.HandlerFunc {
 			return
 		}
 
-		// Return bytes
 		w.Header().Add("content-type", "audio/mpeg3;audio/mpeg")
+		// Cache the audio
+		w.Header().Add("Cache-Control", "public, max-age=31536000")
+		// Return bytes
 		_, err = w.Write(audio)
 		if err != nil {
 			log.Printf("error writing tts: %v", err)

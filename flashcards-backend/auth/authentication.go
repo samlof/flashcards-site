@@ -13,15 +13,15 @@ import (
 
 // A private key for context that only this package can access. This is important
 // to prevent collisions between different context uses
-var userCtxKey = &contextKey{"user"}
-var errorCtxKey = &contextKey{"error"}
+var userCtxKey = &contextKey{1}
+var errorCtxKey = &contextKey{2}
 
 type contextKey struct {
-	name string
+	name int
 }
 
 // Middleware decodes the share session cookie and packs the user uid into context
-func Middleware(firebaseAuth *auth.Client, client *ent.Client) func(http.Handler) http.Handler {
+func Middleware(firebaseAuth *auth.Client, db *ent.Client) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
@@ -50,9 +50,9 @@ func Middleware(firebaseAuth *auth.Client, client *ent.Client) func(http.Handler
 			userUid := decToken.UID
 
 			// put it in context
-			dbUser, err := client.User.Query().Where(user.FirebaseUid(userUid)).First(ctx)
+			dbUser, err := db.User.Query().Where(user.FirebaseUid(userUid)).First(ctx)
 			if ent.IsNotFound(err) {
-				dbUser, err = client.User.Create().SetFirebaseUid(userUid).Save(ctx)
+				dbUser, err = db.User.Create().SetFirebaseUid(userUid).Save(ctx)
 				if err != nil {
 					r = setError(r, ctx, "error creating user for uid %s: %v", userUid, err)
 					next.ServeHTTP(w, r)
@@ -70,7 +70,7 @@ func Middleware(firebaseAuth *auth.Client, client *ent.Client) func(http.Handler
 				return
 			}
 			if !settingsExists {
-				_, err := client.UserSettings.Create().SetUser(dbUser).Save(ctx)
+				_, err := db.UserSettings.Create().SetUser(dbUser).Save(ctx)
 				if err != nil {
 					r = setError(r, ctx, "error creating settings for uid %s: %v", userUid, err)
 					next.ServeHTTP(w, r)

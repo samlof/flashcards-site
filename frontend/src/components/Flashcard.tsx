@@ -35,6 +35,7 @@ interface Props {
 const Flashcard = ({ initialWords }: Props) => {
   const [cardVisible, setVisible] = React.useState(true);
   const [animationName, setAnimationName] = React.useState("card-in-out");
+  const [isFrontVisible, setIsFrontVisible] = React.useState(false);
 
   const [setCardState] = useSetCardStatusMutation();
   const [words, setWords] = React.useState<FlashWord[]>(initialWords);
@@ -84,6 +85,9 @@ const Flashcard = ({ initialWords }: Props) => {
         classNames={animationName}
       >
         <FlipCard
+          key={word.word1}
+          isFront={isFrontVisible}
+          setFront={setIsFrontVisible}
           front={{ lang: word.lang1, text: word.word1 }}
           back={{ lang: word.lang2, text: word.word2 }}
         ></FlipCard>

@@ -5,7 +5,7 @@ import { delayMs } from "../helpers/delay";
 import { useAudio, makeAudioUrl } from "../lib/useAudio";
 import { Button } from "./Button";
 
-const CardSide = styled.div<{ front: boolean }>`
+const CardSide = styled.div`
   display: flex;
   align-self: center;
   align-items: center;
@@ -43,25 +43,20 @@ export interface CardWord {
 interface Props {
   front: CardWord;
   back: CardWord;
+  isFront: boolean;
+  setFront: (fn: (fn: boolean) => boolean) => void;
 }
 
 const flipSpeed = 600;
 const flipSpeedS = flipSpeed / 1000;
-const flipSpeedHalf = flipSpeed / 2;
 
-const FlipCard = ({ front, back }: Props) => {
-  const [isFront, setFront] = React.useState(false);
-  const [isFrontVisible, setIsFrontVisible] = React.useState(false);
-
+const FlipCard = ({ front, back, isFront, setFront }: Props) => {
   const [, frontAudio] = useAudio(makeAudioUrl(front.text, front.lang));
   const [, backAudio] = useAudio(makeAudioUrl(back.text, back.lang));
 
   const handleFlip = async (e: React.MouseEvent) => {
     if (e.isPropagationStopped()) return;
-
     setFront((f) => !f);
-    await delayMs(flipSpeedHalf - 100);
-    setIsFrontVisible((f) => !f);
   };
 
   const playBackAudio = (e: React.MouseEvent | React.TouchEvent) => {
@@ -82,11 +77,7 @@ const FlipCard = ({ front, back }: Props) => {
       flipSpeedBackToFront={flipSpeedS}
       flipSpeedFrontToBack={flipSpeedS}
     >
-      <CardSide
-        key="front"
-        onClick={(e) => handleFlip(e)}
-        front={isFrontVisible}
-      >
+      <CardSide key="front" onClick={(e) => handleFlip(e)}>
         <CardTop></CardTop>
         <CardMiddle>
           <span>{front.text}</span>
@@ -97,11 +88,7 @@ const FlipCard = ({ front, back }: Props) => {
         </CardBottom>
       </CardSide>
 
-      <CardSide
-        key="back"
-        onClick={(e) => handleFlip(e)}
-        front={isFrontVisible}
-      >
+      <CardSide key="back" onClick={(e) => handleFlip(e)}>
         <CardTop></CardTop>
         <CardMiddle>
           <span>{back.text}</span>
