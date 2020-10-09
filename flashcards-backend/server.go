@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"log"
 	"math/rand"
@@ -109,12 +110,7 @@ func main() {
 		log.Printf("connect to http://localhost:%s/ for GraphQL playground\n", port)
 	}
 
-	httpServer := http.Server{
-		Addr:              ":" + port,
-		Handler:           router,
-		ReadHeaderTimeout: time.Second * 5,
-		IdleTimeout:       time.Minute * 1,
-	}
+	httpServer := newHttpServer(":"+port, router)
 	// Start server in goroutine, this one will wait for interrupt signal
 	go func() {
 		log.Printf("Listening at http://localhost:%s/query", port)
@@ -138,6 +134,31 @@ func main() {
 		log.Printf("Graceful shutdown error: %v\n", err)
 	} else {
 		fmt.Println("Shutdown succesfully")
+	}
+}
+
+func newHttpServer(addr string, handler http.Handler) *http.Server {
+	return &http.Server{Addr: addr,
+		Handler: handler,
+		// https://blog.cloudflare.com/exposing-go-on-the-internet/
+		ReadTimeout:       5 * time.Second,
+		WriteTimeout:      10 * time.Second,
+		ReadHeaderTimeout: time.Second * 5,
+		IdleTimeout:       120 * time.Second,
+		TLSConfig: &tls.Config{
+			NextProtos:       []string{"h2", "http/1.1"},
+			MinVersion:       tls.VersionTLS12,
+			CurvePreferences: []tls.CurveID{tls.CurveP256, tls.X25519},
+			CipherSuites: []uint16{
+				tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+				tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+				tls.TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,
+				tls.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,
+				tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+				tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+			},
+			PreferServerCipherSuites: true,
+		},
 	}
 }
 
