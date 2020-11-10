@@ -2,4 +2,4 @@
 // Only files in ./schema and ./template should be edited
 package ent
 
-//go:generate go run github.com/facebookincubator/ent/cmd/entc generate --template=./template ./schema
+//go:generate go run github.com/facebook/ent/cmd/entc generate --template=./template ./schema

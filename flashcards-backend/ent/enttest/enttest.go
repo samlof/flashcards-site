@@ -8,7 +8,7 @@ import (
 	// required by schema hooks.
 	_ "flashcards-backend/ent/runtime"
 
-	"github.com/facebookincubator/ent/dialect/sql/schema"
+	"github.com/facebook/ent/dialect/sql/schema"
 )
 
 type (
