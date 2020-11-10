@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"errors"
 	"flashcards-backend/ent/user"
 	"flashcards-backend/ent/usersettings"
 	"fmt"
@@ -88,20 +89,24 @@ func (usc *UserSettingsCreate) Mutation() *UserSettingsMutation {
 
 // Save creates the UserSettings in the database.
 func (usc *UserSettingsCreate) Save(ctx context.Context) (*UserSettings, error) {
-	if err := usc.preSave(); err != nil {
-		return nil, err
-	}
 	var (
 		err  error
 		node *UserSettings
 	)
+	usc.defaults()
 	if len(usc.hooks) == 0 {
+		if err = usc.check(); err != nil {
+			return nil, err
+		}
 		node, err = usc.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*UserSettingsMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			if err = usc.check(); err != nil {
+				return nil, err
 			}
 			usc.mutation = mutation
 			node, err = usc.sqlSave(ctx)
@@ -127,7 +132,8 @@ func (usc *UserSettingsCreate) SaveX(ctx context.Context) *UserSettings {
 	return v
 }
 
-func (usc *UserSettingsCreate) preSave() error {
+// defaults sets the default values of the builder before save.
+func (usc *UserSettingsCreate) defaults() {
 	if _, ok := usc.mutation.CreateTime(); !ok {
 		v := usersettings.DefaultCreateTime()
 		usc.mutation.SetCreateTime(v)
@@ -140,11 +146,24 @@ func (usc *UserSettingsCreate) preSave() error {
 		v := usersettings.DefaultNewCardsPerDay
 		usc.mutation.SetNewCardsPerDay(v)
 	}
+}
+
+// check runs all checks and user-defined validators on the builder.
+func (usc *UserSettingsCreate) check() error {
+	if _, ok := usc.mutation.CreateTime(); !ok {
+		return &ValidationError{Name: "create_time", err: errors.New("ent: missing required field \"create_time\"")}
+	}
+	if _, ok := usc.mutation.UpdateTime(); !ok {
+		return &ValidationError{Name: "update_time", err: errors.New("ent: missing required field \"update_time\"")}
+	}
+	if _, ok := usc.mutation.NewCardsPerDay(); !ok {
+		return &ValidationError{Name: "newCardsPerDay", err: errors.New("ent: missing required field \"newCardsPerDay\"")}
+	}
 	return nil
 }
 
 func (usc *UserSettingsCreate) sqlSave(ctx context.Context) (*UserSettings, error) {
-	us, _spec := usc.createSpec()
+	_node, _spec := usc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, usc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
@@ -152,13 +171,13 @@ func (usc *UserSettingsCreate) sqlSave(ctx context.Context) (*UserSettings, erro
 		return nil, err
 	}
 	id := _spec.ID.Value.(int64)
-	us.ID = int(id)
-	return us, nil
+	_node.ID = int(id)
+	return _node, nil
 }
 
 func (usc *UserSettingsCreate) createSpec() (*UserSettings, *sqlgraph.CreateSpec) {
 	var (
-		us    = &UserSettings{config: usc.config}
+		_node = &UserSettings{config: usc.config}
 		_spec = &sqlgraph.CreateSpec{
 			Table: usersettings.Table,
 			ID: &sqlgraph.FieldSpec{
@@ -173,7 +192,7 @@ func (usc *UserSettingsCreate) createSpec() (*UserSettings, *sqlgraph.CreateSpec
 			Value:  value,
 			Column: usersettings.FieldCreateTime,
 		})
-		us.CreateTime = value
+		_node.CreateTime = value
 	}
 	if value, ok := usc.mutation.UpdateTime(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -181,7 +200,7 @@ func (usc *UserSettingsCreate) createSpec() (*UserSettings, *sqlgraph.CreateSpec
 			Value:  value,
 			Column: usersettings.FieldUpdateTime,
 		})
-		us.UpdateTime = value
+		_node.UpdateTime = value
 	}
 	if value, ok := usc.mutation.NewCardsPerDay(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -189,7 +208,7 @@ func (usc *UserSettingsCreate) createSpec() (*UserSettings, *sqlgraph.CreateSpec
 			Value:  value,
 			Column: usersettings.FieldNewCardsPerDay,
 		})
-		us.NewCardsPerDay = value
+		_node.NewCardsPerDay = value
 	}
 	if nodes := usc.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -210,7 +229,7 @@ func (usc *UserSettingsCreate) createSpec() (*UserSettings, *sqlgraph.CreateSpec
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	return us, _spec
+	return _node, _spec
 }
 
 // UserSettingsCreateBulk is the builder for creating a bulk of UserSettings entities.
@@ -227,13 +246,14 @@ func (uscb *UserSettingsCreateBulk) Save(ctx context.Context) ([]*UserSettings, 
 	for i := range uscb.builders {
 		func(i int, root context.Context) {
 			builder := uscb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-				if err := builder.preSave(); err != nil {
-					return nil, err
-				}
 				mutation, ok := m.(*UserSettingsMutation)
 				if !ok {
 					return nil, fmt.Errorf("unexpected mutation type %T", m)
+				}
+				if err := builder.check(); err != nil {
+					return nil, err
 				}
 				builder.mutation = mutation
 				nodes[i], specs[i] = builder.createSpec()

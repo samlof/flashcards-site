@@ -65,8 +65,12 @@ func (wq *WordQuery) QueryCardLogs() *CardLogQuery {
 		if err := wq.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
+		selector := wq.sqlQuery()
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(word.Table, word.FieldID, wq.sqlQuery()),
+			sqlgraph.From(word.Table, word.FieldID, selector),
 			sqlgraph.To(cardlog.Table, cardlog.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, true, word.CardLogsTable, word.CardLogsColumn),
 		)
@@ -83,8 +87,12 @@ func (wq *WordQuery) QueryCardSchedules() *CardScheduleQuery {
 		if err := wq.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
+		selector := wq.sqlQuery()
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(word.Table, word.FieldID, wq.sqlQuery()),
+			sqlgraph.From(word.Table, word.FieldID, selector),
 			sqlgraph.To(cardschedule.Table, cardschedule.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, true, word.CardSchedulesTable, word.CardSchedulesColumn),
 		)
@@ -96,23 +104,23 @@ func (wq *WordQuery) QueryCardSchedules() *CardScheduleQuery {
 
 // First returns the first Word entity in the query. Returns *NotFoundError when no word was found.
 func (wq *WordQuery) First(ctx context.Context) (*Word, error) {
-	ws, err := wq.Limit(1).All(ctx)
+	nodes, err := wq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
-	if len(ws) == 0 {
+	if len(nodes) == 0 {
 		return nil, &NotFoundError{word.Label}
 	}
-	return ws[0], nil
+	return nodes[0], nil
 }
 
 // FirstX is like First, but panics if an error occurs.
 func (wq *WordQuery) FirstX(ctx context.Context) *Word {
-	w, err := wq.First(ctx)
+	node, err := wq.First(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
 	}
-	return w
+	return node
 }
 
 // FirstID returns the first Word id in the query. Returns *NotFoundError when no id was found.
@@ -128,8 +136,8 @@ func (wq *WordQuery) FirstID(ctx context.Context) (id int, err error) {
 	return ids[0], nil
 }
 
-// FirstXID is like FirstID, but panics if an error occurs.
-func (wq *WordQuery) FirstXID(ctx context.Context) int {
+// FirstIDX is like FirstID, but panics if an error occurs.
+func (wq *WordQuery) FirstIDX(ctx context.Context) int {
 	id, err := wq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -139,13 +147,13 @@ func (wq *WordQuery) FirstXID(ctx context.Context) int {
 
 // Only returns the only Word entity in the query, returns an error if not exactly one entity was returned.
 func (wq *WordQuery) Only(ctx context.Context) (*Word, error) {
-	ws, err := wq.Limit(2).All(ctx)
+	nodes, err := wq.Limit(2).All(ctx)
 	if err != nil {
 		return nil, err
 	}
-	switch len(ws) {
+	switch len(nodes) {
 	case 1:
-		return ws[0], nil
+		return nodes[0], nil
 	case 0:
 		return nil, &NotFoundError{word.Label}
 	default:
@@ -155,11 +163,11 @@ func (wq *WordQuery) Only(ctx context.Context) (*Word, error) {
 
 // OnlyX is like Only, but panics if an error occurs.
 func (wq *WordQuery) OnlyX(ctx context.Context) *Word {
-	w, err := wq.Only(ctx)
+	node, err := wq.Only(ctx)
 	if err != nil {
 		panic(err)
 	}
-	return w
+	return node
 }
 
 // OnlyID returns the only Word id in the query, returns an error if not exactly one id was returned.
@@ -198,11 +206,11 @@ func (wq *WordQuery) All(ctx context.Context) ([]*Word, error) {
 
 // AllX is like All, but panics if an error occurs.
 func (wq *WordQuery) AllX(ctx context.Context) []*Word {
-	ws, err := wq.All(ctx)
+	nodes, err := wq.All(ctx)
 	if err != nil {
 		panic(err)
 	}
-	return ws
+	return nodes
 }
 
 // IDs executes the query and returns a list of Word ids.
@@ -260,13 +268,18 @@ func (wq *WordQuery) ExistX(ctx context.Context) bool {
 // Clone returns a duplicate of the query builder, including all associated steps. It can be
 // used to prepare common query builders and use them differently after the clone is made.
 func (wq *WordQuery) Clone() *WordQuery {
+	if wq == nil {
+		return nil
+	}
 	return &WordQuery{
-		config:     wq.config,
-		limit:      wq.limit,
-		offset:     wq.offset,
-		order:      append([]OrderFunc{}, wq.order...),
-		unique:     append([]string{}, wq.unique...),
-		predicates: append([]predicate.Word{}, wq.predicates...),
+		config:            wq.config,
+		limit:             wq.limit,
+		offset:            wq.offset,
+		order:             append([]OrderFunc{}, wq.order...),
+		unique:            append([]string{}, wq.unique...),
+		predicates:        append([]predicate.Word{}, wq.predicates...),
+		withCardLogs:      wq.withCardLogs.Clone(),
+		withCardSchedules: wq.withCardSchedules.Clone(),
 		// clone intermediate query.
 		sql:  wq.sql.Clone(),
 		path: wq.path,
@@ -393,6 +406,7 @@ func (wq *WordQuery) sqlAll(ctx context.Context) ([]*Word, error) {
 		for i := range nodes {
 			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
+			nodes[i].Edges.CardLogs = []*CardLog{}
 		}
 		query.withFKs = true
 		query.Where(predicate.CardLog(func(s *sql.Selector) {
@@ -421,6 +435,7 @@ func (wq *WordQuery) sqlAll(ctx context.Context) ([]*Word, error) {
 		for i := range nodes {
 			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
+			nodes[i].Edges.CardSchedules = []*CardSchedule{}
 		}
 		query.withFKs = true
 		query.Where(predicate.CardSchedule(func(s *sql.Selector) {
@@ -488,7 +503,7 @@ func (wq *WordQuery) querySpec() *sqlgraph.QuerySpec {
 	if ps := wq.order; len(ps) > 0 {
 		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
-				ps[i](selector)
+				ps[i](selector, word.ValidColumn)
 			}
 		}
 	}
@@ -507,7 +522,7 @@ func (wq *WordQuery) sqlQuery() *sql.Selector {
 		p(selector)
 	}
 	for _, p := range wq.order {
-		p(selector)
+		p(selector, word.ValidColumn)
 	}
 	if offset := wq.offset; offset != nil {
 		// limit is mandatory for offset clause. We start
@@ -742,8 +757,17 @@ func (wgb *WordGroupBy) BoolX(ctx context.Context) bool {
 }
 
 func (wgb *WordGroupBy) sqlScan(ctx context.Context, v interface{}) error {
+	for _, f := range wgb.fields {
+		if !word.ValidColumn(f) {
+			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
+		}
+	}
+	selector := wgb.sqlQuery()
+	if err := selector.Err(); err != nil {
+		return err
+	}
 	rows := &sql.Rows{}
-	query, args := wgb.sqlQuery().Query()
+	query, args := selector.Query()
 	if err := wgb.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
@@ -756,7 +780,7 @@ func (wgb *WordGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(wgb.fields)+len(wgb.fns))
 	columns = append(columns, wgb.fields...)
 	for _, fn := range wgb.fns {
-		columns = append(columns, fn(selector))
+		columns = append(columns, fn(selector, word.ValidColumn))
 	}
 	return selector.Select(columns...).GroupBy(wgb.fields...)
 }
@@ -976,6 +1000,11 @@ func (ws *WordSelect) BoolX(ctx context.Context) bool {
 }
 
 func (ws *WordSelect) sqlScan(ctx context.Context, v interface{}) error {
+	for _, f := range ws.fields {
+		if !word.ValidColumn(f) {
+			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for selection", f)}
+		}
+	}
 	rows := &sql.Rows{}
 	query, args := ws.sqlQuery().Query()
 	if err := ws.driver.Query(ctx, query, args, rows); err != nil {

@@ -53,6 +53,21 @@ var ForeignKeys = []string{
 	"user_card_logs",
 }
 
+// ValidColumn reports if the column name is valid (part of the table columns).
+func ValidColumn(column string) bool {
+	for i := range Columns {
+		if column == Columns[i] {
+			return true
+		}
+	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
+			return true
+		}
+	}
+	return false
+}
+
 var (
 	// DefaultCreateTime holds the default value on creation for the create_time field.
 	DefaultCreateTime func() time.Time
@@ -63,9 +78,9 @@ type Result string
 
 // Result values.
 const (
-	ResultBad   Result = "bad"
 	ResultEasy  Result = "easy"
 	ResultGood  Result = "good"
+	ResultBad   Result = "bad"
 	ResultRetry Result = "retry"
 )
 
@@ -76,7 +91,7 @@ func (r Result) String() string {
 // ResultValidator is a validator for the "result" field enum values. It is called by the builders before save.
 func ResultValidator(r Result) error {
 	switch r {
-	case ResultBad, ResultEasy, ResultGood, ResultRetry:
+	case ResultEasy, ResultGood, ResultBad, ResultRetry:
 		return nil
 	default:
 		return fmt.Errorf("cardlog: invalid enum value for result field: %q", r)
@@ -85,8 +100,8 @@ func ResultValidator(r Result) error {
 
 // AllResult includes all values of Result enum
 var AllResult = [...]Result{
-	ResultBad,
 	ResultEasy,
 	ResultGood,
+	ResultBad,
 	ResultRetry,
 }

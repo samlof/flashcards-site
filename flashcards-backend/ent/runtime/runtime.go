@@ -5,6 +5,6 @@ package runtime
 // The schema-stitching logic is generated in flashcards-backend/ent/runtime.go
 
 const (
-	Version = "v0.3.0"                                          // Version of ent codegen.
-	Sum     = "h1:Jht3vZio7eshMo7yaEZJ6LHk4oM8xUCxKNNDj/Kb4fE=" // Sum of ent codegen.
+	Version = "v0.5.0"                                          // Version of ent codegen.
+	Sum     = "h1:NlDQDxJi1X6+20CCjRQgu8UqvRhQNm5ocPBCQYdxC/8=" // Sum of ent codegen.
 )

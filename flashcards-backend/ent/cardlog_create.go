@@ -79,20 +79,24 @@ func (clc *CardLogCreate) Mutation() *CardLogMutation {
 
 // Save creates the CardLog in the database.
 func (clc *CardLogCreate) Save(ctx context.Context) (*CardLog, error) {
-	if err := clc.preSave(); err != nil {
-		return nil, err
-	}
 	var (
 		err  error
 		node *CardLog
 	)
+	clc.defaults()
 	if len(clc.hooks) == 0 {
+		if err = clc.check(); err != nil {
+			return nil, err
+		}
 		node, err = clc.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*CardLogMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			if err = clc.check(); err != nil {
+				return nil, err
 			}
 			clc.mutation = mutation
 			node, err = clc.sqlSave(ctx)
@@ -118,10 +122,18 @@ func (clc *CardLogCreate) SaveX(ctx context.Context) *CardLog {
 	return v
 }
 
-func (clc *CardLogCreate) preSave() error {
+// defaults sets the default values of the builder before save.
+func (clc *CardLogCreate) defaults() {
 	if _, ok := clc.mutation.CreateTime(); !ok {
 		v := cardlog.DefaultCreateTime()
 		clc.mutation.SetCreateTime(v)
+	}
+}
+
+// check runs all checks and user-defined validators on the builder.
+func (clc *CardLogCreate) check() error {
+	if _, ok := clc.mutation.CreateTime(); !ok {
+		return &ValidationError{Name: "create_time", err: errors.New("ent: missing required field \"create_time\"")}
 	}
 	if _, ok := clc.mutation.Result(); !ok {
 		return &ValidationError{Name: "result", err: errors.New("ent: missing required field \"result\"")}
@@ -138,7 +150,7 @@ func (clc *CardLogCreate) preSave() error {
 }
 
 func (clc *CardLogCreate) sqlSave(ctx context.Context) (*CardLog, error) {
-	cl, _spec := clc.createSpec()
+	_node, _spec := clc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, clc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
@@ -146,13 +158,13 @@ func (clc *CardLogCreate) sqlSave(ctx context.Context) (*CardLog, error) {
 		return nil, err
 	}
 	id := _spec.ID.Value.(int64)
-	cl.ID = int(id)
-	return cl, nil
+	_node.ID = int(id)
+	return _node, nil
 }
 
 func (clc *CardLogCreate) createSpec() (*CardLog, *sqlgraph.CreateSpec) {
 	var (
-		cl    = &CardLog{config: clc.config}
+		_node = &CardLog{config: clc.config}
 		_spec = &sqlgraph.CreateSpec{
 			Table: cardlog.Table,
 			ID: &sqlgraph.FieldSpec{
@@ -167,7 +179,7 @@ func (clc *CardLogCreate) createSpec() (*CardLog, *sqlgraph.CreateSpec) {
 			Value:  value,
 			Column: cardlog.FieldCreateTime,
 		})
-		cl.CreateTime = value
+		_node.CreateTime = value
 	}
 	if value, ok := clc.mutation.Result(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -175,7 +187,7 @@ func (clc *CardLogCreate) createSpec() (*CardLog, *sqlgraph.CreateSpec) {
 			Value:  value,
 			Column: cardlog.FieldResult,
 		})
-		cl.Result = value
+		_node.Result = value
 	}
 	if nodes := clc.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -215,7 +227,7 @@ func (clc *CardLogCreate) createSpec() (*CardLog, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	return cl, _spec
+	return _node, _spec
 }
 
 // CardLogCreateBulk is the builder for creating a bulk of CardLog entities.
@@ -232,13 +244,14 @@ func (clcb *CardLogCreateBulk) Save(ctx context.Context) ([]*CardLog, error) {
 	for i := range clcb.builders {
 		func(i int, root context.Context) {
 			builder := clcb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-				if err := builder.preSave(); err != nil {
-					return nil, err
-				}
 				mutation, ok := m.(*CardLogMutation)
 				if !ok {
 					return nil, fmt.Errorf("unexpected mutation type %T", m)
+				}
+				if err := builder.check(); err != nil {
+					return nil, err
 				}
 				builder.mutation = mutation
 				nodes[i], specs[i] = builder.createSpec()

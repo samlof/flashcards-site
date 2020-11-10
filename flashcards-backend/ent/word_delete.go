@@ -16,14 +16,13 @@ import (
 // WordDelete is the builder for deleting a Word entity.
 type WordDelete struct {
 	config
-	hooks      []Hook
-	mutation   *WordMutation
-	predicates []predicate.Word
+	hooks    []Hook
+	mutation *WordMutation
 }
 
 // Where adds a new predicate to the delete builder.
 func (wd *WordDelete) Where(ps ...predicate.Word) *WordDelete {
-	wd.predicates = append(wd.predicates, ps...)
+	wd.mutation.predicates = append(wd.mutation.predicates, ps...)
 	return wd
 }
 
@@ -75,7 +74,7 @@ func (wd *WordDelete) sqlExec(ctx context.Context) (int, error) {
 			},
 		},
 	}
-	if ps := wd.predicates; len(ps) > 0 {
+	if ps := wd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)

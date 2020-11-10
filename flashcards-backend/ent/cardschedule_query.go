@@ -65,8 +65,12 @@ func (csq *CardScheduleQuery) QueryUser() *UserQuery {
 		if err := csq.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
+		selector := csq.sqlQuery()
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(cardschedule.Table, cardschedule.FieldID, csq.sqlQuery()),
+			sqlgraph.From(cardschedule.Table, cardschedule.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, cardschedule.UserTable, cardschedule.UserColumn),
 		)
@@ -83,8 +87,12 @@ func (csq *CardScheduleQuery) QueryCard() *WordQuery {
 		if err := csq.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
+		selector := csq.sqlQuery()
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(cardschedule.Table, cardschedule.FieldID, csq.sqlQuery()),
+			sqlgraph.From(cardschedule.Table, cardschedule.FieldID, selector),
 			sqlgraph.To(word.Table, word.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, cardschedule.CardTable, cardschedule.CardColumn),
 		)
@@ -96,23 +104,23 @@ func (csq *CardScheduleQuery) QueryCard() *WordQuery {
 
 // First returns the first CardSchedule entity in the query. Returns *NotFoundError when no cardschedule was found.
 func (csq *CardScheduleQuery) First(ctx context.Context) (*CardSchedule, error) {
-	csSlice, err := csq.Limit(1).All(ctx)
+	nodes, err := csq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
-	if len(csSlice) == 0 {
+	if len(nodes) == 0 {
 		return nil, &NotFoundError{cardschedule.Label}
 	}
-	return csSlice[0], nil
+	return nodes[0], nil
 }
 
 // FirstX is like First, but panics if an error occurs.
 func (csq *CardScheduleQuery) FirstX(ctx context.Context) *CardSchedule {
-	cs, err := csq.First(ctx)
+	node, err := csq.First(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
 	}
-	return cs
+	return node
 }
 
 // FirstID returns the first CardSchedule id in the query. Returns *NotFoundError when no id was found.
@@ -128,8 +136,8 @@ func (csq *CardScheduleQuery) FirstID(ctx context.Context) (id int, err error) {
 	return ids[0], nil
 }
 
-// FirstXID is like FirstID, but panics if an error occurs.
-func (csq *CardScheduleQuery) FirstXID(ctx context.Context) int {
+// FirstIDX is like FirstID, but panics if an error occurs.
+func (csq *CardScheduleQuery) FirstIDX(ctx context.Context) int {
 	id, err := csq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -139,13 +147,13 @@ func (csq *CardScheduleQuery) FirstXID(ctx context.Context) int {
 
 // Only returns the only CardSchedule entity in the query, returns an error if not exactly one entity was returned.
 func (csq *CardScheduleQuery) Only(ctx context.Context) (*CardSchedule, error) {
-	csSlice, err := csq.Limit(2).All(ctx)
+	nodes, err := csq.Limit(2).All(ctx)
 	if err != nil {
 		return nil, err
 	}
-	switch len(csSlice) {
+	switch len(nodes) {
 	case 1:
-		return csSlice[0], nil
+		return nodes[0], nil
 	case 0:
 		return nil, &NotFoundError{cardschedule.Label}
 	default:
@@ -155,11 +163,11 @@ func (csq *CardScheduleQuery) Only(ctx context.Context) (*CardSchedule, error) {
 
 // OnlyX is like Only, but panics if an error occurs.
 func (csq *CardScheduleQuery) OnlyX(ctx context.Context) *CardSchedule {
-	cs, err := csq.Only(ctx)
+	node, err := csq.Only(ctx)
 	if err != nil {
 		panic(err)
 	}
-	return cs
+	return node
 }
 
 // OnlyID returns the only CardSchedule id in the query, returns an error if not exactly one id was returned.
@@ -198,11 +206,11 @@ func (csq *CardScheduleQuery) All(ctx context.Context) ([]*CardSchedule, error) 
 
 // AllX is like All, but panics if an error occurs.
 func (csq *CardScheduleQuery) AllX(ctx context.Context) []*CardSchedule {
-	csSlice, err := csq.All(ctx)
+	nodes, err := csq.All(ctx)
 	if err != nil {
 		panic(err)
 	}
-	return csSlice
+	return nodes
 }
 
 // IDs executes the query and returns a list of CardSchedule ids.
@@ -260,6 +268,9 @@ func (csq *CardScheduleQuery) ExistX(ctx context.Context) bool {
 // Clone returns a duplicate of the query builder, including all associated steps. It can be
 // used to prepare common query builders and use them differently after the clone is made.
 func (csq *CardScheduleQuery) Clone() *CardScheduleQuery {
+	if csq == nil {
+		return nil
+	}
 	return &CardScheduleQuery{
 		config:     csq.config,
 		limit:      csq.limit,
@@ -267,6 +278,8 @@ func (csq *CardScheduleQuery) Clone() *CardScheduleQuery {
 		order:      append([]OrderFunc{}, csq.order...),
 		unique:     append([]string{}, csq.unique...),
 		predicates: append([]predicate.CardSchedule{}, csq.predicates...),
+		withUser:   csq.withUser.Clone(),
+		withCard:   csq.withCard.Clone(),
 		// clone intermediate query.
 		sql:  csq.sql.Clone(),
 		path: csq.path,
@@ -492,7 +505,7 @@ func (csq *CardScheduleQuery) querySpec() *sqlgraph.QuerySpec {
 	if ps := csq.order; len(ps) > 0 {
 		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
-				ps[i](selector)
+				ps[i](selector, cardschedule.ValidColumn)
 			}
 		}
 	}
@@ -511,7 +524,7 @@ func (csq *CardScheduleQuery) sqlQuery() *sql.Selector {
 		p(selector)
 	}
 	for _, p := range csq.order {
-		p(selector)
+		p(selector, cardschedule.ValidColumn)
 	}
 	if offset := csq.offset; offset != nil {
 		// limit is mandatory for offset clause. We start
@@ -746,8 +759,17 @@ func (csgb *CardScheduleGroupBy) BoolX(ctx context.Context) bool {
 }
 
 func (csgb *CardScheduleGroupBy) sqlScan(ctx context.Context, v interface{}) error {
+	for _, f := range csgb.fields {
+		if !cardschedule.ValidColumn(f) {
+			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
+		}
+	}
+	selector := csgb.sqlQuery()
+	if err := selector.Err(); err != nil {
+		return err
+	}
 	rows := &sql.Rows{}
-	query, args := csgb.sqlQuery().Query()
+	query, args := selector.Query()
 	if err := csgb.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
@@ -760,7 +782,7 @@ func (csgb *CardScheduleGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(csgb.fields)+len(csgb.fns))
 	columns = append(columns, csgb.fields...)
 	for _, fn := range csgb.fns {
-		columns = append(columns, fn(selector))
+		columns = append(columns, fn(selector, cardschedule.ValidColumn))
 	}
 	return selector.Select(columns...).GroupBy(csgb.fields...)
 }
@@ -980,6 +1002,11 @@ func (css *CardScheduleSelect) BoolX(ctx context.Context) bool {
 }
 
 func (css *CardScheduleSelect) sqlScan(ctx context.Context, v interface{}) error {
+	for _, f := range css.fields {
+		if !cardschedule.ValidColumn(f) {
+			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for selection", f)}
+		}
+	}
 	rows := &sql.Rows{}
 	query, args := css.sqlQuery().Query()
 	if err := css.driver.Query(ctx, query, args, rows); err != nil {

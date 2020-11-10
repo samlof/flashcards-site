@@ -63,8 +63,12 @@ func (usq *UserSettingsQuery) QueryUser() *UserQuery {
 		if err := usq.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
+		selector := usq.sqlQuery()
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(usersettings.Table, usersettings.FieldID, usq.sqlQuery()),
+			sqlgraph.From(usersettings.Table, usersettings.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, usersettings.UserTable, usersettings.UserColumn),
 		)
@@ -76,23 +80,23 @@ func (usq *UserSettingsQuery) QueryUser() *UserQuery {
 
 // First returns the first UserSettings entity in the query. Returns *NotFoundError when no usersettings was found.
 func (usq *UserSettingsQuery) First(ctx context.Context) (*UserSettings, error) {
-	usSlice, err := usq.Limit(1).All(ctx)
+	nodes, err := usq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
-	if len(usSlice) == 0 {
+	if len(nodes) == 0 {
 		return nil, &NotFoundError{usersettings.Label}
 	}
-	return usSlice[0], nil
+	return nodes[0], nil
 }
 
 // FirstX is like First, but panics if an error occurs.
 func (usq *UserSettingsQuery) FirstX(ctx context.Context) *UserSettings {
-	us, err := usq.First(ctx)
+	node, err := usq.First(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
 	}
-	return us
+	return node
 }
 
 // FirstID returns the first UserSettings id in the query. Returns *NotFoundError when no id was found.
@@ -108,8 +112,8 @@ func (usq *UserSettingsQuery) FirstID(ctx context.Context) (id int, err error) {
 	return ids[0], nil
 }
 
-// FirstXID is like FirstID, but panics if an error occurs.
-func (usq *UserSettingsQuery) FirstXID(ctx context.Context) int {
+// FirstIDX is like FirstID, but panics if an error occurs.
+func (usq *UserSettingsQuery) FirstIDX(ctx context.Context) int {
 	id, err := usq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -119,13 +123,13 @@ func (usq *UserSettingsQuery) FirstXID(ctx context.Context) int {
 
 // Only returns the only UserSettings entity in the query, returns an error if not exactly one entity was returned.
 func (usq *UserSettingsQuery) Only(ctx context.Context) (*UserSettings, error) {
-	usSlice, err := usq.Limit(2).All(ctx)
+	nodes, err := usq.Limit(2).All(ctx)
 	if err != nil {
 		return nil, err
 	}
-	switch len(usSlice) {
+	switch len(nodes) {
 	case 1:
-		return usSlice[0], nil
+		return nodes[0], nil
 	case 0:
 		return nil, &NotFoundError{usersettings.Label}
 	default:
@@ -135,11 +139,11 @@ func (usq *UserSettingsQuery) Only(ctx context.Context) (*UserSettings, error) {
 
 // OnlyX is like Only, but panics if an error occurs.
 func (usq *UserSettingsQuery) OnlyX(ctx context.Context) *UserSettings {
-	us, err := usq.Only(ctx)
+	node, err := usq.Only(ctx)
 	if err != nil {
 		panic(err)
 	}
-	return us
+	return node
 }
 
 // OnlyID returns the only UserSettings id in the query, returns an error if not exactly one id was returned.
@@ -178,11 +182,11 @@ func (usq *UserSettingsQuery) All(ctx context.Context) ([]*UserSettings, error) 
 
 // AllX is like All, but panics if an error occurs.
 func (usq *UserSettingsQuery) AllX(ctx context.Context) []*UserSettings {
-	usSlice, err := usq.All(ctx)
+	nodes, err := usq.All(ctx)
 	if err != nil {
 		panic(err)
 	}
-	return usSlice
+	return nodes
 }
 
 // IDs executes the query and returns a list of UserSettings ids.
@@ -240,6 +244,9 @@ func (usq *UserSettingsQuery) ExistX(ctx context.Context) bool {
 // Clone returns a duplicate of the query builder, including all associated steps. It can be
 // used to prepare common query builders and use them differently after the clone is made.
 func (usq *UserSettingsQuery) Clone() *UserSettingsQuery {
+	if usq == nil {
+		return nil
+	}
 	return &UserSettingsQuery{
 		config:     usq.config,
 		limit:      usq.limit,
@@ -247,6 +254,7 @@ func (usq *UserSettingsQuery) Clone() *UserSettingsQuery {
 		order:      append([]OrderFunc{}, usq.order...),
 		unique:     append([]string{}, usq.unique...),
 		predicates: append([]predicate.UserSettings{}, usq.predicates...),
+		withUser:   usq.withUser.Clone(),
 		// clone intermediate query.
 		sql:  usq.sql.Clone(),
 		path: usq.path,
@@ -435,7 +443,7 @@ func (usq *UserSettingsQuery) querySpec() *sqlgraph.QuerySpec {
 	if ps := usq.order; len(ps) > 0 {
 		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
-				ps[i](selector)
+				ps[i](selector, usersettings.ValidColumn)
 			}
 		}
 	}
@@ -454,7 +462,7 @@ func (usq *UserSettingsQuery) sqlQuery() *sql.Selector {
 		p(selector)
 	}
 	for _, p := range usq.order {
-		p(selector)
+		p(selector, usersettings.ValidColumn)
 	}
 	if offset := usq.offset; offset != nil {
 		// limit is mandatory for offset clause. We start
@@ -689,8 +697,17 @@ func (usgb *UserSettingsGroupBy) BoolX(ctx context.Context) bool {
 }
 
 func (usgb *UserSettingsGroupBy) sqlScan(ctx context.Context, v interface{}) error {
+	for _, f := range usgb.fields {
+		if !usersettings.ValidColumn(f) {
+			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
+		}
+	}
+	selector := usgb.sqlQuery()
+	if err := selector.Err(); err != nil {
+		return err
+	}
 	rows := &sql.Rows{}
-	query, args := usgb.sqlQuery().Query()
+	query, args := selector.Query()
 	if err := usgb.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
@@ -703,7 +720,7 @@ func (usgb *UserSettingsGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(usgb.fields)+len(usgb.fns))
 	columns = append(columns, usgb.fields...)
 	for _, fn := range usgb.fns {
-		columns = append(columns, fn(selector))
+		columns = append(columns, fn(selector, usersettings.ValidColumn))
 	}
 	return selector.Select(columns...).GroupBy(usgb.fields...)
 }
@@ -923,6 +940,11 @@ func (uss *UserSettingsSelect) BoolX(ctx context.Context) bool {
 }
 
 func (uss *UserSettingsSelect) sqlScan(ctx context.Context, v interface{}) error {
+	for _, f := range uss.fields {
+		if !usersettings.ValidColumn(f) {
+			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for selection", f)}
+		}
+	}
 	rows := &sql.Rows{}
 	query, args := uss.sqlQuery().Query()
 	if err := uss.driver.Query(ctx, query, args, rows); err != nil {

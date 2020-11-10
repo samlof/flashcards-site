@@ -16,14 +16,13 @@ import (
 // CardLogDelete is the builder for deleting a CardLog entity.
 type CardLogDelete struct {
 	config
-	hooks      []Hook
-	mutation   *CardLogMutation
-	predicates []predicate.CardLog
+	hooks    []Hook
+	mutation *CardLogMutation
 }
 
 // Where adds a new predicate to the delete builder.
 func (cld *CardLogDelete) Where(ps ...predicate.CardLog) *CardLogDelete {
-	cld.predicates = append(cld.predicates, ps...)
+	cld.mutation.predicates = append(cld.mutation.predicates, ps...)
 	return cld
 }
 
@@ -75,7 +74,7 @@ func (cld *CardLogDelete) sqlExec(ctx context.Context) (int, error) {
 			},
 		},
 	}
-	if ps := cld.predicates; len(ps) > 0 {
+	if ps := cld.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)

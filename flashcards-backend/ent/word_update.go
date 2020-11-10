@@ -18,14 +18,13 @@ import (
 // WordUpdate is the builder for updating Word entities.
 type WordUpdate struct {
 	config
-	hooks      []Hook
-	mutation   *WordMutation
-	predicates []predicate.Word
+	hooks    []Hook
+	mutation *WordMutation
 }
 
 // Where adds a new predicate for the builder.
 func (wu *WordUpdate) Where(ps ...predicate.Word) *WordUpdate {
-	wu.predicates = append(wu.predicates, ps...)
+	wu.mutation.predicates = append(wu.mutation.predicates, ps...)
 	return wu
 }
 
@@ -76,6 +75,12 @@ func (wu *WordUpdate) Mutation() *WordMutation {
 	return wu.mutation
 }
 
+// ClearCardLogs clears all "cardLogs" edges to type CardLog.
+func (wu *WordUpdate) ClearCardLogs() *WordUpdate {
+	wu.mutation.ClearCardLogs()
+	return wu
+}
+
 // RemoveCardLogIDs removes the cardLogs edge to CardLog by ids.
 func (wu *WordUpdate) RemoveCardLogIDs(ids ...int) *WordUpdate {
 	wu.mutation.RemoveCardLogIDs(ids...)
@@ -89,6 +94,12 @@ func (wu *WordUpdate) RemoveCardLogs(c ...*CardLog) *WordUpdate {
 		ids[i] = c[i].ID
 	}
 	return wu.RemoveCardLogIDs(ids...)
+}
+
+// ClearCardSchedules clears all "cardSchedules" edges to type CardSchedule.
+func (wu *WordUpdate) ClearCardSchedules() *WordUpdate {
+	wu.mutation.ClearCardSchedules()
+	return wu
 }
 
 // RemoveCardScheduleIDs removes the cardSchedules edge to CardSchedule by ids.
@@ -108,32 +119,24 @@ func (wu *WordUpdate) RemoveCardSchedules(c ...*CardSchedule) *WordUpdate {
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (wu *WordUpdate) Save(ctx context.Context) (int, error) {
-	if _, ok := wu.mutation.UpdateTime(); !ok {
-		v := word.UpdateDefaultUpdateTime()
-		wu.mutation.SetUpdateTime(v)
-	}
-	if v, ok := wu.mutation.Word1(); ok {
-		if err := word.Word1Validator(v); err != nil {
-			return 0, &ValidationError{Name: "word1", err: fmt.Errorf("ent: validator failed for field \"word1\": %w", err)}
-		}
-	}
-	if v, ok := wu.mutation.Word2(); ok {
-		if err := word.Word2Validator(v); err != nil {
-			return 0, &ValidationError{Name: "word2", err: fmt.Errorf("ent: validator failed for field \"word2\": %w", err)}
-		}
-	}
-
 	var (
 		err      error
 		affected int
 	)
+	wu.defaults()
 	if len(wu.hooks) == 0 {
+		if err = wu.check(); err != nil {
+			return 0, err
+		}
 		affected, err = wu.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*WordMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			if err = wu.check(); err != nil {
+				return 0, err
 			}
 			wu.mutation = mutation
 			affected, err = wu.sqlSave(ctx)
@@ -172,6 +175,29 @@ func (wu *WordUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (wu *WordUpdate) defaults() {
+	if _, ok := wu.mutation.UpdateTime(); !ok {
+		v := word.UpdateDefaultUpdateTime()
+		wu.mutation.SetUpdateTime(v)
+	}
+}
+
+// check runs all checks and user-defined validators on the builder.
+func (wu *WordUpdate) check() error {
+	if v, ok := wu.mutation.Word1(); ok {
+		if err := word.Word1Validator(v); err != nil {
+			return &ValidationError{Name: "word1", err: fmt.Errorf("ent: validator failed for field \"word1\": %w", err)}
+		}
+	}
+	if v, ok := wu.mutation.Word2(); ok {
+		if err := word.Word2Validator(v); err != nil {
+			return &ValidationError{Name: "word2", err: fmt.Errorf("ent: validator failed for field \"word2\": %w", err)}
+		}
+	}
+	return nil
+}
+
 func (wu *WordUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
@@ -183,7 +209,7 @@ func (wu *WordUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			},
 		},
 	}
-	if ps := wu.predicates; len(ps) > 0 {
+	if ps := wu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
@@ -211,7 +237,23 @@ func (wu *WordUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: word.FieldWord2,
 		})
 	}
-	if nodes := wu.mutation.RemovedCardLogsIDs(); len(nodes) > 0 {
+	if wu.mutation.CardLogsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   word.CardLogsTable,
+			Columns: []string{word.CardLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: cardlog.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wu.mutation.RemovedCardLogsIDs(); len(nodes) > 0 && !wu.mutation.CardLogsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -249,7 +291,23 @@ func (wu *WordUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := wu.mutation.RemovedCardSchedulesIDs(); len(nodes) > 0 {
+	if wu.mutation.CardSchedulesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   word.CardSchedulesTable,
+			Columns: []string{word.CardSchedulesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: cardschedule.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wu.mutation.RemovedCardSchedulesIDs(); len(nodes) > 0 && !wu.mutation.CardSchedulesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -352,6 +410,12 @@ func (wuo *WordUpdateOne) Mutation() *WordMutation {
 	return wuo.mutation
 }
 
+// ClearCardLogs clears all "cardLogs" edges to type CardLog.
+func (wuo *WordUpdateOne) ClearCardLogs() *WordUpdateOne {
+	wuo.mutation.ClearCardLogs()
+	return wuo
+}
+
 // RemoveCardLogIDs removes the cardLogs edge to CardLog by ids.
 func (wuo *WordUpdateOne) RemoveCardLogIDs(ids ...int) *WordUpdateOne {
 	wuo.mutation.RemoveCardLogIDs(ids...)
@@ -365,6 +429,12 @@ func (wuo *WordUpdateOne) RemoveCardLogs(c ...*CardLog) *WordUpdateOne {
 		ids[i] = c[i].ID
 	}
 	return wuo.RemoveCardLogIDs(ids...)
+}
+
+// ClearCardSchedules clears all "cardSchedules" edges to type CardSchedule.
+func (wuo *WordUpdateOne) ClearCardSchedules() *WordUpdateOne {
+	wuo.mutation.ClearCardSchedules()
+	return wuo
 }
 
 // RemoveCardScheduleIDs removes the cardSchedules edge to CardSchedule by ids.
@@ -384,32 +454,24 @@ func (wuo *WordUpdateOne) RemoveCardSchedules(c ...*CardSchedule) *WordUpdateOne
 
 // Save executes the query and returns the updated entity.
 func (wuo *WordUpdateOne) Save(ctx context.Context) (*Word, error) {
-	if _, ok := wuo.mutation.UpdateTime(); !ok {
-		v := word.UpdateDefaultUpdateTime()
-		wuo.mutation.SetUpdateTime(v)
-	}
-	if v, ok := wuo.mutation.Word1(); ok {
-		if err := word.Word1Validator(v); err != nil {
-			return nil, &ValidationError{Name: "word1", err: fmt.Errorf("ent: validator failed for field \"word1\": %w", err)}
-		}
-	}
-	if v, ok := wuo.mutation.Word2(); ok {
-		if err := word.Word2Validator(v); err != nil {
-			return nil, &ValidationError{Name: "word2", err: fmt.Errorf("ent: validator failed for field \"word2\": %w", err)}
-		}
-	}
-
 	var (
 		err  error
 		node *Word
 	)
+	wuo.defaults()
 	if len(wuo.hooks) == 0 {
+		if err = wuo.check(); err != nil {
+			return nil, err
+		}
 		node, err = wuo.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*WordMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			if err = wuo.check(); err != nil {
+				return nil, err
 			}
 			wuo.mutation = mutation
 			node, err = wuo.sqlSave(ctx)
@@ -428,11 +490,11 @@ func (wuo *WordUpdateOne) Save(ctx context.Context) (*Word, error) {
 
 // SaveX is like Save, but panics if an error occurs.
 func (wuo *WordUpdateOne) SaveX(ctx context.Context) *Word {
-	w, err := wuo.Save(ctx)
+	node, err := wuo.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
-	return w
+	return node
 }
 
 // Exec executes the query on the entity.
@@ -448,7 +510,30 @@ func (wuo *WordUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
-func (wuo *WordUpdateOne) sqlSave(ctx context.Context) (w *Word, err error) {
+// defaults sets the default values of the builder before save.
+func (wuo *WordUpdateOne) defaults() {
+	if _, ok := wuo.mutation.UpdateTime(); !ok {
+		v := word.UpdateDefaultUpdateTime()
+		wuo.mutation.SetUpdateTime(v)
+	}
+}
+
+// check runs all checks and user-defined validators on the builder.
+func (wuo *WordUpdateOne) check() error {
+	if v, ok := wuo.mutation.Word1(); ok {
+		if err := word.Word1Validator(v); err != nil {
+			return &ValidationError{Name: "word1", err: fmt.Errorf("ent: validator failed for field \"word1\": %w", err)}
+		}
+	}
+	if v, ok := wuo.mutation.Word2(); ok {
+		if err := word.Word2Validator(v); err != nil {
+			return &ValidationError{Name: "word2", err: fmt.Errorf("ent: validator failed for field \"word2\": %w", err)}
+		}
+	}
+	return nil
+}
+
+func (wuo *WordUpdateOne) sqlSave(ctx context.Context) (_node *Word, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   word.Table,
@@ -485,7 +570,23 @@ func (wuo *WordUpdateOne) sqlSave(ctx context.Context) (w *Word, err error) {
 			Column: word.FieldWord2,
 		})
 	}
-	if nodes := wuo.mutation.RemovedCardLogsIDs(); len(nodes) > 0 {
+	if wuo.mutation.CardLogsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   word.CardLogsTable,
+			Columns: []string{word.CardLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: cardlog.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wuo.mutation.RemovedCardLogsIDs(); len(nodes) > 0 && !wuo.mutation.CardLogsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -523,7 +624,23 @@ func (wuo *WordUpdateOne) sqlSave(ctx context.Context) (w *Word, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := wuo.mutation.RemovedCardSchedulesIDs(); len(nodes) > 0 {
+	if wuo.mutation.CardSchedulesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   word.CardSchedulesTable,
+			Columns: []string{word.CardSchedulesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: cardschedule.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wuo.mutation.RemovedCardSchedulesIDs(); len(nodes) > 0 && !wuo.mutation.CardSchedulesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -561,9 +678,9 @@ func (wuo *WordUpdateOne) sqlSave(ctx context.Context) (w *Word, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	w = &Word{config: wuo.config}
-	_spec.Assign = w.assignValues
-	_spec.ScanValues = w.scanValues()
+	_node = &Word{config: wuo.config}
+	_spec.Assign = _node.assignValues
+	_spec.ScanValues = _node.scanValues()
 	if err = sqlgraph.UpdateNode(ctx, wuo.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{word.Label}
@@ -572,5 +689,5 @@ func (wuo *WordUpdateOne) sqlSave(ctx context.Context) (w *Word, err error) {
 		}
 		return nil, err
 	}
-	return w, nil
+	return _node, nil
 }

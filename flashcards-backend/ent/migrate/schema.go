@@ -12,7 +12,7 @@ var (
 	CardLogsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "create_time", Type: field.TypeTime},
-		{Name: "result", Type: field.TypeEnum, Enums: []string{"bad", "easy", "good", "retry"}},
+		{Name: "result", Type: field.TypeEnum, Enums: []string{"easy", "good", "bad", "retry"}},
 		{Name: "card_log_card", Type: field.TypeInt, Nullable: true},
 		{Name: "user_card_logs", Type: field.TypeInt, Nullable: true},
 	}

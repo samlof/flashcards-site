@@ -6,6 +6,7 @@ import (
 	"context"
 	"flashcards-backend/ent/cardlog"
 	"flashcards-backend/ent/cardschedule"
+	"flashcards-backend/ent/predicate"
 	"flashcards-backend/ent/user"
 	"flashcards-backend/ent/usersettings"
 	"flashcards-backend/ent/word"
@@ -48,6 +49,7 @@ type CardLogMutation struct {
 	clearedcard   bool
 	done          bool
 	oldValue      func(context.Context) (*CardLog, error)
+	predicates    []predicate.CardLog
 }
 
 var _ ent.Mutation = (*CardLogMutation)(nil)
@@ -526,6 +528,7 @@ type CardScheduleMutation struct {
 	clearedcard   bool
 	done          bool
 	oldValue      func(context.Context) (*CardSchedule, error)
+	predicates    []predicate.CardSchedule
 }
 
 var _ ent.Mutation = (*CardScheduleMutation)(nil)
@@ -1108,12 +1111,16 @@ type UserMutation struct {
 	clearedFields         map[string]struct{}
 	cardLogs              map[int]struct{}
 	removedcardLogs       map[int]struct{}
+	clearedcardLogs       bool
 	_CardSchedules        map[int]struct{}
 	removed_CardSchedules map[int]struct{}
+	cleared_CardSchedules bool
 	_Settings             map[int]struct{}
 	removed_Settings      map[int]struct{}
+	cleared_Settings      bool
 	done                  bool
 	oldValue              func(context.Context) (*User, error)
+	predicates            []predicate.User
 }
 
 var _ ent.Mutation = (*UserMutation)(nil)
@@ -1366,6 +1373,16 @@ func (m *UserMutation) AddCardLogIDs(ids ...int) {
 	}
 }
 
+// ClearCardLogs clears the cardLogs edge to CardLog.
+func (m *UserMutation) ClearCardLogs() {
+	m.clearedcardLogs = true
+}
+
+// CardLogsCleared returns if the edge cardLogs was cleared.
+func (m *UserMutation) CardLogsCleared() bool {
+	return m.clearedcardLogs
+}
+
 // RemoveCardLogIDs removes the cardLogs edge to CardLog by ids.
 func (m *UserMutation) RemoveCardLogIDs(ids ...int) {
 	if m.removedcardLogs == nil {
@@ -1395,6 +1412,7 @@ func (m *UserMutation) CardLogsIDs() (ids []int) {
 // ResetCardLogs reset all changes of the "cardLogs" edge.
 func (m *UserMutation) ResetCardLogs() {
 	m.cardLogs = nil
+	m.clearedcardLogs = false
 	m.removedcardLogs = nil
 }
 
@@ -1406,6 +1424,16 @@ func (m *UserMutation) AddCardScheduleIDs(ids ...int) {
 	for i := range ids {
 		m._CardSchedules[ids[i]] = struct{}{}
 	}
+}
+
+// ClearCardSchedules clears the CardSchedules edge to CardSchedule.
+func (m *UserMutation) ClearCardSchedules() {
+	m.cleared_CardSchedules = true
+}
+
+// CardSchedulesCleared returns if the edge CardSchedules was cleared.
+func (m *UserMutation) CardSchedulesCleared() bool {
+	return m.cleared_CardSchedules
 }
 
 // RemoveCardScheduleIDs removes the CardSchedules edge to CardSchedule by ids.
@@ -1437,6 +1465,7 @@ func (m *UserMutation) CardSchedulesIDs() (ids []int) {
 // ResetCardSchedules reset all changes of the "CardSchedules" edge.
 func (m *UserMutation) ResetCardSchedules() {
 	m._CardSchedules = nil
+	m.cleared_CardSchedules = false
 	m.removed_CardSchedules = nil
 }
 
@@ -1448,6 +1477,16 @@ func (m *UserMutation) AddSettingIDs(ids ...int) {
 	for i := range ids {
 		m._Settings[ids[i]] = struct{}{}
 	}
+}
+
+// ClearSettings clears the Settings edge to UserSettings.
+func (m *UserMutation) ClearSettings() {
+	m.cleared_Settings = true
+}
+
+// SettingsCleared returns if the edge Settings was cleared.
+func (m *UserMutation) SettingsCleared() bool {
+	return m.cleared_Settings
 }
 
 // RemoveSettingIDs removes the Settings edge to UserSettings by ids.
@@ -1479,6 +1518,7 @@ func (m *UserMutation) SettingsIDs() (ids []int) {
 // ResetSettings reset all changes of the "Settings" edge.
 func (m *UserMutation) ResetSettings() {
 	m._Settings = nil
+	m.cleared_Settings = false
 	m.removed_Settings = nil
 }
 
@@ -1742,6 +1782,15 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 // mutation.
 func (m *UserMutation) ClearedEdges() []string {
 	edges := make([]string, 0, 3)
+	if m.clearedcardLogs {
+		edges = append(edges, user.EdgeCardLogs)
+	}
+	if m.cleared_CardSchedules {
+		edges = append(edges, user.EdgeCardSchedules)
+	}
+	if m.cleared_Settings {
+		edges = append(edges, user.EdgeSettings)
+	}
 	return edges
 }
 
@@ -1749,6 +1798,12 @@ func (m *UserMutation) ClearedEdges() []string {
 // cleared in this mutation.
 func (m *UserMutation) EdgeCleared(name string) bool {
 	switch name {
+	case user.EdgeCardLogs:
+		return m.clearedcardLogs
+	case user.EdgeCardSchedules:
+		return m.cleared_CardSchedules
+	case user.EdgeSettings:
+		return m.cleared_Settings
 	}
 	return false
 }
@@ -1795,6 +1850,7 @@ type UserSettingsMutation struct {
 	cleareduser       bool
 	done              bool
 	oldValue          func(context.Context) (*UserSettings, error)
+	predicates        []predicate.UserSettings
 }
 
 var _ ent.Mutation = (*UserSettingsMutation)(nil)
@@ -2303,10 +2359,13 @@ type WordMutation struct {
 	clearedFields        map[string]struct{}
 	cardLogs             map[int]struct{}
 	removedcardLogs      map[int]struct{}
+	clearedcardLogs      bool
 	cardSchedules        map[int]struct{}
 	removedcardSchedules map[int]struct{}
+	clearedcardSchedules bool
 	done                 bool
 	oldValue             func(context.Context) (*Word, error)
+	predicates           []predicate.Word
 }
 
 var _ ent.Mutation = (*WordMutation)(nil)
@@ -2620,6 +2679,16 @@ func (m *WordMutation) AddCardLogIDs(ids ...int) {
 	}
 }
 
+// ClearCardLogs clears the cardLogs edge to CardLog.
+func (m *WordMutation) ClearCardLogs() {
+	m.clearedcardLogs = true
+}
+
+// CardLogsCleared returns if the edge cardLogs was cleared.
+func (m *WordMutation) CardLogsCleared() bool {
+	return m.clearedcardLogs
+}
+
 // RemoveCardLogIDs removes the cardLogs edge to CardLog by ids.
 func (m *WordMutation) RemoveCardLogIDs(ids ...int) {
 	if m.removedcardLogs == nil {
@@ -2649,6 +2718,7 @@ func (m *WordMutation) CardLogsIDs() (ids []int) {
 // ResetCardLogs reset all changes of the "cardLogs" edge.
 func (m *WordMutation) ResetCardLogs() {
 	m.cardLogs = nil
+	m.clearedcardLogs = false
 	m.removedcardLogs = nil
 }
 
@@ -2660,6 +2730,16 @@ func (m *WordMutation) AddCardScheduleIDs(ids ...int) {
 	for i := range ids {
 		m.cardSchedules[ids[i]] = struct{}{}
 	}
+}
+
+// ClearCardSchedules clears the cardSchedules edge to CardSchedule.
+func (m *WordMutation) ClearCardSchedules() {
+	m.clearedcardSchedules = true
+}
+
+// CardSchedulesCleared returns if the edge cardSchedules was cleared.
+func (m *WordMutation) CardSchedulesCleared() bool {
+	return m.clearedcardSchedules
 }
 
 // RemoveCardScheduleIDs removes the cardSchedules edge to CardSchedule by ids.
@@ -2691,6 +2771,7 @@ func (m *WordMutation) CardSchedulesIDs() (ids []int) {
 // ResetCardSchedules reset all changes of the "cardSchedules" edge.
 func (m *WordMutation) ResetCardSchedules() {
 	m.cardSchedules = nil
+	m.clearedcardSchedules = false
 	m.removedcardSchedules = nil
 }
 
@@ -2961,6 +3042,12 @@ func (m *WordMutation) RemovedIDs(name string) []ent.Value {
 // mutation.
 func (m *WordMutation) ClearedEdges() []string {
 	edges := make([]string, 0, 2)
+	if m.clearedcardLogs {
+		edges = append(edges, word.EdgeCardLogs)
+	}
+	if m.clearedcardSchedules {
+		edges = append(edges, word.EdgeCardSchedules)
+	}
 	return edges
 }
 
@@ -2968,6 +3055,10 @@ func (m *WordMutation) ClearedEdges() []string {
 // cleared in this mutation.
 func (m *WordMutation) EdgeCleared(name string) bool {
 	switch name {
+	case word.EdgeCardLogs:
+		return m.clearedcardLogs
+	case word.EdgeCardSchedules:
+		return m.clearedcardSchedules
 	}
 	return false
 }

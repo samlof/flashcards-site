@@ -19,14 +19,13 @@ import (
 // CardLogUpdate is the builder for updating CardLog entities.
 type CardLogUpdate struct {
 	config
-	hooks      []Hook
-	mutation   *CardLogMutation
-	predicates []predicate.CardLog
+	hooks    []Hook
+	mutation *CardLogMutation
 }
 
 // Where adds a new predicate for the builder.
 func (clu *CardLogUpdate) Where(ps ...predicate.CardLog) *CardLogUpdate {
-	clu.predicates = append(clu.predicates, ps...)
+	clu.mutation.predicates = append(clu.mutation.predicates, ps...)
 	return clu
 }
 
@@ -65,13 +64,13 @@ func (clu *CardLogUpdate) Mutation() *CardLogMutation {
 	return clu.mutation
 }
 
-// ClearUser clears the user edge to User.
+// ClearUser clears the "user" edge to type User.
 func (clu *CardLogUpdate) ClearUser() *CardLogUpdate {
 	clu.mutation.ClearUser()
 	return clu
 }
 
-// ClearCard clears the card edge to Word.
+// ClearCard clears the "card" edge to type Word.
 func (clu *CardLogUpdate) ClearCard() *CardLogUpdate {
 	clu.mutation.ClearCard()
 	return clu
@@ -79,21 +78,23 @@ func (clu *CardLogUpdate) ClearCard() *CardLogUpdate {
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (clu *CardLogUpdate) Save(ctx context.Context) (int, error) {
-
-	if _, ok := clu.mutation.CardID(); clu.mutation.CardCleared() && !ok {
-		return 0, errors.New("ent: clearing a unique edge \"card\"")
-	}
 	var (
 		err      error
 		affected int
 	)
 	if len(clu.hooks) == 0 {
+		if err = clu.check(); err != nil {
+			return 0, err
+		}
 		affected, err = clu.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*CardLogMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			if err = clu.check(); err != nil {
+				return 0, err
 			}
 			clu.mutation = mutation
 			affected, err = clu.sqlSave(ctx)
@@ -132,6 +133,14 @@ func (clu *CardLogUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (clu *CardLogUpdate) check() error {
+	if _, ok := clu.mutation.CardID(); clu.mutation.CardCleared() && !ok {
+		return errors.New("ent: clearing a required unique edge \"card\"")
+	}
+	return nil
+}
+
 func (clu *CardLogUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
@@ -143,7 +152,7 @@ func (clu *CardLogUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			},
 		},
 	}
-	if ps := clu.predicates; len(ps) > 0 {
+	if ps := clu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
@@ -273,13 +282,13 @@ func (cluo *CardLogUpdateOne) Mutation() *CardLogMutation {
 	return cluo.mutation
 }
 
-// ClearUser clears the user edge to User.
+// ClearUser clears the "user" edge to type User.
 func (cluo *CardLogUpdateOne) ClearUser() *CardLogUpdateOne {
 	cluo.mutation.ClearUser()
 	return cluo
 }
 
-// ClearCard clears the card edge to Word.
+// ClearCard clears the "card" edge to type Word.
 func (cluo *CardLogUpdateOne) ClearCard() *CardLogUpdateOne {
 	cluo.mutation.ClearCard()
 	return cluo
@@ -287,21 +296,23 @@ func (cluo *CardLogUpdateOne) ClearCard() *CardLogUpdateOne {
 
 // Save executes the query and returns the updated entity.
 func (cluo *CardLogUpdateOne) Save(ctx context.Context) (*CardLog, error) {
-
-	if _, ok := cluo.mutation.CardID(); cluo.mutation.CardCleared() && !ok {
-		return nil, errors.New("ent: clearing a unique edge \"card\"")
-	}
 	var (
 		err  error
 		node *CardLog
 	)
 	if len(cluo.hooks) == 0 {
+		if err = cluo.check(); err != nil {
+			return nil, err
+		}
 		node, err = cluo.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*CardLogMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			if err = cluo.check(); err != nil {
+				return nil, err
 			}
 			cluo.mutation = mutation
 			node, err = cluo.sqlSave(ctx)
@@ -320,11 +331,11 @@ func (cluo *CardLogUpdateOne) Save(ctx context.Context) (*CardLog, error) {
 
 // SaveX is like Save, but panics if an error occurs.
 func (cluo *CardLogUpdateOne) SaveX(ctx context.Context) *CardLog {
-	cl, err := cluo.Save(ctx)
+	node, err := cluo.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
-	return cl
+	return node
 }
 
 // Exec executes the query on the entity.
@@ -340,7 +351,15 @@ func (cluo *CardLogUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
-func (cluo *CardLogUpdateOne) sqlSave(ctx context.Context) (cl *CardLog, err error) {
+// check runs all checks and user-defined validators on the builder.
+func (cluo *CardLogUpdateOne) check() error {
+	if _, ok := cluo.mutation.CardID(); cluo.mutation.CardCleared() && !ok {
+		return errors.New("ent: clearing a required unique edge \"card\"")
+	}
+	return nil
+}
+
+func (cluo *CardLogUpdateOne) sqlSave(ctx context.Context) (_node *CardLog, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   cardlog.Table,
@@ -426,9 +445,9 @@ func (cluo *CardLogUpdateOne) sqlSave(ctx context.Context) (cl *CardLog, err err
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	cl = &CardLog{config: cluo.config}
-	_spec.Assign = cl.assignValues
-	_spec.ScanValues = cl.scanValues()
+	_node = &CardLog{config: cluo.config}
+	_spec.Assign = _node.assignValues
+	_spec.ScanValues = _node.scanValues()
 	if err = sqlgraph.UpdateNode(ctx, cluo.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{cardlog.Label}
@@ -437,5 +456,5 @@ func (cluo *CardLogUpdateOne) sqlSave(ctx context.Context) (cl *CardLog, err err
 		}
 		return nil, err
 	}
-	return cl, nil
+	return _node, nil
 }

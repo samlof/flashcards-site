@@ -111,20 +111,24 @@ func (wc *WordCreate) Mutation() *WordMutation {
 
 // Save creates the Word in the database.
 func (wc *WordCreate) Save(ctx context.Context) (*Word, error) {
-	if err := wc.preSave(); err != nil {
-		return nil, err
-	}
 	var (
 		err  error
 		node *Word
 	)
+	wc.defaults()
 	if len(wc.hooks) == 0 {
+		if err = wc.check(); err != nil {
+			return nil, err
+		}
 		node, err = wc.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*WordMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			if err = wc.check(); err != nil {
+				return nil, err
 			}
 			wc.mutation = mutation
 			node, err = wc.sqlSave(ctx)
@@ -150,7 +154,8 @@ func (wc *WordCreate) SaveX(ctx context.Context) *Word {
 	return v
 }
 
-func (wc *WordCreate) preSave() error {
+// defaults sets the default values of the builder before save.
+func (wc *WordCreate) defaults() {
 	if _, ok := wc.mutation.CreateTime(); !ok {
 		v := word.DefaultCreateTime()
 		wc.mutation.SetCreateTime(v)
@@ -158,6 +163,16 @@ func (wc *WordCreate) preSave() error {
 	if _, ok := wc.mutation.UpdateTime(); !ok {
 		v := word.DefaultUpdateTime()
 		wc.mutation.SetUpdateTime(v)
+	}
+}
+
+// check runs all checks and user-defined validators on the builder.
+func (wc *WordCreate) check() error {
+	if _, ok := wc.mutation.CreateTime(); !ok {
+		return &ValidationError{Name: "create_time", err: errors.New("ent: missing required field \"create_time\"")}
+	}
+	if _, ok := wc.mutation.UpdateTime(); !ok {
+		return &ValidationError{Name: "update_time", err: errors.New("ent: missing required field \"update_time\"")}
 	}
 	if _, ok := wc.mutation.Lang1(); !ok {
 		return &ValidationError{Name: "lang1", err: errors.New("ent: missing required field \"lang1\"")}
@@ -195,7 +210,7 @@ func (wc *WordCreate) preSave() error {
 }
 
 func (wc *WordCreate) sqlSave(ctx context.Context) (*Word, error) {
-	w, _spec := wc.createSpec()
+	_node, _spec := wc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, wc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
@@ -203,13 +218,13 @@ func (wc *WordCreate) sqlSave(ctx context.Context) (*Word, error) {
 		return nil, err
 	}
 	id := _spec.ID.Value.(int64)
-	w.ID = int(id)
-	return w, nil
+	_node.ID = int(id)
+	return _node, nil
 }
 
 func (wc *WordCreate) createSpec() (*Word, *sqlgraph.CreateSpec) {
 	var (
-		w     = &Word{config: wc.config}
+		_node = &Word{config: wc.config}
 		_spec = &sqlgraph.CreateSpec{
 			Table: word.Table,
 			ID: &sqlgraph.FieldSpec{
@@ -224,7 +239,7 @@ func (wc *WordCreate) createSpec() (*Word, *sqlgraph.CreateSpec) {
 			Value:  value,
 			Column: word.FieldCreateTime,
 		})
-		w.CreateTime = value
+		_node.CreateTime = value
 	}
 	if value, ok := wc.mutation.UpdateTime(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -232,7 +247,7 @@ func (wc *WordCreate) createSpec() (*Word, *sqlgraph.CreateSpec) {
 			Value:  value,
 			Column: word.FieldUpdateTime,
 		})
-		w.UpdateTime = value
+		_node.UpdateTime = value
 	}
 	if value, ok := wc.mutation.Lang1(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -240,7 +255,7 @@ func (wc *WordCreate) createSpec() (*Word, *sqlgraph.CreateSpec) {
 			Value:  value,
 			Column: word.FieldLang1,
 		})
-		w.Lang1 = value
+		_node.Lang1 = value
 	}
 	if value, ok := wc.mutation.Lang2(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -248,7 +263,7 @@ func (wc *WordCreate) createSpec() (*Word, *sqlgraph.CreateSpec) {
 			Value:  value,
 			Column: word.FieldLang2,
 		})
-		w.Lang2 = value
+		_node.Lang2 = value
 	}
 	if value, ok := wc.mutation.Word1(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -256,7 +271,7 @@ func (wc *WordCreate) createSpec() (*Word, *sqlgraph.CreateSpec) {
 			Value:  value,
 			Column: word.FieldWord1,
 		})
-		w.Word1 = value
+		_node.Word1 = value
 	}
 	if value, ok := wc.mutation.Word2(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -264,7 +279,7 @@ func (wc *WordCreate) createSpec() (*Word, *sqlgraph.CreateSpec) {
 			Value:  value,
 			Column: word.FieldWord2,
 		})
-		w.Word2 = value
+		_node.Word2 = value
 	}
 	if nodes := wc.mutation.CardLogsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -304,7 +319,7 @@ func (wc *WordCreate) createSpec() (*Word, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	return w, _spec
+	return _node, _spec
 }
 
 // WordCreateBulk is the builder for creating a bulk of Word entities.
@@ -321,13 +336,14 @@ func (wcb *WordCreateBulk) Save(ctx context.Context) ([]*Word, error) {
 	for i := range wcb.builders {
 		func(i int, root context.Context) {
 			builder := wcb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-				if err := builder.preSave(); err != nil {
-					return nil, err
-				}
 				mutation, ok := m.(*WordMutation)
 				if !ok {
 					return nil, fmt.Errorf("unexpected mutation type %T", m)
+				}
+				if err := builder.check(); err != nil {
+					return nil, err
 				}
 				builder.mutation = mutation
 				nodes[i], specs[i] = builder.createSpec()

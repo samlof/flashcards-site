@@ -107,20 +107,24 @@ func (csc *CardScheduleCreate) Mutation() *CardScheduleMutation {
 
 // Save creates the CardSchedule in the database.
 func (csc *CardScheduleCreate) Save(ctx context.Context) (*CardSchedule, error) {
-	if err := csc.preSave(); err != nil {
-		return nil, err
-	}
 	var (
 		err  error
 		node *CardSchedule
 	)
+	csc.defaults()
 	if len(csc.hooks) == 0 {
+		if err = csc.check(); err != nil {
+			return nil, err
+		}
 		node, err = csc.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*CardScheduleMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			if err = csc.check(); err != nil {
+				return nil, err
 			}
 			csc.mutation = mutation
 			node, err = csc.sqlSave(ctx)
@@ -146,7 +150,8 @@ func (csc *CardScheduleCreate) SaveX(ctx context.Context) *CardSchedule {
 	return v
 }
 
-func (csc *CardScheduleCreate) preSave() error {
+// defaults sets the default values of the builder before save.
+func (csc *CardScheduleCreate) defaults() {
 	if _, ok := csc.mutation.CreateTime(); !ok {
 		v := cardschedule.DefaultCreateTime()
 		csc.mutation.SetCreateTime(v)
@@ -155,12 +160,25 @@ func (csc *CardScheduleCreate) preSave() error {
 		v := cardschedule.DefaultUpdateTime()
 		csc.mutation.SetUpdateTime(v)
 	}
+	if _, ok := csc.mutation.Reviewed(); !ok {
+		v := cardschedule.DefaultReviewed
+		csc.mutation.SetReviewed(v)
+	}
+}
+
+// check runs all checks and user-defined validators on the builder.
+func (csc *CardScheduleCreate) check() error {
+	if _, ok := csc.mutation.CreateTime(); !ok {
+		return &ValidationError{Name: "create_time", err: errors.New("ent: missing required field \"create_time\"")}
+	}
+	if _, ok := csc.mutation.UpdateTime(); !ok {
+		return &ValidationError{Name: "update_time", err: errors.New("ent: missing required field \"update_time\"")}
+	}
 	if _, ok := csc.mutation.ScheduledFor(); !ok {
 		return &ValidationError{Name: "scheduled_for", err: errors.New("ent: missing required field \"scheduled_for\"")}
 	}
 	if _, ok := csc.mutation.Reviewed(); !ok {
-		v := cardschedule.DefaultReviewed
-		csc.mutation.SetReviewed(v)
+		return &ValidationError{Name: "reviewed", err: errors.New("ent: missing required field \"reviewed\"")}
 	}
 	if _, ok := csc.mutation.CardID(); !ok {
 		return &ValidationError{Name: "card", err: errors.New("ent: missing required edge \"card\"")}
@@ -169,7 +187,7 @@ func (csc *CardScheduleCreate) preSave() error {
 }
 
 func (csc *CardScheduleCreate) sqlSave(ctx context.Context) (*CardSchedule, error) {
-	cs, _spec := csc.createSpec()
+	_node, _spec := csc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, csc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
@@ -177,13 +195,13 @@ func (csc *CardScheduleCreate) sqlSave(ctx context.Context) (*CardSchedule, erro
 		return nil, err
 	}
 	id := _spec.ID.Value.(int64)
-	cs.ID = int(id)
-	return cs, nil
+	_node.ID = int(id)
+	return _node, nil
 }
 
 func (csc *CardScheduleCreate) createSpec() (*CardSchedule, *sqlgraph.CreateSpec) {
 	var (
-		cs    = &CardSchedule{config: csc.config}
+		_node = &CardSchedule{config: csc.config}
 		_spec = &sqlgraph.CreateSpec{
 			Table: cardschedule.Table,
 			ID: &sqlgraph.FieldSpec{
@@ -198,7 +216,7 @@ func (csc *CardScheduleCreate) createSpec() (*CardSchedule, *sqlgraph.CreateSpec
 			Value:  value,
 			Column: cardschedule.FieldCreateTime,
 		})
-		cs.CreateTime = value
+		_node.CreateTime = value
 	}
 	if value, ok := csc.mutation.UpdateTime(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -206,7 +224,7 @@ func (csc *CardScheduleCreate) createSpec() (*CardSchedule, *sqlgraph.CreateSpec
 			Value:  value,
 			Column: cardschedule.FieldUpdateTime,
 		})
-		cs.UpdateTime = value
+		_node.UpdateTime = value
 	}
 	if value, ok := csc.mutation.ScheduledFor(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -214,7 +232,7 @@ func (csc *CardScheduleCreate) createSpec() (*CardSchedule, *sqlgraph.CreateSpec
 			Value:  value,
 			Column: cardschedule.FieldScheduledFor,
 		})
-		cs.ScheduledFor = value
+		_node.ScheduledFor = value
 	}
 	if value, ok := csc.mutation.Reviewed(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -222,7 +240,7 @@ func (csc *CardScheduleCreate) createSpec() (*CardSchedule, *sqlgraph.CreateSpec
 			Value:  value,
 			Column: cardschedule.FieldReviewed,
 		})
-		cs.Reviewed = value
+		_node.Reviewed = value
 	}
 	if nodes := csc.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -262,7 +280,7 @@ func (csc *CardScheduleCreate) createSpec() (*CardSchedule, *sqlgraph.CreateSpec
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	return cs, _spec
+	return _node, _spec
 }
 
 // CardScheduleCreateBulk is the builder for creating a bulk of CardSchedule entities.
@@ -279,13 +297,14 @@ func (cscb *CardScheduleCreateBulk) Save(ctx context.Context) ([]*CardSchedule, 
 	for i := range cscb.builders {
 		func(i int, root context.Context) {
 			builder := cscb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-				if err := builder.preSave(); err != nil {
-					return nil, err
-				}
 				mutation, ok := m.(*CardScheduleMutation)
 				if !ok {
 					return nil, fmt.Errorf("unexpected mutation type %T", m)
+				}
+				if err := builder.check(); err != nil {
+					return nil, err
 				}
 				builder.mutation = mutation
 				nodes[i], specs[i] = builder.createSpec()

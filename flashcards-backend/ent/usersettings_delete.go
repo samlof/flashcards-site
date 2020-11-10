@@ -16,14 +16,13 @@ import (
 // UserSettingsDelete is the builder for deleting a UserSettings entity.
 type UserSettingsDelete struct {
 	config
-	hooks      []Hook
-	mutation   *UserSettingsMutation
-	predicates []predicate.UserSettings
+	hooks    []Hook
+	mutation *UserSettingsMutation
 }
 
 // Where adds a new predicate to the delete builder.
 func (usd *UserSettingsDelete) Where(ps ...predicate.UserSettings) *UserSettingsDelete {
-	usd.predicates = append(usd.predicates, ps...)
+	usd.mutation.predicates = append(usd.mutation.predicates, ps...)
 	return usd
 }
 
@@ -75,7 +74,7 @@ func (usd *UserSettingsDelete) sqlExec(ctx context.Context) (int, error) {
 			},
 		},
 	}
-	if ps := usd.predicates; len(ps) > 0 {
+	if ps := usd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)

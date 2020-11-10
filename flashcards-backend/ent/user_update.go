@@ -19,14 +19,13 @@ import (
 // UserUpdate is the builder for updating User entities.
 type UserUpdate struct {
 	config
-	hooks      []Hook
-	mutation   *UserMutation
-	predicates []predicate.User
+	hooks    []Hook
+	mutation *UserMutation
 }
 
 // Where adds a new predicate for the builder.
 func (uu *UserUpdate) Where(ps ...predicate.User) *UserUpdate {
-	uu.predicates = append(uu.predicates, ps...)
+	uu.mutation.predicates = append(uu.mutation.predicates, ps...)
 	return uu
 }
 
@@ -100,6 +99,12 @@ func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
 }
 
+// ClearCardLogs clears all "cardLogs" edges to type CardLog.
+func (uu *UserUpdate) ClearCardLogs() *UserUpdate {
+	uu.mutation.ClearCardLogs()
+	return uu
+}
+
 // RemoveCardLogIDs removes the cardLogs edge to CardLog by ids.
 func (uu *UserUpdate) RemoveCardLogIDs(ids ...int) *UserUpdate {
 	uu.mutation.RemoveCardLogIDs(ids...)
@@ -115,6 +120,12 @@ func (uu *UserUpdate) RemoveCardLogs(c ...*CardLog) *UserUpdate {
 	return uu.RemoveCardLogIDs(ids...)
 }
 
+// ClearCardSchedules clears all "CardSchedules" edges to type CardSchedule.
+func (uu *UserUpdate) ClearCardSchedules() *UserUpdate {
+	uu.mutation.ClearCardSchedules()
+	return uu
+}
+
 // RemoveCardScheduleIDs removes the CardSchedules edge to CardSchedule by ids.
 func (uu *UserUpdate) RemoveCardScheduleIDs(ids ...int) *UserUpdate {
 	uu.mutation.RemoveCardScheduleIDs(ids...)
@@ -128,6 +139,12 @@ func (uu *UserUpdate) RemoveCardSchedules(c ...*CardSchedule) *UserUpdate {
 		ids[i] = c[i].ID
 	}
 	return uu.RemoveCardScheduleIDs(ids...)
+}
+
+// ClearSettings clears all "Settings" edges to type UserSettings.
+func (uu *UserUpdate) ClearSettings() *UserUpdate {
+	uu.mutation.ClearSettings()
+	return uu
 }
 
 // RemoveSettingIDs removes the Settings edge to UserSettings by ids.
@@ -147,27 +164,24 @@ func (uu *UserUpdate) RemoveSettings(u ...*UserSettings) *UserUpdate {
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (uu *UserUpdate) Save(ctx context.Context) (int, error) {
-	if _, ok := uu.mutation.UpdateTime(); !ok {
-		v := user.UpdateDefaultUpdateTime()
-		uu.mutation.SetUpdateTime(v)
-	}
-	if v, ok := uu.mutation.Email(); ok {
-		if err := user.EmailValidator(v); err != nil {
-			return 0, &ValidationError{Name: "email", err: fmt.Errorf("ent: validator failed for field \"email\": %w", err)}
-		}
-	}
-
 	var (
 		err      error
 		affected int
 	)
+	uu.defaults()
 	if len(uu.hooks) == 0 {
+		if err = uu.check(); err != nil {
+			return 0, err
+		}
 		affected, err = uu.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*UserMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			if err = uu.check(); err != nil {
+				return 0, err
 			}
 			uu.mutation = mutation
 			affected, err = uu.sqlSave(ctx)
@@ -206,6 +220,24 @@ func (uu *UserUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (uu *UserUpdate) defaults() {
+	if _, ok := uu.mutation.UpdateTime(); !ok {
+		v := user.UpdateDefaultUpdateTime()
+		uu.mutation.SetUpdateTime(v)
+	}
+}
+
+// check runs all checks and user-defined validators on the builder.
+func (uu *UserUpdate) check() error {
+	if v, ok := uu.mutation.Email(); ok {
+		if err := user.EmailValidator(v); err != nil {
+			return &ValidationError{Name: "email", err: fmt.Errorf("ent: validator failed for field \"email\": %w", err)}
+		}
+	}
+	return nil
+}
+
 func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
@@ -217,7 +249,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			},
 		},
 	}
-	if ps := uu.predicates; len(ps) > 0 {
+	if ps := uu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
@@ -244,7 +276,23 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: user.FieldEmail,
 		})
 	}
-	if nodes := uu.mutation.RemovedCardLogsIDs(); len(nodes) > 0 {
+	if uu.mutation.CardLogsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CardLogsTable,
+			Columns: []string{user.CardLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: cardlog.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedCardLogsIDs(); len(nodes) > 0 && !uu.mutation.CardLogsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -282,7 +330,23 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := uu.mutation.RemovedCardSchedulesIDs(); len(nodes) > 0 {
+	if uu.mutation.CardSchedulesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CardSchedulesTable,
+			Columns: []string{user.CardSchedulesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: cardschedule.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedCardSchedulesIDs(); len(nodes) > 0 && !uu.mutation.CardSchedulesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -320,7 +384,23 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := uu.mutation.RemovedSettingsIDs(); len(nodes) > 0 {
+	if uu.mutation.SettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.SettingsTable,
+			Columns: []string{user.SettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: usersettings.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedSettingsIDs(); len(nodes) > 0 && !uu.mutation.SettingsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -446,6 +526,12 @@ func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
 }
 
+// ClearCardLogs clears all "cardLogs" edges to type CardLog.
+func (uuo *UserUpdateOne) ClearCardLogs() *UserUpdateOne {
+	uuo.mutation.ClearCardLogs()
+	return uuo
+}
+
 // RemoveCardLogIDs removes the cardLogs edge to CardLog by ids.
 func (uuo *UserUpdateOne) RemoveCardLogIDs(ids ...int) *UserUpdateOne {
 	uuo.mutation.RemoveCardLogIDs(ids...)
@@ -461,6 +547,12 @@ func (uuo *UserUpdateOne) RemoveCardLogs(c ...*CardLog) *UserUpdateOne {
 	return uuo.RemoveCardLogIDs(ids...)
 }
 
+// ClearCardSchedules clears all "CardSchedules" edges to type CardSchedule.
+func (uuo *UserUpdateOne) ClearCardSchedules() *UserUpdateOne {
+	uuo.mutation.ClearCardSchedules()
+	return uuo
+}
+
 // RemoveCardScheduleIDs removes the CardSchedules edge to CardSchedule by ids.
 func (uuo *UserUpdateOne) RemoveCardScheduleIDs(ids ...int) *UserUpdateOne {
 	uuo.mutation.RemoveCardScheduleIDs(ids...)
@@ -474,6 +566,12 @@ func (uuo *UserUpdateOne) RemoveCardSchedules(c ...*CardSchedule) *UserUpdateOne
 		ids[i] = c[i].ID
 	}
 	return uuo.RemoveCardScheduleIDs(ids...)
+}
+
+// ClearSettings clears all "Settings" edges to type UserSettings.
+func (uuo *UserUpdateOne) ClearSettings() *UserUpdateOne {
+	uuo.mutation.ClearSettings()
+	return uuo
 }
 
 // RemoveSettingIDs removes the Settings edge to UserSettings by ids.
@@ -493,27 +591,24 @@ func (uuo *UserUpdateOne) RemoveSettings(u ...*UserSettings) *UserUpdateOne {
 
 // Save executes the query and returns the updated entity.
 func (uuo *UserUpdateOne) Save(ctx context.Context) (*User, error) {
-	if _, ok := uuo.mutation.UpdateTime(); !ok {
-		v := user.UpdateDefaultUpdateTime()
-		uuo.mutation.SetUpdateTime(v)
-	}
-	if v, ok := uuo.mutation.Email(); ok {
-		if err := user.EmailValidator(v); err != nil {
-			return nil, &ValidationError{Name: "email", err: fmt.Errorf("ent: validator failed for field \"email\": %w", err)}
-		}
-	}
-
 	var (
 		err  error
 		node *User
 	)
+	uuo.defaults()
 	if len(uuo.hooks) == 0 {
+		if err = uuo.check(); err != nil {
+			return nil, err
+		}
 		node, err = uuo.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*UserMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			if err = uuo.check(); err != nil {
+				return nil, err
 			}
 			uuo.mutation = mutation
 			node, err = uuo.sqlSave(ctx)
@@ -532,11 +627,11 @@ func (uuo *UserUpdateOne) Save(ctx context.Context) (*User, error) {
 
 // SaveX is like Save, but panics if an error occurs.
 func (uuo *UserUpdateOne) SaveX(ctx context.Context) *User {
-	u, err := uuo.Save(ctx)
+	node, err := uuo.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
-	return u
+	return node
 }
 
 // Exec executes the query on the entity.
@@ -552,7 +647,25 @@ func (uuo *UserUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
-func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (u *User, err error) {
+// defaults sets the default values of the builder before save.
+func (uuo *UserUpdateOne) defaults() {
+	if _, ok := uuo.mutation.UpdateTime(); !ok {
+		v := user.UpdateDefaultUpdateTime()
+		uuo.mutation.SetUpdateTime(v)
+	}
+}
+
+// check runs all checks and user-defined validators on the builder.
+func (uuo *UserUpdateOne) check() error {
+	if v, ok := uuo.mutation.Email(); ok {
+		if err := user.EmailValidator(v); err != nil {
+			return &ValidationError{Name: "email", err: fmt.Errorf("ent: validator failed for field \"email\": %w", err)}
+		}
+	}
+	return nil
+}
+
+func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   user.Table,
@@ -588,7 +701,23 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (u *User, err error) {
 			Column: user.FieldEmail,
 		})
 	}
-	if nodes := uuo.mutation.RemovedCardLogsIDs(); len(nodes) > 0 {
+	if uuo.mutation.CardLogsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CardLogsTable,
+			Columns: []string{user.CardLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: cardlog.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedCardLogsIDs(); len(nodes) > 0 && !uuo.mutation.CardLogsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -626,7 +755,23 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (u *User, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := uuo.mutation.RemovedCardSchedulesIDs(); len(nodes) > 0 {
+	if uuo.mutation.CardSchedulesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CardSchedulesTable,
+			Columns: []string{user.CardSchedulesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: cardschedule.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedCardSchedulesIDs(); len(nodes) > 0 && !uuo.mutation.CardSchedulesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -664,7 +809,23 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (u *User, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := uuo.mutation.RemovedSettingsIDs(); len(nodes) > 0 {
+	if uuo.mutation.SettingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.SettingsTable,
+			Columns: []string{user.SettingsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: usersettings.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedSettingsIDs(); len(nodes) > 0 && !uuo.mutation.SettingsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -702,9 +863,9 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (u *User, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	u = &User{config: uuo.config}
-	_spec.Assign = u.assignValues
-	_spec.ScanValues = u.scanValues()
+	_node = &User{config: uuo.config}
+	_spec.Assign = _node.assignValues
+	_spec.ScanValues = _node.scanValues()
 	if err = sqlgraph.UpdateNode(ctx, uuo.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -713,5 +874,5 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (u *User, err error) {
 		}
 		return nil, err
 	}
-	return u, nil
+	return _node, nil
 }

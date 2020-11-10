@@ -221,11 +221,11 @@ func (c *CardLogClient) Get(ctx context.Context, id int) (*CardLog, error) {
 
 // GetX is like Get, but panics if an error occurs.
 func (c *CardLogClient) GetX(ctx context.Context, id int) *CardLog {
-	cl, err := c.Get(ctx, id)
+	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
 	}
-	return cl
+	return obj
 }
 
 // QueryUser queries the user edge of a CardLog.
@@ -341,11 +341,11 @@ func (c *CardScheduleClient) Get(ctx context.Context, id int) (*CardSchedule, er
 
 // GetX is like Get, but panics if an error occurs.
 func (c *CardScheduleClient) GetX(ctx context.Context, id int) *CardSchedule {
-	cs, err := c.Get(ctx, id)
+	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
 	}
-	return cs
+	return obj
 }
 
 // QueryUser queries the user edge of a CardSchedule.
@@ -461,11 +461,11 @@ func (c *UserClient) Get(ctx context.Context, id int) (*User, error) {
 
 // GetX is like Get, but panics if an error occurs.
 func (c *UserClient) GetX(ctx context.Context, id int) *User {
-	u, err := c.Get(ctx, id)
+	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
 	}
-	return u
+	return obj
 }
 
 // QueryCardLogs queries the cardLogs edge of a User.
@@ -597,11 +597,11 @@ func (c *UserSettingsClient) Get(ctx context.Context, id int) (*UserSettings, er
 
 // GetX is like Get, but panics if an error occurs.
 func (c *UserSettingsClient) GetX(ctx context.Context, id int) *UserSettings {
-	us, err := c.Get(ctx, id)
+	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
 	}
-	return us
+	return obj
 }
 
 // QueryUser queries the user edge of a UserSettings.
@@ -701,11 +701,11 @@ func (c *WordClient) Get(ctx context.Context, id int) (*Word, error) {
 
 // GetX is like Get, but panics if an error occurs.
 func (c *WordClient) GetX(ctx context.Context, id int) *Word {
-	w, err := c.Get(ctx, id)
+	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
 	}
-	return w
+	return obj
 }
 
 // QueryCardLogs queries the cardLogs edge of a Word.

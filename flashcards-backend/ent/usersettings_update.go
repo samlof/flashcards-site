@@ -17,14 +17,13 @@ import (
 // UserSettingsUpdate is the builder for updating UserSettings entities.
 type UserSettingsUpdate struct {
 	config
-	hooks      []Hook
-	mutation   *UserSettingsMutation
-	predicates []predicate.UserSettings
+	hooks    []Hook
+	mutation *UserSettingsMutation
 }
 
 // Where adds a new predicate for the builder.
 func (usu *UserSettingsUpdate) Where(ps ...predicate.UserSettings) *UserSettingsUpdate {
-	usu.predicates = append(usu.predicates, ps...)
+	usu.mutation.predicates = append(usu.mutation.predicates, ps...)
 	return usu
 }
 
@@ -73,7 +72,7 @@ func (usu *UserSettingsUpdate) Mutation() *UserSettingsMutation {
 	return usu.mutation
 }
 
-// ClearUser clears the user edge to User.
+// ClearUser clears the "user" edge to type User.
 func (usu *UserSettingsUpdate) ClearUser() *UserSettingsUpdate {
 	usu.mutation.ClearUser()
 	return usu
@@ -81,15 +80,11 @@ func (usu *UserSettingsUpdate) ClearUser() *UserSettingsUpdate {
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (usu *UserSettingsUpdate) Save(ctx context.Context) (int, error) {
-	if _, ok := usu.mutation.UpdateTime(); !ok {
-		v := usersettings.UpdateDefaultUpdateTime()
-		usu.mutation.SetUpdateTime(v)
-	}
-
 	var (
 		err      error
 		affected int
 	)
+	usu.defaults()
 	if len(usu.hooks) == 0 {
 		affected, err = usu.sqlSave(ctx)
 	} else {
@@ -135,6 +130,14 @@ func (usu *UserSettingsUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (usu *UserSettingsUpdate) defaults() {
+	if _, ok := usu.mutation.UpdateTime(); !ok {
+		v := usersettings.UpdateDefaultUpdateTime()
+		usu.mutation.SetUpdateTime(v)
+	}
+}
+
 func (usu *UserSettingsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
@@ -146,7 +149,7 @@ func (usu *UserSettingsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			},
 		},
 	}
-	if ps := usu.predicates; len(ps) > 0 {
+	if ps := usu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
@@ -272,7 +275,7 @@ func (usuo *UserSettingsUpdateOne) Mutation() *UserSettingsMutation {
 	return usuo.mutation
 }
 
-// ClearUser clears the user edge to User.
+// ClearUser clears the "user" edge to type User.
 func (usuo *UserSettingsUpdateOne) ClearUser() *UserSettingsUpdateOne {
 	usuo.mutation.ClearUser()
 	return usuo
@@ -280,15 +283,11 @@ func (usuo *UserSettingsUpdateOne) ClearUser() *UserSettingsUpdateOne {
 
 // Save executes the query and returns the updated entity.
 func (usuo *UserSettingsUpdateOne) Save(ctx context.Context) (*UserSettings, error) {
-	if _, ok := usuo.mutation.UpdateTime(); !ok {
-		v := usersettings.UpdateDefaultUpdateTime()
-		usuo.mutation.SetUpdateTime(v)
-	}
-
 	var (
 		err  error
 		node *UserSettings
 	)
+	usuo.defaults()
 	if len(usuo.hooks) == 0 {
 		node, err = usuo.sqlSave(ctx)
 	} else {
@@ -314,11 +313,11 @@ func (usuo *UserSettingsUpdateOne) Save(ctx context.Context) (*UserSettings, err
 
 // SaveX is like Save, but panics if an error occurs.
 func (usuo *UserSettingsUpdateOne) SaveX(ctx context.Context) *UserSettings {
-	us, err := usuo.Save(ctx)
+	node, err := usuo.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
-	return us
+	return node
 }
 
 // Exec executes the query on the entity.
@@ -334,7 +333,15 @@ func (usuo *UserSettingsUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
-func (usuo *UserSettingsUpdateOne) sqlSave(ctx context.Context) (us *UserSettings, err error) {
+// defaults sets the default values of the builder before save.
+func (usuo *UserSettingsUpdateOne) defaults() {
+	if _, ok := usuo.mutation.UpdateTime(); !ok {
+		v := usersettings.UpdateDefaultUpdateTime()
+		usuo.mutation.SetUpdateTime(v)
+	}
+}
+
+func (usuo *UserSettingsUpdateOne) sqlSave(ctx context.Context) (_node *UserSettings, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   usersettings.Table,
@@ -406,9 +413,9 @@ func (usuo *UserSettingsUpdateOne) sqlSave(ctx context.Context) (us *UserSetting
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	us = &UserSettings{config: usuo.config}
-	_spec.Assign = us.assignValues
-	_spec.ScanValues = us.scanValues()
+	_node = &UserSettings{config: usuo.config}
+	_spec.Assign = _node.assignValues
+	_spec.ScanValues = _node.scanValues()
 	if err = sqlgraph.UpdateNode(ctx, usuo.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{usersettings.Label}
@@ -417,5 +424,5 @@ func (usuo *UserSettingsUpdateOne) sqlSave(ctx context.Context) (us *UserSetting
 		}
 		return nil, err
 	}
-	return us, nil
+	return _node, nil
 }

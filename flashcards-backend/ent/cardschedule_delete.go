@@ -16,14 +16,13 @@ import (
 // CardScheduleDelete is the builder for deleting a CardSchedule entity.
 type CardScheduleDelete struct {
 	config
-	hooks      []Hook
-	mutation   *CardScheduleMutation
-	predicates []predicate.CardSchedule
+	hooks    []Hook
+	mutation *CardScheduleMutation
 }
 
 // Where adds a new predicate to the delete builder.
 func (csd *CardScheduleDelete) Where(ps ...predicate.CardSchedule) *CardScheduleDelete {
-	csd.predicates = append(csd.predicates, ps...)
+	csd.mutation.predicates = append(csd.mutation.predicates, ps...)
 	return csd
 }
 
@@ -75,7 +74,7 @@ func (csd *CardScheduleDelete) sqlExec(ctx context.Context) (int, error) {
 			},
 		},
 	}
-	if ps := csd.predicates; len(ps) > 0 {
+	if ps := csd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)

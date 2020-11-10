@@ -65,8 +65,12 @@ func (clq *CardLogQuery) QueryUser() *UserQuery {
 		if err := clq.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
+		selector := clq.sqlQuery()
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(cardlog.Table, cardlog.FieldID, clq.sqlQuery()),
+			sqlgraph.From(cardlog.Table, cardlog.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, cardlog.UserTable, cardlog.UserColumn),
 		)
@@ -83,8 +87,12 @@ func (clq *CardLogQuery) QueryCard() *WordQuery {
 		if err := clq.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
+		selector := clq.sqlQuery()
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(cardlog.Table, cardlog.FieldID, clq.sqlQuery()),
+			sqlgraph.From(cardlog.Table, cardlog.FieldID, selector),
 			sqlgraph.To(word.Table, word.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, cardlog.CardTable, cardlog.CardColumn),
 		)
@@ -96,23 +104,23 @@ func (clq *CardLogQuery) QueryCard() *WordQuery {
 
 // First returns the first CardLog entity in the query. Returns *NotFoundError when no cardlog was found.
 func (clq *CardLogQuery) First(ctx context.Context) (*CardLog, error) {
-	cls, err := clq.Limit(1).All(ctx)
+	nodes, err := clq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
-	if len(cls) == 0 {
+	if len(nodes) == 0 {
 		return nil, &NotFoundError{cardlog.Label}
 	}
-	return cls[0], nil
+	return nodes[0], nil
 }
 
 // FirstX is like First, but panics if an error occurs.
 func (clq *CardLogQuery) FirstX(ctx context.Context) *CardLog {
-	cl, err := clq.First(ctx)
+	node, err := clq.First(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
 	}
-	return cl
+	return node
 }
 
 // FirstID returns the first CardLog id in the query. Returns *NotFoundError when no id was found.
@@ -128,8 +136,8 @@ func (clq *CardLogQuery) FirstID(ctx context.Context) (id int, err error) {
 	return ids[0], nil
 }
 
-// FirstXID is like FirstID, but panics if an error occurs.
-func (clq *CardLogQuery) FirstXID(ctx context.Context) int {
+// FirstIDX is like FirstID, but panics if an error occurs.
+func (clq *CardLogQuery) FirstIDX(ctx context.Context) int {
 	id, err := clq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -139,13 +147,13 @@ func (clq *CardLogQuery) FirstXID(ctx context.Context) int {
 
 // Only returns the only CardLog entity in the query, returns an error if not exactly one entity was returned.
 func (clq *CardLogQuery) Only(ctx context.Context) (*CardLog, error) {
-	cls, err := clq.Limit(2).All(ctx)
+	nodes, err := clq.Limit(2).All(ctx)
 	if err != nil {
 		return nil, err
 	}
-	switch len(cls) {
+	switch len(nodes) {
 	case 1:
-		return cls[0], nil
+		return nodes[0], nil
 	case 0:
 		return nil, &NotFoundError{cardlog.Label}
 	default:
@@ -155,11 +163,11 @@ func (clq *CardLogQuery) Only(ctx context.Context) (*CardLog, error) {
 
 // OnlyX is like Only, but panics if an error occurs.
 func (clq *CardLogQuery) OnlyX(ctx context.Context) *CardLog {
-	cl, err := clq.Only(ctx)
+	node, err := clq.Only(ctx)
 	if err != nil {
 		panic(err)
 	}
-	return cl
+	return node
 }
 
 // OnlyID returns the only CardLog id in the query, returns an error if not exactly one id was returned.
@@ -198,11 +206,11 @@ func (clq *CardLogQuery) All(ctx context.Context) ([]*CardLog, error) {
 
 // AllX is like All, but panics if an error occurs.
 func (clq *CardLogQuery) AllX(ctx context.Context) []*CardLog {
-	cls, err := clq.All(ctx)
+	nodes, err := clq.All(ctx)
 	if err != nil {
 		panic(err)
 	}
-	return cls
+	return nodes
 }
 
 // IDs executes the query and returns a list of CardLog ids.
@@ -260,6 +268,9 @@ func (clq *CardLogQuery) ExistX(ctx context.Context) bool {
 // Clone returns a duplicate of the query builder, including all associated steps. It can be
 // used to prepare common query builders and use them differently after the clone is made.
 func (clq *CardLogQuery) Clone() *CardLogQuery {
+	if clq == nil {
+		return nil
+	}
 	return &CardLogQuery{
 		config:     clq.config,
 		limit:      clq.limit,
@@ -267,6 +278,8 @@ func (clq *CardLogQuery) Clone() *CardLogQuery {
 		order:      append([]OrderFunc{}, clq.order...),
 		unique:     append([]string{}, clq.unique...),
 		predicates: append([]predicate.CardLog{}, clq.predicates...),
+		withUser:   clq.withUser.Clone(),
+		withCard:   clq.withCard.Clone(),
 		// clone intermediate query.
 		sql:  clq.sql.Clone(),
 		path: clq.path,
@@ -492,7 +505,7 @@ func (clq *CardLogQuery) querySpec() *sqlgraph.QuerySpec {
 	if ps := clq.order; len(ps) > 0 {
 		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
-				ps[i](selector)
+				ps[i](selector, cardlog.ValidColumn)
 			}
 		}
 	}
@@ -511,7 +524,7 @@ func (clq *CardLogQuery) sqlQuery() *sql.Selector {
 		p(selector)
 	}
 	for _, p := range clq.order {
-		p(selector)
+		p(selector, cardlog.ValidColumn)
 	}
 	if offset := clq.offset; offset != nil {
 		// limit is mandatory for offset clause. We start
@@ -746,8 +759,17 @@ func (clgb *CardLogGroupBy) BoolX(ctx context.Context) bool {
 }
 
 func (clgb *CardLogGroupBy) sqlScan(ctx context.Context, v interface{}) error {
+	for _, f := range clgb.fields {
+		if !cardlog.ValidColumn(f) {
+			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
+		}
+	}
+	selector := clgb.sqlQuery()
+	if err := selector.Err(); err != nil {
+		return err
+	}
 	rows := &sql.Rows{}
-	query, args := clgb.sqlQuery().Query()
+	query, args := selector.Query()
 	if err := clgb.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
@@ -760,7 +782,7 @@ func (clgb *CardLogGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(clgb.fields)+len(clgb.fns))
 	columns = append(columns, clgb.fields...)
 	for _, fn := range clgb.fns {
-		columns = append(columns, fn(selector))
+		columns = append(columns, fn(selector, cardlog.ValidColumn))
 	}
 	return selector.Select(columns...).GroupBy(clgb.fields...)
 }
@@ -980,6 +1002,11 @@ func (cls *CardLogSelect) BoolX(ctx context.Context) bool {
 }
 
 func (cls *CardLogSelect) sqlScan(ctx context.Context, v interface{}) error {
+	for _, f := range cls.fields {
+		if !cardlog.ValidColumn(f) {
+			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for selection", f)}
+		}
+	}
 	rows := &sql.Rows{}
 	query, args := cls.sqlQuery().Query()
 	if err := cls.driver.Query(ctx, query, args, rows); err != nil {

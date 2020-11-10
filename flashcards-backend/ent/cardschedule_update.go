@@ -19,14 +19,13 @@ import (
 // CardScheduleUpdate is the builder for updating CardSchedule entities.
 type CardScheduleUpdate struct {
 	config
-	hooks      []Hook
-	mutation   *CardScheduleMutation
-	predicates []predicate.CardSchedule
+	hooks    []Hook
+	mutation *CardScheduleMutation
 }
 
 // Where adds a new predicate for the builder.
 func (csu *CardScheduleUpdate) Where(ps ...predicate.CardSchedule) *CardScheduleUpdate {
-	csu.predicates = append(csu.predicates, ps...)
+	csu.mutation.predicates = append(csu.mutation.predicates, ps...)
 	return csu
 }
 
@@ -79,13 +78,13 @@ func (csu *CardScheduleUpdate) Mutation() *CardScheduleMutation {
 	return csu.mutation
 }
 
-// ClearUser clears the user edge to User.
+// ClearUser clears the "user" edge to type User.
 func (csu *CardScheduleUpdate) ClearUser() *CardScheduleUpdate {
 	csu.mutation.ClearUser()
 	return csu
 }
 
-// ClearCard clears the card edge to Word.
+// ClearCard clears the "card" edge to type Word.
 func (csu *CardScheduleUpdate) ClearCard() *CardScheduleUpdate {
 	csu.mutation.ClearCard()
 	return csu
@@ -93,25 +92,24 @@ func (csu *CardScheduleUpdate) ClearCard() *CardScheduleUpdate {
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (csu *CardScheduleUpdate) Save(ctx context.Context) (int, error) {
-	if _, ok := csu.mutation.UpdateTime(); !ok {
-		v := cardschedule.UpdateDefaultUpdateTime()
-		csu.mutation.SetUpdateTime(v)
-	}
-
-	if _, ok := csu.mutation.CardID(); csu.mutation.CardCleared() && !ok {
-		return 0, errors.New("ent: clearing a unique edge \"card\"")
-	}
 	var (
 		err      error
 		affected int
 	)
+	csu.defaults()
 	if len(csu.hooks) == 0 {
+		if err = csu.check(); err != nil {
+			return 0, err
+		}
 		affected, err = csu.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*CardScheduleMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			if err = csu.check(); err != nil {
+				return 0, err
 			}
 			csu.mutation = mutation
 			affected, err = csu.sqlSave(ctx)
@@ -150,6 +148,22 @@ func (csu *CardScheduleUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (csu *CardScheduleUpdate) defaults() {
+	if _, ok := csu.mutation.UpdateTime(); !ok {
+		v := cardschedule.UpdateDefaultUpdateTime()
+		csu.mutation.SetUpdateTime(v)
+	}
+}
+
+// check runs all checks and user-defined validators on the builder.
+func (csu *CardScheduleUpdate) check() error {
+	if _, ok := csu.mutation.CardID(); csu.mutation.CardCleared() && !ok {
+		return errors.New("ent: clearing a required unique edge \"card\"")
+	}
+	return nil
+}
+
 func (csu *CardScheduleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
@@ -161,7 +175,7 @@ func (csu *CardScheduleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			},
 		},
 	}
-	if ps := csu.predicates; len(ps) > 0 {
+	if ps := csu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
@@ -319,13 +333,13 @@ func (csuo *CardScheduleUpdateOne) Mutation() *CardScheduleMutation {
 	return csuo.mutation
 }
 
-// ClearUser clears the user edge to User.
+// ClearUser clears the "user" edge to type User.
 func (csuo *CardScheduleUpdateOne) ClearUser() *CardScheduleUpdateOne {
 	csuo.mutation.ClearUser()
 	return csuo
 }
 
-// ClearCard clears the card edge to Word.
+// ClearCard clears the "card" edge to type Word.
 func (csuo *CardScheduleUpdateOne) ClearCard() *CardScheduleUpdateOne {
 	csuo.mutation.ClearCard()
 	return csuo
@@ -333,25 +347,24 @@ func (csuo *CardScheduleUpdateOne) ClearCard() *CardScheduleUpdateOne {
 
 // Save executes the query and returns the updated entity.
 func (csuo *CardScheduleUpdateOne) Save(ctx context.Context) (*CardSchedule, error) {
-	if _, ok := csuo.mutation.UpdateTime(); !ok {
-		v := cardschedule.UpdateDefaultUpdateTime()
-		csuo.mutation.SetUpdateTime(v)
-	}
-
-	if _, ok := csuo.mutation.CardID(); csuo.mutation.CardCleared() && !ok {
-		return nil, errors.New("ent: clearing a unique edge \"card\"")
-	}
 	var (
 		err  error
 		node *CardSchedule
 	)
+	csuo.defaults()
 	if len(csuo.hooks) == 0 {
+		if err = csuo.check(); err != nil {
+			return nil, err
+		}
 		node, err = csuo.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*CardScheduleMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			if err = csuo.check(); err != nil {
+				return nil, err
 			}
 			csuo.mutation = mutation
 			node, err = csuo.sqlSave(ctx)
@@ -370,11 +383,11 @@ func (csuo *CardScheduleUpdateOne) Save(ctx context.Context) (*CardSchedule, err
 
 // SaveX is like Save, but panics if an error occurs.
 func (csuo *CardScheduleUpdateOne) SaveX(ctx context.Context) *CardSchedule {
-	cs, err := csuo.Save(ctx)
+	node, err := csuo.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
-	return cs
+	return node
 }
 
 // Exec executes the query on the entity.
@@ -390,7 +403,23 @@ func (csuo *CardScheduleUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
-func (csuo *CardScheduleUpdateOne) sqlSave(ctx context.Context) (cs *CardSchedule, err error) {
+// defaults sets the default values of the builder before save.
+func (csuo *CardScheduleUpdateOne) defaults() {
+	if _, ok := csuo.mutation.UpdateTime(); !ok {
+		v := cardschedule.UpdateDefaultUpdateTime()
+		csuo.mutation.SetUpdateTime(v)
+	}
+}
+
+// check runs all checks and user-defined validators on the builder.
+func (csuo *CardScheduleUpdateOne) check() error {
+	if _, ok := csuo.mutation.CardID(); csuo.mutation.CardCleared() && !ok {
+		return errors.New("ent: clearing a required unique edge \"card\"")
+	}
+	return nil
+}
+
+func (csuo *CardScheduleUpdateOne) sqlSave(ctx context.Context) (_node *CardSchedule, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   cardschedule.Table,
@@ -490,9 +519,9 @@ func (csuo *CardScheduleUpdateOne) sqlSave(ctx context.Context) (cs *CardSchedul
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	cs = &CardSchedule{config: csuo.config}
-	_spec.Assign = cs.assignValues
-	_spec.ScanValues = cs.scanValues()
+	_node = &CardSchedule{config: csuo.config}
+	_spec.Assign = _node.assignValues
+	_spec.ScanValues = _node.scanValues()
 	if err = sqlgraph.UpdateNode(ctx, csuo.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{cardschedule.Label}
@@ -501,5 +530,5 @@ func (csuo *CardScheduleUpdateOne) sqlSave(ctx context.Context) (cs *CardSchedul
 		}
 		return nil, err
 	}
-	return cs, nil
+	return _node, nil
 }
