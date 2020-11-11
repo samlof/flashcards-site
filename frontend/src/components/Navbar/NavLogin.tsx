@@ -1,11 +1,11 @@
 import React from "react";
-import StyledFirebaseAuth from "react-firebaseui/StyledFirebaseAuth";
 import ReactModal from "react-modal";
 import { FbApp, FbAuthUiConf } from "../../lib/firebase";
 import { useUser } from "../../lib/user";
 import NavItem from "./NavItem";
 import { useApollo } from "../../lib/apolloClient";
 import { delayMs } from "../../helpers/delay";
+import FirebaseAuth from "../../lib/FirebaseAuth";
 
 // Make sure to bind modal to your appElement (http://reactcommunity.org/react-modal/accessibility/)
 ReactModal.setAppElement("#__next");
@@ -43,8 +43,6 @@ const NavLogin = ({}: Props) => {
   if (user.loading) return null;
 
   FbAuthUiConf.callbacks.signInSuccessWithAuthResult = () => {
-    console.log("login callback");
-
     closeModal();
 
     delayMs(100)
@@ -61,10 +59,7 @@ const NavLogin = ({}: Props) => {
         style={customStyles}
         onRequestClose={closeModal}
       >
-        <StyledFirebaseAuth
-          uiConfig={FbAuthUiConf}
-          firebaseAuth={FbApp.auth()}
-        />
+        <FirebaseAuth uiConfig={FbAuthUiConf} firebaseAuth={FbApp.auth()} />
       </ReactModal>
     </>
   );
