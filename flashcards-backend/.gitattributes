@@ -14,3 +14,4 @@
 # with LF endings. See golang.org/issue/37791 for more information.
 
 *.bat text eol=crlf
+*.go text eol=lf 
