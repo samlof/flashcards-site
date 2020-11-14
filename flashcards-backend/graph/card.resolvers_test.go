@@ -1,7 +1,8 @@
-package graph
+package graph_test
 
 import (
 	"context"
+	"flashcards-backend/auth"
 	"flashcards-backend/ent/cardlog"
 	"flashcards-backend/graph/model"
 	"testing"
@@ -11,6 +12,9 @@ func TestCardStatus(t *testing.T) {
 	resolver := makeResolver(t)
 
 	ctx := context.Background()
+	
+	ctx, _ = auth.SetUser(ctx, resolver.DB)
+
 	newWord := model.NewWord{
 		Lang1: "fi",
 		Lang2: "en",

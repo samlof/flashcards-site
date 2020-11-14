@@ -1,15 +1,16 @@
-package graph
+package graph_test
 
 import (
 	"flashcards-backend/ent"
 	"flashcards-backend/ent/enttest"
 	"flashcards-backend/ent/migrate"
+	"flashcards-backend/graph"
 	"testing"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func makeResolver(t *testing.T) *Resolver {
+func makeResolver(t *testing.T) *graph.Resolver {
 	t.Helper()
 	opts := []enttest.Option{
 		enttest.WithOptions(ent.Log(t.Log)),
@@ -25,7 +26,7 @@ func makeResolver(t *testing.T) *Resolver {
 		}
 	})
 
-	return &Resolver{
+	return &graph.Resolver{
 		DB: client,
 	}
 }
